@@ -1,7 +1,8 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { API_ROUTES } from '@/lib/api-routes';
 import { Play, Plus, ThumbsUp, Share2, ChevronDown, Star } from 'lucide-react';
 import ContentRow from '@/components/catalog/ContentRow';
 import Link from 'next/link';
@@ -25,11 +26,37 @@ const MOCK_RELATED = Array.from({ length: 8 }, (_, i) => ({
   year: 2022 + Math.floor(Math.random() * 3),
   quality: ['HD', '4K'][Math.floor(Math.random() * 2)],
 }));
-
 export default function FilmDetailPage() {
   const params = useParams();
   const id = params.id as string;
   const [activeTab, setActiveTab] = useState<'episodes' | 'related' | 'details'>('related');
+  const [content, setContent] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const res = await fetch(`${API_ROUTES.CONTENT.BASE}/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setContent(data);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchContent();
+  }, [id]);
+
+  if (loading) return <div className="h-screen bg-black flex items-center justify-center text-white">Cargando...</div>;
+  if (!content) return <div className="h-screen bg-black flex items-center justify-center text-white">No encontrado</div>;
+
+  const translation = content.translations?.[0] || { title: 'Sin título', description: '' };
+  const poster = content.thumbnails?.find((t: any) => t.type === 'POSTER')?.url || DEMO_BACKDROP;
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:4000';
+  const posterUrl = poster.startsWith('http') ? poster : `${backendUrl}${poster}`;
 
   return (
     <main className="min-h-screen">
@@ -37,7 +64,7 @@ export default function FilmDetailPage() {
       <section className="relative h-[70vh] min-h-[500px] w-full overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${DEMO_BACKDROP})` }}
+          style={{ backgroundImage: `url(${posterUrl})` }}
         />
         {/* Vignette overlays */}
         <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-bg)] via-transparent to-transparent" />
@@ -47,31 +74,28 @@ export default function FilmDetailPage() {
         <div className="absolute bottom-0 left-0 right-0 px-[var(--page-padding)] pb-12 z-10">
           <div className="max-w-2xl animate-fadeSlideUp">
             <div className="flex items-center gap-3 mb-3">
-              <span className="badge badge-trending">TOP 10</span>
+              {content.featured && <span className="badge badge-trending">TOP 10</span>}
               <span className="badge badge-new">NUEVO</span>
             </div>
 
             <h1 className="text-6xl font-bold mb-4" style={{ fontFamily: 'var(--font-display)', lineHeight: 0.9, letterSpacing: '2px' }}>
-              TÍTULO DE DEMOSTRACIÓN
+              {translation.title.toUpperCase()}
             </h1>
 
             <div className="flex items-center gap-3 text-[var(--color-text-muted)] text-sm font-semibold mb-4">
               <span className="text-[var(--color-success)] font-bold text-base">97% para ti</span>
-              <span>2024</span>
+              <span>{content.releaseYear}</span>
               <span className="rating-badge">16+</span>
-              <span>2h 35min</span>
-              <span className="quality-badge">4K</span>
-              <span className="quality-badge">HDR</span>
+              <span>{content.duration} min</span>
+              <span className="quality-badge">HD</span>
               <div className="flex items-center gap-1 text-yellow-400">
                 <Star size={14} fill="currentColor" />
-                <span>8.7</span>
+                <span>{content.rating || '8.5'}</span>
               </div>
             </div>
 
             <p className="text-[var(--color-text-secondary)] text-base leading-relaxed mb-6 max-w-xl">
-              Una épica aventura cinematográfica que redefine el género. Sumérgete en un mundo de intriga,
-              acción y emoción que no podrás dejar de ver. Con actuaciones memorables y efectos visuales
-              de última generación.
+              {translation.description}
             </p>
 
             {/* Action Buttons */}
@@ -82,17 +106,17 @@ export default function FilmDetailPage() {
               </Link>
 
               <button className="w-11 h-11 rounded-full border-2 border-white/40 flex items-center justify-center
-                               hover:border-white transition bg-black/30 backdrop-blur-sm">
+                                hover:border-white transition bg-black/30 backdrop-blur-sm">
                 <Plus size={22} />
               </button>
 
               <button className="w-11 h-11 rounded-full border-2 border-white/40 flex items-center justify-center
-                               hover:border-white transition bg-black/30 backdrop-blur-sm">
+                                hover:border-white transition bg-black/30 backdrop-blur-sm">
                 <ThumbsUp size={20} />
               </button>
 
               <button className="w-11 h-11 rounded-full border-2 border-white/40 flex items-center justify-center
-                               hover:border-white transition bg-black/30 backdrop-blur-sm">
+                                hover:border-white transition bg-black/30 backdrop-blur-sm">
                 <Share2 size={18} />
               </button>
             </div>

@@ -65,7 +65,7 @@ export default function LoginPage() {
       >
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 mb-10 text-[#E50914] font-bold text-3xl" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
-          PELIPLUS
+         FlexStreaming
         </Link>
 
         <h1 className="auth-title">Bienvenido de vuelta</h1>

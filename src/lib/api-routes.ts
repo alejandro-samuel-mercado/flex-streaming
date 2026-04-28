@@ -18,6 +18,7 @@ export const API_ROUTES = {
     VERIFY_PIN: (id: string) => `${API_BASE_URL}/profiles/${id}/verify-pin`,
   },
   CONTENT: {
+    BASE: `${API_BASE_URL}/content`,
     LIST: `${API_BASE_URL}/content`,
     DETAIL: (id: string) => `${API_BASE_URL}/content/${id}`,
     FEATURED: `${API_BASE_URL}/content/featured`,
@@ -36,6 +37,7 @@ export const API_ROUTES = {
   },
   PLATFORMS: {
     LIST: `${API_BASE_URL}/platforms`,
+    CREATE: `${API_BASE_URL}/platforms`,
     DETAIL: (slug: string) => `${API_BASE_URL}/platforms/${slug}`,
   },
   SEARCH: {
@@ -63,5 +65,6 @@ export const API_ROUTES = {
     USERS: `${API_BASE_URL}/admin/users`,
     SETTINGS: `${API_BASE_URL}/admin/settings`,
     VIDEOS_STATUS: `${API_BASE_URL}/admin/videos/status`,
+    UPLOAD: `${API_BASE_URL}/upload`,
   },
 } as const;
