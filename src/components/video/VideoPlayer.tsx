@@ -31,6 +31,10 @@ export default function VideoPlayer({ src, title, poster, onEnded }: VideoPlayer
     const [isAudioMenuOpen, setIsAudioMenuOpen] = useState(false);
     const [isSubtitleMenuOpen, setIsSubtitleMenuOpen] = useState(false);
 
+    const [levels, setLevels] = useState<any[]>([]);
+    const [currentLevel, setCurrentLevel] = useState(-1);
+    const [isQualityMenuOpen, setIsQualityMenuOpen] = useState(false);
+
     const hlsRef = useRef<Hls | null>(null);
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -54,6 +58,15 @@ export default function VideoPlayer({ src, title, poster, onEnded }: VideoPlayer
                 setCurrentAudio(hls?.audioTrack || -1);
                 setSubtitleTracks(hls?.subtitleTracks || []);
                 setCurrentSubtitle(hls?.subtitleTrack || -1);
+                
+                // Get available quality levels
+                const availableLevels = hls?.levels || [];
+                setLevels(availableLevels);
+                setCurrentLevel(hls?.currentLevel || -1);
+            });
+
+            hls.on(Hls.Events.LEVEL_SWITCHED, (_event, data) => {
+                setCurrentLevel(data.level);
             });
 
             hls.on(Hls.Events.AUDIO_TRACK_SWITCHED, () => {
@@ -119,6 +132,14 @@ export default function VideoPlayer({ src, title, poster, onEnded }: VideoPlayer
         if (hlsRef.current) {
             hlsRef.current.audioTrack = id;
             setIsAudioMenuOpen(false);
+        }
+    };
+
+    const changeLevel = (id: number) => {
+        if (hlsRef.current) {
+            hlsRef.current.currentLevel = id;
+            setCurrentLevel(id);
+            setIsQualityMenuOpen(false);
         }
     };
 
@@ -351,10 +372,50 @@ export default function VideoPlayer({ src, title, poster, onEnded }: VideoPlayer
                     </div>
 
                     <div className="flex items-center gap-10">
+                        {/* Quality Selection */}
+                        <div className="relative">
+                            <button
+                                onClick={() => { 
+                                    setIsQualityMenuOpen(!isQualityMenuOpen); 
+                                    setIsAudioMenuOpen(false); 
+                                    setIsSubtitleMenuOpen(false); 
+                                }}
+                                className={`flex flex-col items-center gap-1 text-white/60 hover:text-white transition-all ${isQualityMenuOpen ? 'text-[var(--color-primary)]' : ''}`}
+                            >
+                                <Settings size={28} />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Calidad</span>
+                            </button>
+                            {isQualityMenuOpen && levels.length > 0 && (
+                                <div className="absolute bottom-16 right-0 bg-black/90 backdrop-blur-3xl border border-white/10 rounded-2xl p-3 min-w-[200px] shadow-2xl animate-fadeSlideUp">
+                                    <p className="text-[10px] font-black uppercase tracking-[3px] text-white/40 mb-3 px-4">Calidad de Video</p>
+                                    <button
+                                        onClick={() => changeLevel(-1)}
+                                        className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${currentLevel === -1 ? 'bg-[var(--color-primary)] text-white shadow-[0_0_20px_var(--color-primary-glow)]' : 'text-white/80 hover:bg-white/10'}`}
+                                    >
+                                        Auto (Recomendado)
+                                    </button>
+                                    <div className="h-px bg-white/5 my-2" />
+                                    {levels.map((level, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => changeLevel(idx)}
+                                            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${currentLevel === idx ? 'bg-[var(--color-primary)] text-white shadow-[0_0_20px_var(--color-primary-glow)]' : 'text-white/80 hover:bg-white/10'}`}
+                                        >
+                                            {level.height}p {level.bitrate ? `(${(level.bitrate / 1000000).toFixed(1)} Mbps)` : ''}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
                         {/* Audio tracks */}
                         <div className="relative">
                             <button
-                                onClick={() => { setIsAudioMenuOpen(!isAudioMenuOpen); setIsSubtitleMenuOpen(false); }}
+                                onClick={() => { 
+                                    setIsAudioMenuOpen(!isAudioMenuOpen); 
+                                    setIsSubtitleMenuOpen(false); 
+                                    setIsQualityMenuOpen(false);
+                                }}
                                 className={`flex flex-col items-center gap-1 text-white/60 hover:text-white transition-all ${isAudioMenuOpen ? 'text-[var(--color-primary)]' : ''}`}
                             >
                                 <Headphones size={28} />
@@ -379,7 +440,11 @@ export default function VideoPlayer({ src, title, poster, onEnded }: VideoPlayer
                         {/* Subtitles */}
                         <div className="relative">
                             <button
-                                onClick={() => { setIsSubtitleMenuOpen(!isSubtitleMenuOpen); setIsAudioMenuOpen(false); }}
+                                onClick={() => { 
+                                    setIsSubtitleMenuOpen(!isSubtitleMenuOpen); 
+                                    setIsAudioMenuOpen(false); 
+                                    setIsQualityMenuOpen(false);
+                                }}
                                 className={`flex flex-col items-center gap-1 text-white/60 hover:text-white transition-all ${isSubtitleMenuOpen ? 'text-[var(--color-primary)]' : ''}`}
                             >
                                 <MessageSquare size={28} />
