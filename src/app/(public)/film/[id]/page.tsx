@@ -146,12 +146,12 @@ export default function FilmDetailPage() {
                         {/* Massive Action Buttons */}
                         <div className="flex items-center gap-4 md:gap-6 flex-wrap">
                             <Link href={`/watch/${id}`}
-                                className="flex items-center gap-3 md:gap-4 px-8 md:px-14 py-4 md:py-5 bg-gradient-to-r from-[#00E5FF] to-[#0099AA] text-black font-black rounded-xl hover:from-[#4DEDFF] hover:to-[#00E5FF] transition-all hover:scale-[1.03] active:scale-95 shadow-[0_10px_30px_rgba(0,229,255,0.4)] text-sm md:text-base">
+                                className="flex items-center gap-3! md:gap-4! px-8! md:px-14! py-4! md:py-5! bg-gradient-to-r from-[#00E5FF] to-[#0099AA] text-black font-black rounded-xl hover:from-[#4DEDFF] hover:to-[#00E5FF] transition-all hover:scale-[1.03] active:scale-95 shadow-[0_10px_30px_rgba(0,229,255,0.4)] text-sm md:text-base">
                                 <Play size={24} fill="black" className="md:w-7 md:h-7" />
                                 REPRODUCIR
                             </Link>
 
-                            <button className="flex items-center gap-3 px-6 md:px-10 py-4 md:py-5 bg-[#080d24]/60 backdrop-blur-2xl border border-[#00E5FF]/30 text-white font-bold rounded-xl hover:border-[#00E5FF] hover:bg-[#00E5FF]/10 hover:text-[#00E5FF] hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all active:scale-95 shadow-2xl text-sm md:text-base">
+                            <button className="flex items-center gap-3! md:gap-4! px-6! md:px-10! py-4! md:py-5! bg-[#080d24]/60 backdrop-blur-2xl border border-[#00E5FF]/30 text-white font-bold rounded-xl hover:border-[#00E5FF] hover:bg-[#00E5FF]/10 hover:text-[#00E5FF] hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all active:scale-95 shadow-2xl text-sm md:text-base">
                                 <MonitorPlay size={24} />
                                 TRÁILER
                             </button>
