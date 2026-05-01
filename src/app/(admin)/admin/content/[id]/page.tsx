@@ -30,6 +30,7 @@ interface ContentData {
   translations: Translation[];
   platforms: { id: string; name: string }[];
   categories: { id: string; name: string }[];
+  videoFiles?: {
       id: string;
       status: string;
       type: string;
@@ -220,7 +221,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
       console.error(err);
       setError('Error de conexión al subir imagen');
     } finally {
-      setUploadingVideo(false);
+      setUploadingImage(null);
     }
   };
 
