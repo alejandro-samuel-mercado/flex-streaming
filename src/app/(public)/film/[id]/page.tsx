@@ -63,8 +63,13 @@ export default function FilmDetailPage() {
     const resolveUrl = (url: string) => {
         if (!url) return DEMO_BACKDROP;
         if (url.startsWith('http')) return url;
-        const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:4000';
-        return `${backendUrl}${url}`;
+        try {
+            const publicApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+            const backendUrl = new URL(publicApiUrl).origin;
+            return `${backendUrl}${url}`;
+        } catch (e) {
+            return url;
+        }
     };
 
     const backdropUrl = resolveUrl(backdrop);

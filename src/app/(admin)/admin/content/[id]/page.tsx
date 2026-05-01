@@ -155,8 +155,14 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
   const resolveImageUrl = (url?: string) => {
     if (!url) return null;
     if (url.startsWith('http')) return url;
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:4000';
-    return `${backendUrl}${url}`;
+    
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+      const backendUrl = new URL(apiUrl).origin;
+      return `${backendUrl}${url}`;
+    } catch (e) {
+      return url;
+    }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'POSTER' | 'BACKDROP') => {

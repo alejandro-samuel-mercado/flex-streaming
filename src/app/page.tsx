@@ -84,15 +84,22 @@ interface HomepageData {
     config: Record<string, string>;
 }
 
+const DEMO_BACKDROP = 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=2574&auto=format&fit=crop';
+
 function mapContentToFilm(c: any) {
-    const API_URL = 'http://localhost:4000';
     const title = c.translations?.[0]?.title || c.slug || 'Sin título';
     const desc = c.translations?.[0]?.description || '';
     
-    const resolveUrl = (url?: string) => {
-        if (!url) return null;
+    const resolveUrl = (url: string) => {
+        if (!url) return DEMO_BACKDROP;
         if (url.startsWith('http')) return url;
-        return `${API_URL}${url}`;
+        try {
+            const publicApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+            const backendUrl = new URL(publicApiUrl).origin;
+            return `${backendUrl}${url}`;
+        } catch (e) {
+            return url;
+        }
     };
 
     const poster = resolveUrl(c.thumbnails?.find((t: any) => t.type === 'POSTER')?.url);
