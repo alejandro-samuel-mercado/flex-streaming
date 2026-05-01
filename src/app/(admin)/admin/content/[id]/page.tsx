@@ -11,6 +11,7 @@ import {
 import { API_ROUTES } from '@/lib/api-routes';
 import { adminFetch } from '@/lib/admin-api';
 import VideoPlayer from '@/components/video/VideoPlayer';
+import { createPortal } from 'react-dom';
 
 interface Translation {
   id?: string;
@@ -113,20 +114,6 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  // Handle VideoPlayer router.back() so it closes the modal instead of leaving the page
-  useEffect(() => {
-    if (activeVideo) {
-      window.history.pushState({ videoOpen: true }, '');
-      const handlePop = () => {
-        setActiveVideo(null);
-      };
-      window.addEventListener('popstate', handlePop);
-      return () => {
-        window.removeEventListener('popstate', handlePop);
-      };
-    }
-  }, [activeVideo]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -595,20 +582,44 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
             <h2>Archivos de Video y Previsualización</h2>
           </div>
           <div className="adm-settings-body">
-            {/* Embedded Player Overlay */}
-            {activeVideo && (
+            {/* Embedded Player Overlay via Portal to escape stacking context */}
+            {activeVideo && typeof window !== 'undefined' && createPortal(
               <div style={{ 
                 position: 'fixed',
                 inset: 0,
-                zIndex: 9999,
+                zIndex: 999999,
                 background: 'black', 
               }}>
+                <button 
+                  onClick={() => setActiveVideo(null)}
+                  style={{
+                    position: 'absolute',
+                    top: 20,
+                    right: 20,
+                    zIndex: 9999999,
+                    background: 'rgba(229, 9, 20, 0.8)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontSize: '1rem',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+                  }}
+                >
+                  <X size={20} /> CERRAR VISTA PREVIA
+                </button>
                 <VideoPlayer 
                   src={activeVideo.url} 
                   title={activeVideo.title}
                   poster={resolveImageUrl(data?.thumbnails?.find(t => t.type === 'BACKDROP')?.url) || undefined}
                 />
-              </div>
+              </div>,
+              document.body
             )}
 
             {!data?.videoFiles || data.videoFiles.length === 0 ? (
