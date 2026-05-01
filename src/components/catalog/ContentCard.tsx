@@ -12,10 +12,13 @@ interface ContentCardProps {
   year?: number;
   quality?: string;
   isLarge?: boolean;
+  rating?: number;
+  duration?: number;
+  genres?: string[];
 }
 
 export default function ContentCard({
-  id, title, imageUrl, match, type, year, quality, isLarge = false
+  id, title, imageUrl, match, type, year, quality, isLarge = false, rating, duration, genres
 }: ContentCardProps) {
   return (
     <Link
@@ -25,36 +28,55 @@ export default function ContentCard({
       <img src={imageUrl} alt={title} className="poster-img" loading="lazy" />
 
       <div className="poster-info">
-        <span className="poster-title">{title}</span>
-        <div className="poster-meta">
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <span className="poster-title truncate flex-1">{title}</span>
+          {rating && (
+            <div className="flex items-center gap-1 text-[10px] font-black text-[var(--color-primary)] bg-[var(--color-primary-glow)] px-1.5 py-0.5 rounded">
+              ★ {rating.toFixed(1)}
+            </div>
+          )}
+        </div>
+        
+        <div className="poster-meta flex-wrap">
           {match && <span className="match-score">{match}</span>}
           {year && <span>{year}</span>}
-          {quality && <span className="badge-quality">{quality}</span>}
-          {type && <span className="text-gray-400">{type}</span>}
+          {duration && <span>{duration} min</span>}
+          {quality && <span className="badge-quality text-[9px] py-0.5 px-1.5">{quality}</span>}
+          {type && <span className="text-white/40 uppercase text-[9px] font-bold">{type}</span>}
         </div>
 
-        {/* Quick action buttons */}
-        <div className="flex gap-2 mt-1">
+        {genres && genres.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {genres.slice(0, 2).map(g => (
+              <span key={g} className="text-[9px] text-white/50 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                {g}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Quick action buttons - Spaced and Premium */}
+        <div className="flex items-center gap-3 mt-2">
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-            className="w-7 h-7 rounded-full border border-white/40 flex items-center justify-center hover:border-white transition bg-black/40"
+            className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:bg-gray-200 transition-all active:scale-90"
             aria-label="Reproducir"
           >
-            <Play size={12} fill="white" />
+            <Play size={18} fill="currentColor" />
           </button>
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-            className="w-7 h-7 rounded-full border border-white/40 flex items-center justify-center hover:border-white transition bg-black/40"
+            className="w-10 h-10 rounded-full border-2 border-white/20 bg-white/5 backdrop-blur-md flex items-center justify-center hover:border-white hover:bg-white/10 transition-all text-white active:scale-90"
             aria-label="Mi lista"
           >
-            <Plus size={14} />
+            <Plus size={22} />
           </button>
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-            className="w-7 h-7 rounded-full border border-white/40 flex items-center justify-center hover:border-white transition bg-black/40 ml-auto"
+            className="w-10 h-10 rounded-full border-2 border-white/20 bg-white/5 backdrop-blur-md flex items-center justify-center hover:border-white hover:bg-white/10 transition-all text-white active:scale-90 ml-auto"
             aria-label="Más info"
           >
-            <Info size={12} />
+            <Info size={18} />
           </button>
         </div>
       </div>

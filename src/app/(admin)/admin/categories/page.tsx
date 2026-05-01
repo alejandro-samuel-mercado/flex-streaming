@@ -1,55 +1,125 @@
 'use client';
 
-import { Tag, Plus, Search } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Tag, Plus, Search, Trash2, Loader2, X } from 'lucide-react';
+import { API_ROUTES } from '@/lib/api-routes';
 
-// ContentType is a Prisma Enum — read-only from the DB
-const CONTENT_TYPES = ['MOVIE', 'SERIES', 'ANIME', 'DOCUMENTARY', 'SHORT'];
-
-const TAGS_MOCK = [
-  { id: '1', name: 'Acción', slug: 'accion', count: 42 },
-  { id: '2', name: 'Drama', slug: 'drama', count: 38 },
-  { id: '3', name: 'Comedia', slug: 'comedia', count: 27 },
-  { id: '4', name: 'Terror', slug: 'terror', count: 19 },
-  { id: '5', name: 'Sci-Fi', slug: 'sci-fi', count: 33 },
-  { id: '6', name: 'Animación', slug: 'animacion', count: 15 },
-  { id: '7', name: 'Thriller', slug: 'thriller', count: 24 },
-  { id: '8', name: 'Romance', slug: 'romance', count: 11 },
-];
+interface Category { id: string; name: string; slug: string; count?: number; }
 
 export default function AdminCategoriesPage() {
+  const [genres, setGenres] = useState<Category[]>([]);
+  const [tags, setTags] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newTagName, setNewTagName] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      const headers = { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
+
+      const [genresRes, tagsRes] = await Promise.all([
+        fetch(API_ROUTES.CATEGORIES.GENRES, { headers }),
+        fetch(API_ROUTES.CATEGORIES.TAGS, { headers })
+      ]);
+
+      const [genresData, tagsData] = await Promise.all([
+        genresRes.json(),
+        tagsRes.json()
+      ]);
+
+      setGenres(genresData.data ?? []);
+      setTags(tagsData.data ?? []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleCreateTag = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTagName) return;
+    setSubmitting(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(API_ROUTES.CATEGORIES.TAGS, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ name: newTagName, slug: newTagName.toLowerCase().replace(/\s+/g, '-') })
+      });
+      if (res.ok) {
+        setIsModalOpen(false);
+        setNewTagName('');
+        fetchData();
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteTag = async (id: string, name: string) => {
+    if (!window.confirm(`¿Eliminar etiqueta "${name}"?`)) return;
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(API_ROUTES.CATEGORIES.DELETE_TAG(id), {
+        method: 'DELETE',
+        headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+      });
+      if (res.ok) fetchData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className="adm-page">
       <div className="adm-page-header">
         <div>
           <h1 className="adm-page-title">Categorías</h1>
-          <p className="adm-page-subtitle">Tipos de contenido y etiquetas del catálogo</p>
+          <p className="adm-page-subtitle">Géneros y etiquetas para clasificar el contenido</p>
         </div>
-        <button className="adm-btn adm-btn--primary"><Plus size={16} /> Nueva etiqueta</button>
+        <button className="adm-btn adm-btn--primary" onClick={() => setIsModalOpen(true)}>
+          <Plus size={16} /> Nueva etiqueta
+        </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        {/* Content Types — read-only enum */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+        {/* Genres */}
         <div className="adm-table-card">
           <div className="adm-table-card-header">
-            <h2 className="adm-table-card-title">Tipos de Contenido</h2>
-            <span className="adm-badge adm-badge--purple">Enum · Solo lectura</span>
+            <h2 className="adm-table-card-title">Géneros</h2>
+            <span className="adm-badge adm-badge--blue">Público</span>
           </div>
           <table className="adm-table">
             <thead>
-              <tr><th>Tipo</th><th>Estado</th></tr>
+              <tr><th>Nombre</th><th>Slug</th><th></th></tr>
             </thead>
             <tbody>
-              {CONTENT_TYPES.map(type => (
-                <tr key={type}>
-                  <td style={{ fontWeight: 600, color: 'white' }}>{type}</td>
-                  <td><span className="adm-badge adm-badge--green">Activo</span></td>
+              {loading ? (
+                <tr><td colSpan={3} style={{ textAlign: 'center', padding: '24px' }}><Loader2 className="animate-spin" size={18} /></td></tr>
+              ) : genres.length === 0 ? (
+                <tr><td colSpan={3} style={{ textAlign: 'center', padding: '24px', color: 'var(--adm-muted)' }}>Sin géneros.</td></tr>
+              ) : genres.map(g => (
+                <tr key={g.id}>
+                  <td style={{ fontWeight: 600, color: 'white' }}>{g.name}</td>
+                  <td><code style={{ color: '#60a5fa', fontSize: '.75rem' }}>{g.slug}</code></td>
+                  <td></td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div style={{ padding: '12px 16px', borderTop: '1px solid var(--adm-border)', fontSize: '.75rem', color: 'var(--adm-muted)' }}>
-            Para agregar tipos, modificar el <code style={{ color: '#a78bfa' }}>enum ContentType</code> en schema.prisma y correr una migración.
-          </div>
         </div>
 
         {/* Tags */}
@@ -63,10 +133,14 @@ export default function AdminCategoriesPage() {
           </div>
           <table className="adm-table">
             <thead>
-              <tr><th>Nombre</th><th>Slug</th><th>Contenidos</th><th></th></tr>
+              <tr><th>Nombre</th><th>Slug</th><th></th></tr>
             </thead>
             <tbody>
-              {TAGS_MOCK.map(tag => (
+              {loading ? (
+                <tr><td colSpan={3} style={{ textAlign: 'center', padding: '24px' }}><Loader2 className="animate-spin" size={18} /></td></tr>
+              ) : tags.length === 0 ? (
+                <tr><td colSpan={3} style={{ textAlign: 'center', padding: '24px', color: 'var(--adm-muted)' }}>Sin etiquetas.</td></tr>
+              ) : tags.map(tag => (
                 <tr key={tag.id}>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -75,10 +149,15 @@ export default function AdminCategoriesPage() {
                     </div>
                   </td>
                   <td><code style={{ color: '#60a5fa', fontSize: '.75rem' }}>{tag.slug}</code></td>
-                  <td><span className="adm-badge adm-badge--gray">{tag.count}</span></td>
                   <td>
                     <div className="adm-table-actions">
-                      <button className="adm-icon-btn adm-icon-btn--danger" title="Eliminar" style={{ fontSize: 12 }}>✕</button>
+                      <button 
+                        className="adm-icon-btn adm-icon-btn--danger" 
+                        title="Eliminar"
+                        onClick={() => handleDeleteTag(tag.id, tag.name)}
+                      >
+                        <Trash2 size={13} />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -86,10 +165,38 @@ export default function AdminCategoriesPage() {
             </tbody>
           </table>
           <div className="adm-table-footer">
-            <span>{TAGS_MOCK.length} etiquetas</span>
+            <span>{tags.length} etiquetas</span>
           </div>
         </div>
       </div>
+
+      {isModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="adm-table-card" style={{ width: '100%', maxWidth: 400, padding: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h2 className="adm-page-title" style={{ fontSize: '1.2rem', margin: 0 }}>Nueva Etiqueta</h2>
+              <button className="adm-icon-btn" onClick={() => setIsModalOpen(false)}><X size={18} /></button>
+            </div>
+            <form onSubmit={handleCreateTag} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '.8rem', color: 'var(--adm-muted)', marginBottom: 6 }}>Nombre de la etiqueta</label>
+                <input 
+                  type="text" required autoFocus
+                  className="adm-search-input" style={{ width: '100%', padding: '10px 12px' }}
+                  value={newTagName}
+                  onChange={e => setNewTagName(e.target.value)}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                <button type="button" className="adm-btn adm-btn--ghost" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setIsModalOpen(false)}>Cancelar</button>
+                <button type="submit" className="adm-btn adm-btn--primary" style={{ flex: 1, justifyContent: 'center' }} disabled={submitting}>
+                  {submitting ? 'Creando...' : 'Crear'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

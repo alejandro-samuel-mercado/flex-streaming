@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Search, Plus, MoreVertical, Edit2, Trash2, Filter } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Search, Plus, MoreVertical, Edit2, Trash2, Filter, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { API_ROUTES } from '@/lib/api-routes';
 
 interface ContentItem {
@@ -20,21 +21,56 @@ const STATUS_CLASS: Record<string, string> = {
 };
 
 export default function AdminContentPage() {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [contents, setContents] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    fetch(API_ROUTES.CONTENT.LIST, {
-      headers: {
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-      }
-    })
-      .then(r => r.json())
-      .then(d => { setContents(d.data ?? []); setLoading(false); })
-      .catch(() => setLoading(false));
+  const fetchContents = useCallback(async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(API_ROUTES.CONTENT.LIST, {
+        headers: {
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
+      });
+      const d = await res.json();
+      setContents(d.data ?? []);
+    } catch (err) {
+      console.error('Fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchContents();
+  }, [fetchContents]);
+
+  const handleDelete = async (id: string, title: string) => {
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar "${title}"?\nEsta acción no se puede deshacer.`)) return;
+    
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(API_ROUTES.CONTENT.DELETE(id), {
+        method: 'DELETE',
+        headers: {
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
+      });
+      
+      if (res.ok) {
+        setContents(prev => prev.filter(c => c.id !== id));
+      } else {
+        const err = await res.json();
+        alert(`Error: ${err.error || 'No se pudo eliminar'}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error de conexión');
+    }
+  };
 
   const filtered = contents.filter(c =>
     (c.translations?.[0]?.title ?? '').toLowerCase().includes(search.toLowerCase())
@@ -91,28 +127,48 @@ export default function AdminContentPage() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: 'var(--adm-muted)' }}>Cargando...</td></tr>
+              <tr><td colSpan={7} style={{ textAlign: 'center', padding: '48px', color: 'var(--adm-muted)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                  <Loader2 className="animate-spin" size={24} />
+                  Cargando catálogo...
+                </div>
+              </td></tr>
             ) : filtered.length === 0 ? (
               <tr><td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: 'var(--adm-muted)' }}>
                 Sin contenido aún. Usa &quot;Subidas / HLS&quot; para cargar videos.
               </td></tr>
-            ) : filtered.map(item => (
-              <tr key={item.id}>
-                <td style={{ fontWeight: 600, color: 'white' }}>{item.translations?.[0]?.title || 'Sin título'}</td>
-                <td><span className="adm-badge adm-badge--gray">{item.type}</span></td>
-                <td><span className={STATUS_CLASS[item.status] ?? 'adm-badge adm-badge--gray'}>{item.status}</span></td>
-                <td className="adm-table-muted">{item.viewCount.toLocaleString()}</td>
-                <td className="adm-table-muted">{item.rating ?? '—'}</td>
-                <td className="adm-table-muted">{new Date(item.createdAt).toLocaleDateString('es-AR')}</td>
-                <td>
-                  <div className="adm-table-actions">
-                    <button className="adm-icon-btn" title="Editar"><Edit2 size={13} /></button>
-                    <button className="adm-icon-btn adm-icon-btn--danger" title="Eliminar"><Trash2 size={13} /></button>
-                    <button className="adm-icon-btn" title="Más"><MoreVertical size={13} /></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            ) : filtered.map(item => {
+              const title = item.translations?.[0]?.title || 'Sin título';
+              return (
+                <tr key={item.id}>
+                  <td style={{ fontWeight: 600, color: 'white' }}>{title}</td>
+                  <td><span className="adm-badge adm-badge--gray">{item.type}</span></td>
+                  <td><span className={STATUS_CLASS[item.status] ?? 'adm-badge adm-badge--gray'}>{item.status}</span></td>
+                  <td className="adm-table-muted">{item.viewCount.toLocaleString()}</td>
+                  <td className="adm-table-muted">{item.rating ?? '—'}</td>
+                  <td className="adm-table-muted">{new Date(item.createdAt).toLocaleDateString('es-AR')}</td>
+                  <td>
+                    <div className="adm-table-actions">
+                      <Link 
+                        href={`/admin/content/${item.id}`}
+                        className="adm-icon-btn" 
+                        title="Editar"
+                      >
+                        <Edit2 size={13} />
+                      </Link>
+                      <button 
+                        className="adm-icon-btn adm-icon-btn--danger" 
+                        title="Eliminar"
+                        onClick={() => handleDelete(item.id, title)}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                      <button className="adm-icon-btn" title="Más"><MoreVertical size={13} /></button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         <div className="adm-table-footer">

@@ -21,6 +21,8 @@ export const API_ROUTES = {
     BASE: `${API_BASE_URL}/content`,
     LIST: `${API_BASE_URL}/content`,
     DETAIL: (id: string) => `${API_BASE_URL}/content/${id}`,
+    UPDATE: (id: string) => `${API_BASE_URL}/content/${id}`,
+    DELETE: (id: string) => `${API_BASE_URL}/content/${id}`,
     FEATURED: `${API_BASE_URL}/content/featured`,
     TRENDING: `${API_BASE_URL}/content/trending`,
     RECENT: `${API_BASE_URL}/content/recent`,
@@ -32,13 +34,20 @@ export const API_ROUTES = {
   },
   CATEGORIES: {
     GENRES: `${API_BASE_URL}/categories/genres`,
+    UPDATE_GENRE: (id: string) => `${API_BASE_URL}/categories/genres/${id}`,
+    DELETE_GENRE: (id: string) => `${API_BASE_URL}/categories/genres/${id}`,
     AGE_RATINGS: `${API_BASE_URL}/categories/age-ratings`,
     TAGS: `${API_BASE_URL}/categories/tags`,
+    UPDATE_TAG: (id: string) => `${API_BASE_URL}/categories/tags/${id}`,
+    DELETE_TAG: (id: string) => `${API_BASE_URL}/categories/tags/${id}`,
+    CONTENT_TYPES: `${API_BASE_URL}/categories/content-types`,
   },
   PLATFORMS: {
     LIST: `${API_BASE_URL}/platforms`,
     CREATE: `${API_BASE_URL}/platforms`,
     DETAIL: (slug: string) => `${API_BASE_URL}/platforms/${slug}`,
+    UPDATE: (id: string) => `${API_BASE_URL}/platforms/${id}`,
+    DELETE: (id: string) => `${API_BASE_URL}/platforms/${id}`,
   },
   SEARCH: {
     SEARCH: `${API_BASE_URL}/search`,
@@ -59,6 +68,12 @@ export const API_ROUTES = {
   REVIEWS: {
     BY_CONTENT: (contentId: string) => `${API_BASE_URL}/reviews/content/${contentId}`,
     CREATE: `${API_BASE_URL}/reviews`,
+  },
+  PLANS: {
+    LIST: `${API_BASE_URL}/plans`,
+  },
+  HOMEPAGE: {
+    DATA: `${API_BASE_URL}/homepage`,
   },
   ADMIN: {
     DASHBOARD: `${API_BASE_URL}/admin/dashboard`,

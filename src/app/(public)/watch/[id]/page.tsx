@@ -31,7 +31,13 @@ export default function WatchPage() {
       try {
         const res = await fetch(`${API_ROUTES.CONTENT.BASE}/${id}`);
         if (!res.ok) throw new Error('No se pudo cargar el contenido');
-        const data = await res.json();
+        const resJson = await res.json();
+        
+        if (!resJson.success || !resJson.data) {
+          throw new Error('No se pudo cargar el contenido');
+        }
+
+        const data = resJson.data;
         
         if (!data.videoFiles || data.videoFiles.length === 0) {
           throw new Error('Este contenido no tiene videos disponibles para reproducir.');
@@ -99,6 +105,7 @@ export default function WatchPage() {
 
       <VideoPlayer 
         src={videoSrc}
+        title={content.translations[0]?.title}
         onEnded={() => console.log('Video terminado')}
       />
     </div>

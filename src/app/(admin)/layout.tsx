@@ -17,6 +17,7 @@ const NAV = [
     { href: '/admin/categories', label: 'Categorías', icon: Tag },
     { href: '/admin/platforms', label: 'Plataformas', icon: Server },
     { href: '/admin/users', label: 'Usuarios', icon: Users },
+    { href: '/admin/homepage', label: 'Portada', icon: LayoutDashboard },
     { href: '/admin/settings', label: 'Configuración', icon: Settings },
 ];
 
