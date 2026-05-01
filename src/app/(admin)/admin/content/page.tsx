@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Plus, MoreVertical, Edit2, Trash2, Filter, Loader2 } from 'lucide-react';
+import { Search, Plus, MoreVertical, Edit2, Trash2, Filter, Loader2, Film } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { API_ROUTES } from '@/lib/api-routes';
