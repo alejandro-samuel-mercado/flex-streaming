@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { API_ROUTES } from '@/lib/api-routes';
 import { adminFetch } from '@/lib/admin-api';
+import VideoPlayer from '@/components/video/VideoPlayer';
 
 interface Translation {
   id?: string;
@@ -54,6 +55,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [activeVideo, setActiveVideo] = useState<{ url: string, title: string } | null>(null);
   
   const [data, setData] = useState<ContentData | null>(null);
   const [allPlatforms, setAllPlatforms] = useState<{ id: string; name: string }[]>([]);
@@ -76,6 +78,8 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
 
       if (contentJson.success && contentJson.data) {
         const item = contentJson.data;
+        console.log('[DEBUG] Video Files received:', item.videoFiles);
+        
         const mappedTranslations = (item.translations || []).map((t: any) => ({
           id: t.id,
           lang: t.language || t.lang,
@@ -551,9 +555,29 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
         <div className="adm-settings-section">
           <div className="adm-settings-section-header">
             <Play className="adm-settings-icon" size={18} />
-            <h2>Archivos de Video</h2>
+            <h2>Archivos de Video y Previsualización</h2>
           </div>
           <div className="adm-settings-body">
+            {/* Embedded Player */}
+            {activeVideo && (
+              <div style={{ 
+                width: '100%', 
+                aspectRatio: '16/9', 
+                background: 'black', 
+                borderRadius: 16, 
+                overflow: 'hidden',
+                marginBottom: 20,
+                border: '1px solid rgba(255,255,255,0.1)',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
+              }}>
+                <VideoPlayer 
+                  src={activeVideo.url} 
+                  title={activeVideo.title}
+                  poster={resolveImageUrl(data?.thumbnails?.find(t => t.type === 'BACKDROP')?.url) || undefined}
+                />
+              </div>
+            )}
+
             {!data?.videoFiles || data.videoFiles.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: 12 }}>
                 <AlertTriangle size={24} style={{ color: 'var(--adm-muted)', marginBottom: 8, margin: '0 auto' }} />
@@ -564,48 +588,87 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {data.videoFiles.map(video => (
-                  <div key={video.id} style={{ 
+                {data.videoFiles.map((video, idx) => (
+                  <div key={video.id || idx} style={{ 
                     background: 'rgba(255,255,255,0.03)', 
-                    padding: '12px', 
-                    borderRadius: '12px',
+                    padding: '16px', 
+                    borderRadius: '16px',
+                    border: '1px solid rgba(255,255,255,0.05)',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
+                    flexDirection: 'column',
+                    gap: 12
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ 
-                        width: 32, height: 32, borderRadius: 8, 
-                        background: video.status === 'COMPLETED' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(167, 139, 250, 0.1)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: video.status === 'COMPLETED' ? '#4ade80' : '#a78bfa'
-                      }}>
-                        {video.status === 'COMPLETED' ? <Check size={16} /> : <Clock size={16} className={video.status === 'PROCESSING' ? 'animate-spin' : ''} />}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div style={{ display: 'flex', gap: 12 }}>
+                        <div style={{ 
+                          width: 40, height: 40, borderRadius: 10, 
+                          background: video.status === 'COMPLETED' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(167, 139, 250, 0.1)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: video.status === 'COMPLETED' ? '#4ade80' : '#a78bfa'
+                        }}>
+                          <Film size={20} />
+                        </div>
+                        <div>
+                          <p style={{ fontSize: '.9rem', fontWeight: 700, color: 'white' }}>
+                            {video.type || 'Archivo de Video'} 
+                            <span style={{ marginLeft: 8, fontSize: '0.7rem', color: 'var(--adm-muted)', fontWeight: 400 }}>ID: {video.id}</span>
+                          </p>
+                          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                            <span className={`adm-badge ${video.status === 'COMPLETED' ? 'adm-badge--green' : 'adm-badge--blue'}`} style={{ fontSize: '0.65rem', padding: '2px 8px' }}>
+                              {video.status}
+                            </span>
+                            {video.resolution && (
+                              <span className="adm-badge adm-badge--gray" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>
+                                {video.resolution}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <p style={{ fontSize: '.85rem', fontWeight: 600, color: 'white' }}>
-                          {video.type || 'Archivo de Video'} {video.resolution ? `- ${video.resolution}` : ''}
-                        </p>
-                        <p style={{ fontSize: '.75rem', color: 'var(--adm-muted)' }}>
-                          {video.status === 'COMPLETED' ? 'Procesamiento finalizado' : `Estado: ${video.status}`}
-                        </p>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
+                      
                       {video.status === 'COMPLETED' && (
-                        <Link 
-                          href={`/watch/${id}${video.episodeId ? `?episode=${video.episodeId}` : ''}`}
-                          target="_blank"
-                          className="adm-btn adm-btn--ghost adm-btn--sm"
-                          style={{ fontSize: '.7rem', padding: '4px 8px' }}
+                        <button 
+                          onClick={() => {
+                            const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+                            const backendOrigin = new URL(apiUrl).origin;
+                            const videoUrl = `${backendOrigin}/api/media/stream/${id}${video.episodeId ? `?episodeId=${video.episodeId}` : ''}/master.m3u8`;
+                            setActiveVideo({ 
+                              url: videoUrl, 
+                              title: data?.translations.find(t => t.lang === 'es')?.title || 'Video' 
+                            });
+                          }}
+                          className="adm-btn adm-btn--primary adm-btn--sm"
+                          style={{ fontSize: '.75rem', padding: '6px 12px' }}
                         >
-                          <Play size={12} fill="currentColor" /> Ver
-                        </Link>
+                          <Play size={14} fill="currentColor" /> Ver en Panel
+                        </button>
                       )}
-                      <span className={`adm-badge ${video.status === 'COMPLETED' ? 'adm-badge--green' : 'adm-badge--blue'}`} style={{ fontSize: '.7rem' }}>
-                        {video.status}
-                      </span>
                     </div>
+
+                    {/* Qualities indicator */}
+                    {video.qualities && video.qualities.length > 0 && (
+                      <div style={{ 
+                        borderTop: '1px solid rgba(255,255,255,0.05)', 
+                        paddingTop: 10,
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 6
+                      }}>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)', width: '100%', marginBottom: 4 }}>Resoluciones generadas:</span>
+                        {video.qualities.map((q: any, i: number) => (
+                          <div key={i} style={{ 
+                            fontSize: '0.65rem', 
+                            background: 'rgba(255,255,255,0.05)', 
+                            padding: '2px 8px', 
+                            borderRadius: '4px',
+                            color: 'white',
+                            border: '1px solid rgba(255,255,255,0.1)'
+                          }}>
+                            {q.resolution || q.quality || 'N/A'}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
