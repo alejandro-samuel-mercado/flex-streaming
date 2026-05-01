@@ -97,18 +97,6 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
           thumbnails: item.thumbnails || []
         });
 
-        // Auto-select the first completed video if none is active
-        if (item.videoFiles && item.videoFiles.length > 0) {
-          const firstCompleted = item.videoFiles.find((v: any) => v.status === 'COMPLETED');
-          if (firstCompleted && firstCompleted.masterPlaylist) {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-            const backendOrigin = new URL(apiUrl).origin;
-            setActiveVideo({
-              url: `${backendOrigin}${firstCompleted.masterPlaylist}`,
-              title: item.translations?.[0]?.title || 'Video'
-            });
-          }
-        }
       }
 
       setAllPlatforms(platformsJson.data || []);
@@ -125,6 +113,20 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Handle VideoPlayer router.back() so it closes the modal instead of leaving the page
+  useEffect(() => {
+    if (activeVideo) {
+      window.history.pushState({ videoOpen: true }, '');
+      const handlePop = () => {
+        setActiveVideo(null);
+      };
+      window.addEventListener('popstate', handlePop);
+      return () => {
+        window.removeEventListener('popstate', handlePop);
+      };
+    }
+  }, [activeVideo]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -593,17 +595,13 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
             <h2>Archivos de Video y Previsualización</h2>
           </div>
           <div className="adm-settings-body">
-            {/* Embedded Player */}
+            {/* Embedded Player Overlay */}
             {activeVideo && (
               <div style={{ 
-                width: '100%', 
-                aspectRatio: '16/9', 
+                position: 'fixed',
+                inset: 0,
+                zIndex: 9999,
                 background: 'black', 
-                borderRadius: 16, 
-                overflow: 'hidden',
-                marginBottom: 20,
-                border: '1px solid rgba(255,255,255,0.1)',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
               }}>
                 <VideoPlayer 
                   src={activeVideo.url} 
