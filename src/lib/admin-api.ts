@@ -3,11 +3,20 @@ import { API_ROUTES } from './api-routes';
 export async function adminFetch(url: string, options: RequestInit = {}) {
     let token = localStorage.getItem('adminToken');
     
-    const headers = {
-        'Content-Type': 'application/json',
+    const headers: any = {
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         ...options.headers,
     };
+
+    // If body is FormData, don't set Content-Type (browser will do it with boundary)
+    if (!(options.body instanceof FormData)) {
+        if (!headers['Content-Type']) {
+            headers['Content-Type'] = 'application/json';
+        }
+    } else {
+        // If it's FormData, ensure Content-Type is NOT set
+        delete headers['Content-Type'];
+    }
 
     console.log(`[adminFetch] ${options.method || 'GET'} ${url}`);
     let res = await fetch(url, { ...options, headers });

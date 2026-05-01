@@ -174,9 +174,6 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
 
       const res = await adminFetch(API_ROUTES.ADMIN.UPLOAD + '/image', {
         method: 'POST',
-        // Note: For FormData, we must let fetch set the Content-Type automatically
-        // so we pass headers: {} to override the default 'application/json' in adminFetch
-        headers: { 'Content-Type': 'undefined' }, 
         body: fd
       });
 
