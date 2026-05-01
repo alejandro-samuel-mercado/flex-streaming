@@ -29,12 +29,14 @@ interface ContentData {
   translations: Translation[];
   platforms: { id: string; name: string }[];
   categories: { id: string; name: string }[];
-  videoFiles?: {
-    id: string;
-    status: string;
-    type: string;
-    qualities: { quality: string }[];
-  }[];
+    videoFiles?: {
+      id: string;
+      status: string;
+      type: string;
+      resolution?: string;
+      episodeId?: string;
+      qualities: { quality: string }[];
+    }[];
   thumbnails?: {
     id?: string;
     type: string;
@@ -579,18 +581,30 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         color: video.status === 'COMPLETED' ? '#4ade80' : '#a78bfa'
                       }}>
-                        {video.status === 'COMPLETED' ? <Check size={16} /> : <Clock size={16} className="animate-spin" />}
+                        {video.status === 'COMPLETED' ? <Check size={16} /> : <Clock size={16} className={video.status === 'PROCESSING' ? 'animate-spin' : ''} />}
                       </div>
                       <div>
-                        <p style={{ fontSize: '.85rem', fontWeight: 600, color: 'white' }}>{video.type}</p>
+                        <p style={{ fontSize: '.85rem', fontWeight: 600, color: 'white' }}>{video.type} {video.resolution ? `- ${video.resolution}` : ''}</p>
                         <p style={{ fontSize: '.75rem', color: 'var(--adm-muted)' }}>
-                          {video.qualities.map(q => q.quality).join(', ') || 'Sin calidades'}
+                          {video.status === 'COMPLETED' ? 'Procesamiento finalizado' : `Estado: ${video.status}`}
                         </p>
                       </div>
                     </div>
-                    <span className={`adm-badge ${video.status === 'COMPLETED' ? 'adm-badge--green' : 'adm-badge--blue'}`} style={{ fontSize: '.7rem' }}>
-                      {video.status}
-                    </span>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {video.status === 'COMPLETED' && (
+                        <Link 
+                          href={`/watch/${id}${video.episodeId ? `?episode=${video.episodeId}` : ''}`}
+                          target="_blank"
+                          className="adm-btn adm-btn--ghost adm-btn--sm"
+                          style={{ fontSize: '.7rem', padding: '4px 8px' }}
+                        >
+                          <Play size={12} fill="currentColor" /> Ver
+                        </Link>
+                      )}
+                      <span className={`adm-badge ${video.status === 'COMPLETED' ? 'adm-badge--green' : 'adm-badge--blue'}`} style={{ fontSize: '.7rem' }}>
+                        {video.status}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>

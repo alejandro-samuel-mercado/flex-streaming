@@ -83,7 +83,12 @@ export default function WatchPage() {
   const videoFile = content.videoFiles.find(v => v.status === 'COMPLETED') || content.videoFiles[0];
   
   // Format source URL (ensure it points to the backend)
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:4000';
+  let backendUrl = 'http://localhost:4000';
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+    backendUrl = new URL(apiUrl).origin;
+  } catch (e) {}
+  
   const videoSrc = videoFile.masterPlaylist.startsWith('http') 
     ? videoFile.masterPlaylist 
     : `${backendUrl}${videoFile.masterPlaylist.startsWith('/') ? '' : '/'}${videoFile.masterPlaylist}`;
