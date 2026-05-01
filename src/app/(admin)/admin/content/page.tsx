@@ -10,6 +10,7 @@ interface ContentItem {
   id: string; type: string; status: string;
   viewCount: number; rating: number | null; createdAt: string;
   translations?: { title: string }[];
+  videoFiles?: { type: string; status: string }[];
 }
 
 const STATUS_CLASS: Record<string, string> = {
@@ -121,6 +122,7 @@ export default function AdminContentPage() {
               <th>Estado</th>
               <th>Vistas</th>
               <th>Rating</th>
+              <th>Multimedia</th>
               <th>Agregado</th>
               <th></th>
             </tr>
@@ -146,6 +148,30 @@ export default function AdminContentPage() {
                   <td><span className={STATUS_CLASS[item.status] ?? 'adm-badge adm-badge--gray'}>{item.status}</span></td>
                   <td className="adm-table-muted">{item.viewCount.toLocaleString()}</td>
                   <td className="adm-table-muted">{item.rating ?? '—'}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {item.videoFiles?.some(v => v.type === 'TRAILER') ? (
+                        <div title="Trailer Cargado" style={{ 
+                          width: 24, height: 24, borderRadius: 6, 
+                          background: item.videoFiles.find(v => v.type === 'TRAILER')?.status === 'COMPLETED' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(167, 139, 250, 0.1)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: item.videoFiles.find(v => v.type === 'TRAILER')?.status === 'COMPLETED' ? '#4ade80' : '#a78bfa'
+                        }}>
+                          <Plus size={12} strokeWidth={3} style={{ transform: 'rotate(45deg)' }} />
+                        </div>
+                      ) : null}
+                      {item.videoFiles?.some(v => v.type === 'FILM') ? (
+                        <div title="Película Cargada" style={{ 
+                          width: 24, height: 24, borderRadius: 6, 
+                          background: item.videoFiles.find(v => v.type === 'FILM')?.status === 'COMPLETED' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(167, 139, 250, 0.1)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: item.videoFiles.find(v => v.type === 'FILM')?.status === 'COMPLETED' ? '#4ade80' : '#a78bfa'
+                        }}>
+                          <Loader2 size={12} className={item.videoFiles.find(v => v.type === 'FILM')?.status === 'PROCESSING' ? 'animate-spin' : ''} />
+                        </div>
+                      ) : null}
+                    </div>
+                  </td>
                   <td className="adm-table-muted">{new Date(item.createdAt).toLocaleDateString('es-AR')}</td>
                   <td>
                     <div className="adm-table-actions">

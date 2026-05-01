@@ -58,7 +58,7 @@ export default function VideoPlayer({ src, title, poster, onEnded }: VideoPlayer
                 setCurrentAudio(hls?.audioTrack || -1);
                 setSubtitleTracks(hls?.subtitleTracks || []);
                 setCurrentSubtitle(hls?.subtitleTrack || -1);
-                
+
                 // Get available quality levels
                 const availableLevels = hls?.levels || [];
                 setLevels(availableLevels);
@@ -375,10 +375,10 @@ export default function VideoPlayer({ src, title, poster, onEnded }: VideoPlayer
                         {/* Quality Selection */}
                         <div className="relative">
                             <button
-                                onClick={() => { 
-                                    setIsQualityMenuOpen(!isQualityMenuOpen); 
-                                    setIsAudioMenuOpen(false); 
-                                    setIsSubtitleMenuOpen(false); 
+                                onClick={() => {
+                                    setIsQualityMenuOpen(!isQualityMenuOpen);
+                                    setIsAudioMenuOpen(false);
+                                    setIsSubtitleMenuOpen(false);
                                 }}
                                 className={`flex flex-col items-center gap-1 text-white/60 hover:text-white transition-all ${isQualityMenuOpen ? 'text-[var(--color-primary)]' : ''}`}
                             >
@@ -386,8 +386,8 @@ export default function VideoPlayer({ src, title, poster, onEnded }: VideoPlayer
                                 <span className="text-[10px] font-black uppercase tracking-widest">Calidad</span>
                             </button>
                             {isQualityMenuOpen && levels.length > 0 && (
-                                <div className="absolute bottom-16 right-0 bg-black/90 backdrop-blur-3xl border border-white/10 rounded-2xl p-3 min-w-[200px] shadow-2xl animate-fadeSlideUp">
-                                    <p className="text-[10px] font-black uppercase tracking-[3px] text-white/40 mb-3 px-4">Calidad de Video</p>
+                                <div className="absolute bottom-16 right-0 bg-black/90 backdrop-blur-3xl border border-white/10 rounded-2xl p-3! min-w-[200px] shadow-2xl animate-fadeSlideUp">
+                                    <p className="text-[10px] font-black uppercase tracking-[3px] text-white/40 mb-3 px-4!">Calidad de Video</p>
                                     <button
                                         onClick={() => changeLevel(-1)}
                                         className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${currentLevel === -1 ? 'bg-[var(--color-primary)] text-white shadow-[0_0_20px_var(--color-primary-glow)]' : 'text-white/80 hover:bg-white/10'}`}
@@ -411,9 +411,9 @@ export default function VideoPlayer({ src, title, poster, onEnded }: VideoPlayer
                         {/* Audio tracks */}
                         <div className="relative">
                             <button
-                                onClick={() => { 
-                                    setIsAudioMenuOpen(!isAudioMenuOpen); 
-                                    setIsSubtitleMenuOpen(false); 
+                                onClick={() => {
+                                    setIsAudioMenuOpen(!isAudioMenuOpen);
+                                    setIsSubtitleMenuOpen(false);
                                     setIsQualityMenuOpen(false);
                                 }}
                                 className={`flex flex-col items-center gap-1 text-white/60 hover:text-white transition-all ${isAudioMenuOpen ? 'text-[var(--color-primary)]' : ''}`}
@@ -440,9 +440,9 @@ export default function VideoPlayer({ src, title, poster, onEnded }: VideoPlayer
                         {/* Subtitles */}
                         <div className="relative">
                             <button
-                                onClick={() => { 
-                                    setIsSubtitleMenuOpen(!isSubtitleMenuOpen); 
-                                    setIsAudioMenuOpen(false); 
+                                onClick={() => {
+                                    setIsSubtitleMenuOpen(!isSubtitleMenuOpen);
+                                    setIsAudioMenuOpen(false);
                                     setIsQualityMenuOpen(false);
                                 }}
                                 className={`flex flex-col items-center gap-1 text-white/60 hover:text-white transition-all ${isSubtitleMenuOpen ? 'text-[var(--color-primary)]' : ''}`}
@@ -451,8 +451,8 @@ export default function VideoPlayer({ src, title, poster, onEnded }: VideoPlayer
                                 <span className="text-[10px] font-black uppercase tracking-widest">Subtítulos</span>
                             </button>
                             {isSubtitleMenuOpen && (
-                                <div className="absolute bottom-16 right-0 bg-black/90 backdrop-blur-3xl border border-white/10 rounded-2xl p-3 min-w-[200px] shadow-2xl animate-fadeSlideUp">
-                                    <p className="text-[10px] font-black uppercase tracking-[3px] text-white/40 mb-3 px-4">Configurar Subtítulos</p>
+                                <div className="absolute bottom-16 right-0 bg-black/90 backdrop-blur-3xl border border-white/10 rounded-2xl p-3! min-w-[200px] shadow-2xl animate-fadeSlideUp">
+                                    <p className="text-[10px] font-black uppercase tracking-[3px] text-white/40 mb-3 px-4!">Configurar Subtítulos</p>
                                     <button
                                         onClick={() => changeSubtitle(-1)}
                                         className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${currentSubtitle === -1 ? 'bg-white/20 text-white' : 'text-white/80 hover:bg-white/10'}`}
