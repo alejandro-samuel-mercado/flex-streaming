@@ -30,13 +30,13 @@ interface ContentData {
   translations: Translation[];
   platforms: { id: string; name: string }[];
   categories: { id: string; name: string }[];
-    videoFiles?: {
       id: string;
       status: string;
       type: string;
       resolution?: string;
+      masterPlaylist?: string;
       episodeId?: string;
-      qualities: { quality: string }[];
+      qualities: { resolution: string }[];
     }[];
   thumbnails?: {
     id?: string;
@@ -95,6 +95,19 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
           videoFiles: item.videoFiles,
           thumbnails: item.thumbnails || []
         });
+
+        // Auto-select the first completed video if none is active
+        if (item.videoFiles && item.videoFiles.length > 0) {
+          const firstCompleted = item.videoFiles.find((v: any) => v.status === 'COMPLETED');
+          if (firstCompleted && firstCompleted.masterPlaylist) {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+            const backendOrigin = new URL(apiUrl).origin;
+            setActiveVideo({
+              url: `${backendOrigin}${firstCompleted.masterPlaylist}`,
+              title: item.translations?.[0]?.title || 'Video'
+            });
+          }
+        }
       }
 
       setAllPlatforms(platformsJson.data || []);
@@ -207,7 +220,28 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
       console.error(err);
       setError('Error de conexión al subir imagen');
     } finally {
-      setUploadingImage(null);
+      setUploadingVideo(false);
+    }
+  };
+
+  const handleDeleteVideo = async (videoId: string) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este archivo de video?')) return;
+    
+    try {
+      const res = await adminFetch(`${API_ROUTES.ADMIN.UPLOAD}/video/${videoId}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+        await fetchData();
+      } else {
+        const json = await res.json();
+        setError(json.error || 'Error al eliminar video');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Error de conexión');
     }
   };
 
@@ -626,14 +660,13 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                         </div>
                       </div>
                       
-                      {video.status === 'COMPLETED' && (
+                      {video.status === 'COMPLETED' && video.masterPlaylist && (
                         <button 
                           onClick={() => {
                             const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
                             const backendOrigin = new URL(apiUrl).origin;
-                            const videoUrl = `${backendOrigin}/api/media/stream/${id}${video.episodeId ? `?episodeId=${video.episodeId}` : ''}/master.m3u8`;
                             setActiveVideo({ 
-                              url: videoUrl, 
+                              url: `${backendOrigin}${video.masterPlaylist}`, 
                               title: data?.translations.find(t => t.lang === 'es')?.title || 'Video' 
                             });
                           }}
@@ -643,6 +676,13 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                           <Play size={14} fill="currentColor" /> Ver en Panel
                         </button>
                       )}
+                      <button 
+                        onClick={() => handleDeleteVideo(video.id)}
+                        className="adm-icon-btn adm-icon-btn--danger"
+                        title="Eliminar Video"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
 
                     {/* Qualities indicator */}
