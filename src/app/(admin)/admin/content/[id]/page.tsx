@@ -51,6 +51,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState<string | null>(null); // 'POSTER' | 'BACKDROP' | null
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -204,6 +205,39 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
       setError('Error de conexión al subir imagen');
     } finally {
       setUploadingImage(null);
+    }
+  };
+
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !data) return;
+
+    setUploadingVideo(true);
+    setError(null);
+
+    try {
+      const fd = new FormData();
+      fd.append('video', file);
+      fd.append('contentId', id);
+
+      const res = await adminFetch(API_ROUTES.ADMIN.UPLOAD + '/video', {
+        method: 'POST',
+        body: fd
+      });
+
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+        await fetchData(); // Refresh to see the new video record
+      } else {
+        setError(json.error || 'Error al subir video');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Error de conexión al subir video');
+    } finally {
+      setUploadingVideo(false);
     }
   };
 
@@ -550,9 +584,16 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
 
         {/* Videos */}
         <div className="adm-settings-section">
-          <div className="adm-settings-section-header">
-            <Play className="adm-settings-icon" size={18} />
-            <h2>Archivos de Video</h2>
+          <div className="adm-settings-section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Play className="adm-settings-icon" size={18} />
+              <h2>Archivos de Video</h2>
+            </div>
+            <label className="adm-btn adm-btn--ghost adm-btn--sm" style={{ cursor: 'pointer' }}>
+              {uploadingVideo ? <Loader2 size={12} className="animate-spin" /> : <UploadCloud size={12} />}
+              {uploadingVideo ? 'Subiendo...' : 'Añadir Video'}
+              <input type="file" accept="video/*" hidden onChange={handleVideoUpload} disabled={uploadingVideo} />
+            </label>
           </div>
           <div className="adm-settings-body">
             {!data?.videoFiles || data.videoFiles.length === 0 ? (
@@ -584,7 +625,9 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                         {video.status === 'COMPLETED' ? <Check size={16} /> : <Clock size={16} className={video.status === 'PROCESSING' ? 'animate-spin' : ''} />}
                       </div>
                       <div>
-                        <p style={{ fontSize: '.85rem', fontWeight: 600, color: 'white' }}>{video.type} {video.resolution ? `- ${video.resolution}` : ''}</p>
+                        <p style={{ fontSize: '.85rem', fontWeight: 600, color: 'white' }}>
+                          {video.type || 'Archivo de Video'} {video.resolution ? `- ${video.resolution}` : ''}
+                        </p>
                         <p style={{ fontSize: '.75rem', color: 'var(--adm-muted)' }}>
                           {video.status === 'COMPLETED' ? 'Procesamiento finalizado' : `Estado: ${video.status}`}
                         </p>

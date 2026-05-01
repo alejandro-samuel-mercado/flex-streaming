@@ -149,27 +149,20 @@ export default function AdminContentPage() {
                   <td className="adm-table-muted">{item.viewCount.toLocaleString()}</td>
                   <td className="adm-table-muted">{item.rating ?? '—'}</td>
                   <td>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      {item.videoFiles?.some(v => v.type === 'TRAILER') ? (
-                        <div title="Trailer Cargado" style={{ 
-                          width: 24, height: 24, borderRadius: 6, 
-                          background: item.videoFiles.find(v => v.type === 'TRAILER')?.status === 'COMPLETED' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(167, 139, 250, 0.1)',
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      {(item.videoFiles || []).map((v, i) => (
+                        <div key={i} title={`Video ${i + 1}: ${v.status}`} style={{ 
+                          width: 20, height: 20, borderRadius: 4, 
+                          background: v.status === 'COMPLETED' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(167, 139, 250, 0.1)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: item.videoFiles.find(v => v.type === 'TRAILER')?.status === 'COMPLETED' ? '#4ade80' : '#a78bfa'
+                          color: v.status === 'COMPLETED' ? '#4ade80' : '#a78bfa'
                         }}>
-                          <Plus size={12} strokeWidth={3} style={{ transform: 'rotate(45deg)' }} />
+                          <Film size={10} className={v.status === 'PROCESSING' ? 'animate-spin' : ''} />
                         </div>
-                      ) : null}
-                      {item.videoFiles?.some(v => v.type === 'FILM') ? (
-                        <div title="Película Cargada" style={{ 
-                          width: 24, height: 24, borderRadius: 6, 
-                          background: item.videoFiles.find(v => v.type === 'FILM')?.status === 'COMPLETED' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(167, 139, 250, 0.1)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          color: item.videoFiles.find(v => v.type === 'FILM')?.status === 'COMPLETED' ? '#4ade80' : '#a78bfa'
-                        }}>
-                          <Loader2 size={12} className={item.videoFiles.find(v => v.type === 'FILM')?.status === 'PROCESSING' ? 'animate-spin' : ''} />
-                        </div>
-                      ) : null}
+                      ))}
+                      {item.videoFiles?.length === 0 && (
+                        <span style={{ fontSize: '10px', color: 'var(--adm-muted)', opacity: 0.5 }}>Sin videos</span>
+                      )}
                     </div>
                   </td>
                   <td className="adm-table-muted">{new Date(item.createdAt).toLocaleDateString('es-AR')}</td>
