@@ -40,7 +40,7 @@ export default function FilmDetailPage() {
     useEffect(() => {
         const fetchContent = async () => {
             try {
-                const res = await fetch(`${API_ROUTES.CONTENT.BASE}/${id}`);
+                const res = await fetch(`${API_ROUTES.CONTENT.BASE}/${id}`, { cache: 'no-store' });
                 const resJson = await res.json();
                 if (resJson.success && resJson.data) {
                     setContent(resJson.data);

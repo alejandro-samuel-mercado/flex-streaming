@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react';
 import { resellerFetch } from '@/lib/reseller-api';
 import { API_ROUTES } from '@/lib/api-routes';
 import EndUsersTable from '@/components/reseller/EndUsersTable';
+import AddPlanModal from '@/components/reseller/AddPlanModal';
 import type { EndUserAccount } from '@/types/reseller.types';
 
 export default function SuperVendorEndUsersPage() {
@@ -14,7 +15,8 @@ export default function SuperVendorEndUsersPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ username: '', password: '', country: '', notes: '' });
+  const [newAccountPlanModal, setNewAccountPlanModal] = useState<EndUserAccount | null>(null);
+  const [form, setForm] = useState({ username: '', password: '' });
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -32,7 +34,14 @@ export default function SuperVendorEndUsersPage() {
     e.preventDefault();
     const r = await resellerFetch(API_ROUTES.END_USERS.BASE, { method: 'POST', body: JSON.stringify(form) });
     const j = await r.json();
-    if (j.success) { setShowCreate(false); setForm({ username: '', password: '', country: '', notes: '' }); fetchUsers(); } else alert(j.error);
+    if (j.success) {
+      setShowCreate(false);
+      setForm({ username: '', password: '' });
+      setNewAccountPlanModal(j.data);
+      fetchUsers();
+    } else {
+      alert(j.error);
+    }
   };
 
   return (
@@ -48,17 +57,30 @@ export default function SuperVendorEndUsersPage() {
           <div className="adm-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
             <h2 style={{ margin: '0 0 1rem', fontSize: '1.1rem' }}>Nueva Cuenta</h2>
             <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
-              <div className="adm-field"><label className="adm-label">Usuario</label><input className="adm-input" value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))} required minLength={3} /></div>
-              <div className="adm-field"><label className="adm-label">Contraseña</label><input className="adm-input" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required minLength={4} /></div>
-              <div className="adm-field"><label className="adm-label">País (opcional)</label><input className="adm-input" value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))} /></div>
-              <div className="adm-field"><label className="adm-label">Notas (opcional)</label><input className="adm-input" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} /></div>
-              <div style={{ display: 'flex', gap: '.5rem', justifyContent: 'flex-end' }}>
+              <div className="adm-field">
+                <label className="adm-label">Usuario</label>
+                <input className="adm-input" value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))} required minLength={6} />
+              </div>
+              <div className="adm-field">
+                <label className="adm-label">Contraseña</label>
+                <input className="adm-input" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required minLength={6} />
+              </div>
+              <div style={{ display: 'flex', gap: '.5rem', justifyContent: 'flex-end', marginTop: '.5rem' }}>
                 <button type="button" className="adm-btn adm-btn--ghost" onClick={() => setShowCreate(false)}>Cancelar</button>
-                <button type="submit" className="adm-btn adm-btn--primary">Crear</button>
+                <button type="submit" className="adm-btn adm-btn--primary">Crear y Elegir Plan</button>
               </div>
             </form>
           </div>
         </div>
+      )}
+
+      {newAccountPlanModal && (
+        <AddPlanModal
+          account={newAccountPlanModal}
+          onClose={() => setNewAccountPlanModal(null)}
+          onSuccess={() => { setNewAccountPlanModal(null); fetchUsers(); }}
+          fetchFn={resellerFetch}
+        />
       )}
     </div>
   );

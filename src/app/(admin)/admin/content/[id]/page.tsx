@@ -8,12 +8,14 @@ import {
     Play, Clock, AlertTriangle, Check,
     Link, UploadCloud,
     X, MessageSquare,
-    Import
+    Import,
+    Headphones
 } from 'lucide-react';
 import { API_ROUTES } from '@/lib/api-routes';
 import { adminFetch } from '@/lib/admin-api';
 import VideoPlayer from '@/components/video/VideoPlayer';
 import { createPortal } from 'react-dom';
+import TMDBSuggestions from '@/components/admin/TMDBSuggestions';
 
 interface Translation {
     id?: string;
@@ -43,6 +45,12 @@ interface ContentData {
         masterPlaylist?: string;
         episodeId?: string;
         qualities: { resolution: string }[];
+        audioTracks?: {
+            id: string;
+            language: string;
+            label: string;
+            trackIndex: number;
+        }[];
         subtitleTracks?: {
             id: string;
             language: string;
@@ -430,6 +438,20 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
             )}
 
             <div className="adm-settings-grid">
+                {/* TMDB Suggestions for incomplete content */}
+                {data && data.status === 'PENDING' && (
+                    !data.translations.find(t => t.lang === 'es')?.description ||
+                    !data.thumbnails?.find(t => t.type === 'POSTER')
+                ) && (
+                        <div style={{ gridColumn: 'span 2' }}>
+                            <TMDBSuggestions
+                                title={data.translations.find(t => t.lang === 'es')?.title || ''}
+                                contentId={id}
+                                onApplied={() => fetchData()}
+                            />
+                        </div>
+                    )}
+
                 {/* Información Principal */}
                 <div className="adm-settings-section">
                     <div className="adm-settings-section-header">
@@ -875,6 +897,35 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                             </div>
                                         )}
 
+                                        {/* Audio tracks indicator */}
+                                        {video.audioTracks && video.audioTracks.length > 0 && (
+                                            <div style={{
+                                                borderTop: '1px solid rgba(255,255,255,0.05)',
+                                                marginTop: 10,
+                                                paddingTop: 10,
+                                                display: 'flex',
+                                                flexWrap: 'wrap',
+                                                gap: 6
+                                            }}>
+                                                <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)', width: '100%', marginBottom: 4, display: 'flex', gap: 6, alignItems: 'center' }}>
+                                                    <Headphones size={12} /> AUDIOS EXTRAÍDOS:
+                                                </span>
+                                                {video.audioTracks.map((audio: any, i: number) => (
+                                                    <div key={i} style={{
+                                                        fontSize: '0.65rem',
+                                                        background: 'rgba(167, 139, 250, 0.05)',
+                                                        padding: '4px 10px',
+                                                        borderRadius: '6px',
+                                                        color: '#a78bfa',
+                                                        border: '1px solid rgba(167, 139, 250, 0.2)',
+                                                        fontWeight: 600
+                                                    }}>
+                                                        {audio.label} ({audio.language.toUpperCase()})
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
                                         {/* Subtitles management */}
                                         <div style={{
                                             borderTop: '1px solid rgba(255,255,255,0.05)',
@@ -887,10 +938,10 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                 </span>
                                                 <label className="adm-btn adm-btn--gray adm-btn--sm" style={{ padding: '2px 8px', fontSize: '.7rem', cursor: 'pointer' }}>
                                                     {uploadingSubtitle === video.id ? <Loader2 className="animate-spin" size={12} /> : '+ Añadir'}
-                                                    <input 
-                                                        type="file" 
-                                                        accept=".vtt,.srt" 
-                                                        style={{ display: 'none' }} 
+                                                    <input
+                                                        type="file"
+                                                        accept=".vtt,.srt"
+                                                        style={{ display: 'none' }}
                                                         onChange={(e) => handleUploadSubtitle(video.id, e)}
                                                         disabled={uploadingSubtitle === video.id}
                                                     />
@@ -912,7 +963,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                             <div style={{ color: 'white' }}>
                                                                 <span style={{ fontWeight: 700, color: 'var(--adm-primary)' }}>{sub.language.toUpperCase()}</span> - {sub.label}
                                                             </div>
-                                                            <button 
+                                                            <button
                                                                 onClick={() => handleDeleteSubtitle(sub.id)}
                                                                 style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}
                                                             >

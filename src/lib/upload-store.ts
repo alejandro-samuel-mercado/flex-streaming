@@ -8,11 +8,12 @@ interface UploadFile {
   status: 'idle' | 'uploading' | 'success' | 'error';
   type: 'MOVIE' | 'TRAILER';
   errorMessage?: string;
+  contentId: string;
 }
 
 interface UploadState {
   files: UploadFile[];
-  addFiles: (newFiles: File[]) => void;
+  addFiles: (newFiles: File[], contentId: string) => void;
   removeFile: (name: string) => void;
   updateProgress: (name: string, progress: number) => void;
   updateStatus: (name: string, status: UploadFile['status']) => void;
@@ -23,14 +24,14 @@ interface UploadState {
 
 export const useUploadStore = create<UploadState>((set) => ({
   files: [],
-  addFiles: (newFiles) => set((state) => {
+  addFiles: (newFiles, contentId) => set((state) => {
     // Avoid duplicates by name
     const existingNames = new Set(state.files.map(f => f.file.name));
     const filtered = newFiles.filter(f => !existingNames.has(f.name));
     return {
       files: [
         ...state.files,
-        ...filtered.map(f => ({ file: f, progress: 0, status: 'idle' as const, type: 'MOVIE' as const }))
+        ...filtered.map(f => ({ file: f, progress: 0, status: 'idle' as const, type: 'MOVIE' as const, contentId }))
       ]
     };
   }),

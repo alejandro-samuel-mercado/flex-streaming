@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { UploadCloud, FileVideo, CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { UploadCloud, FileVideo, CheckCircle2, AlertCircle, X, Plus } from 'lucide-react';
 import { API_ROUTES } from '@/lib/api-routes';
 import { useUploadStore } from '@/lib/upload-store';
 
@@ -9,34 +9,71 @@ export default function UploadManagerPage() {
   const { files, addFiles, removeFile, updateProgress, updateStatus, updateType, setErrorMessage } = useUploadStore();
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState<'' | 'success' | 'error' | 'partial'>('');
-  const [globalError, setGlobalError] = useState<string | null>(null);
-  const [dragging, setDragging] = useState(false);
   const [contentList, setContentList] = useState<any[]>([]);
-  const [selectedContentId, setSelectedContentId] = useState('');
+  const [blocks, setBlocks] = useState<{ id: string; contentId: string }[]>([]);
+  const [uploadLimit, setUploadLimit] = useState(5);
+  const [draggingBlockId, setDraggingBlockId] = useState<string | null>(null);
 
-  // Fetch content list for selection
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
-    fetch(API_ROUTES.CONTENT.LIST, {
-      headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
-    })
+    const headers = { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
+    
+    fetch(API_ROUTES.ADMIN.BASE + '/settings', { headers })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.data['UPLOAD_CONCURRENT_LIMIT']) {
+           setUploadLimit(parseInt(d.data['UPLOAD_CONCURRENT_LIMIT'], 10));
+        }
+      }).catch(() => {});
+
+    fetch(API_ROUTES.CONTENT.LIST, { headers })
       .then(r => r.json())
       .then(d => {
         const list = d.data ?? [];
         setContentList(list);
-        if (list.length > 0 && !selectedContentId) setSelectedContentId(list[0].id);
       })
       .catch(() => {});
   }, []);
 
-  const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB
+  // Generate blocks automatically when uploadLimit or contentList changes
+  useEffect(() => {
+    if (contentList.length === 0) return;
+    setBlocks(prev => {
+      if (prev.length === uploadLimit) return prev;
+      
+      const newBlocks = [];
+      const usedInPrev = new Set(prev.map(b => b.contentId).filter(Boolean));
+
+      for (let i = 0; i < uploadLimit; i++) {
+        if (prev[i]) {
+          newBlocks.push(prev[i]);
+        } else {
+          // Find first available contentId not used in newBlocks so far
+          const usedSoFar: Set<string> = new Set(newBlocks.map(b => b.contentId).filter(Boolean));
+          const available: any = contentList.find((c: any) => !usedInPrev.has(c.id) && !usedSoFar.has(c.id));
+          newBlocks.push({ id: Math.random().toString(), contentId: available ? available.id : '' });
+        }
+      }
+      return newBlocks;
+    });
+  }, [uploadLimit, contentList]);
+
+
+
+  const updateBlockContent = (id: string, newContentId: string) => {
+    setBlocks(blocks.map(b => b.id === id ? { ...b, contentId: newContentId } : b));
+  };
+
+  const CHUNK_SIZE = 10 * 1024 * 1024;
   const CONCURRENCY = 3;
 
   const handleUpload = async () => {
-    if (!files.length || !selectedContentId) return;
+    if (!files.length) return;
+    const validFiles = files.filter(f => f.contentId);
+    if (!validFiles.length) return;
+
     setUploading(true);
     setStatus('');
-    setGlobalError(null);
 
     const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
     const headers = { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
@@ -44,7 +81,7 @@ export default function UploadManagerPage() {
     let okCount = 0;
     let errCount = 0;
 
-    for (const f of files) {
+    for (const f of validFiles) {
       if (f.status === 'success') {
         okCount++;
         continue;
@@ -55,7 +92,6 @@ export default function UploadManagerPage() {
       const fileId = Math.random().toString(36).substring(2, 15);
 
       try {
-        // Upload chunks in parallel with concurrency limit
         const chunkIndices = Array.from({ length: totalChunks }, (_, i) => i);
         let completedChunks = 0;
 
@@ -69,23 +105,15 @@ export default function UploadManagerPage() {
           fd.append('fileId', fileId);
           fd.append('chunkIndex', i.toString());
 
-          const res = await fetch(API_ROUTES.ADMIN.UPLOAD.CHUNK, {
-            method: 'POST',
-            body: fd,
-            headers
-          });
-
+          const res = await fetch(API_ROUTES.ADMIN.UPLOAD.CHUNK, { method: 'POST', body: fd, headers });
           if (!res.ok) {
             const errData = await res.json().catch(() => ({}));
             throw new Error(errData.error || `Error en chunk ${i}`);
           }
-
           completedChunks++;
-          const progress = Math.round((completedChunks / totalChunks) * 100);
-          updateProgress(f.file.name, progress);
+          updateProgress(f.file.name, Math.round((completedChunks / totalChunks) * 100));
         };
 
-        // Sliding window for parallel uploads (smoother)
         const queue = [...chunkIndices];
         const activeUploads: Promise<void>[] = [];
         
@@ -97,12 +125,9 @@ export default function UploadManagerPage() {
             });
             activeUploads.push(uploadPromise);
           }
-          if (activeUploads.length > 0) {
-            await Promise.race(activeUploads);
-          }
+          if (activeUploads.length > 0) await Promise.race(activeUploads);
         }
 
-        // Finalize
         const completeRes = await fetch(API_ROUTES.ADMIN.UPLOAD.COMPLETE, {
           method: 'POST',
           headers: { ...headers, 'Content-Type': 'application/json' },
@@ -110,7 +135,7 @@ export default function UploadManagerPage() {
             fileId,
             fileName: f.file.name,
             totalChunks,
-            contentId: selectedContentId,
+            contentId: f.contentId,
             type: f.type
           })
         });
@@ -122,7 +147,6 @@ export default function UploadManagerPage() {
 
         updateStatus(f.file.name, 'success');
         updateProgress(f.file.name, 100);
-        // Remove from list after a short delay so the user sees the success state briefly
         setTimeout(() => removeFile(f.file.name), 1500);
         okCount++;
       } catch (err: any) {
@@ -137,124 +161,129 @@ export default function UploadManagerPage() {
     setUploading(false);
   };
 
+  const usedContentIds = new Set(blocks.map(b => b.contentId).filter(Boolean));
+
   return (
     <div className="adm-page">
       <div className="adm-page-header">
         <div>
-          <h1 className="adm-page-title">Subidas / HLS</h1>
-          <p className="adm-page-subtitle">Sube archivos de video para codificación HLS con FFmpeg y BullMQ</p>
+          <h1 className="adm-page-title">Subidas Múltiples / HLS</h1>
+          <p className="adm-page-subtitle">Sube trailers y películas concurrentemente para hasta {uploadLimit} títulos</p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <span className="adm-badge adm-badge--yellow">BullMQ Queue</span>
-          <span className="adm-badge adm-badge--blue">FFmpeg Worker</span>
+          <button className="adm-btn adm-btn--primary" disabled={!files.length || uploading} onClick={handleUpload}>
+            {uploading ? 'Procesando lote...' : 'Iniciar subidas → Cola BullMQ'}
+          </button>
         </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 16, alignItems: 'start' }}>
-        {/* Drop zone */}
-        <div className="adm-table-card" style={{ padding: 0, overflow: 'visible' }}>
-          <div className="adm-table-card-header">
-            <h2 className="adm-table-card-title">Seleccionar archivos</h2>
-          </div>
-          <div style={{ padding: '20px 20px 0' }}>
-            {/* Content Selection */}
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontSize: '.75rem', color: 'var(--adm-muted)', marginBottom: 6, fontWeight: 600 }}>ASOCIAR A CONTENIDO</label>
-              <select 
-                className="adm-select" 
-                style={{ width: '100%', padding: '10px 12px' }}
-                value={selectedContentId}
-                onChange={e => setSelectedContentId(e.target.value)}
-              >
-                {contentList.map(c => (
-                  <option key={c.id} value={c.id}>
-                    {c.translations?.[0]?.title || c.slug}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <label
-              htmlFor="video-upload"
-              className={`adm-dropzone${dragging ? ' dragging' : ''}`}
-              onDragOver={e => { e.preventDefault(); setDragging(true); }}
-              onDragLeave={() => setDragging(false)}
-              onDrop={e => { e.preventDefault(); setDragging(false); addFiles(Array.from(e.dataTransfer.files)); }}
-            >
-              <UploadCloud size={40} className="adm-dropzone-icon" />
-              <span className="adm-dropzone-label">Arrastra archivos aquí o haz click</span>
-              <span className="adm-dropzone-hint">MP4, MKV, WEBM · Hasta 5 GB por archivo · Múltiple selección</span>
-              <input id="video-upload" type="file" accept="video/*" multiple hidden
-                onChange={e => addFiles(Array.from(e.target.files || []))} />
-            </label>
-          </div>
-
-          {/* File list */}
-          {files.length > 0 && (
-            <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {files.map((f) => (
-                <div key={f.file.name} className="adm-upload-file">
-                   <FileVideo size={16} style={{ color: '#a78bfa', flexShrink: 0 }} />
-                   <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                          <span style={{ fontSize: '.85rem', fontWeight: 500 }}>{f.file.name}</span>
-                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                            <select 
-                                className="adm-select" 
-                                style={{ padding: '2px 8px', fontSize: '0.75rem' }}
-                                value={f.type}
-                                onChange={(e) => updateType(f.file.name, e.target.value as any)}
-                            >
-                                <option value="MOVIE">Película</option>
-                                <option value="TRAILER">Tráiler</option>
-                            </select>
-                            <span style={{ fontSize: '.75rem', color: 'var(--adm-muted)' }}>{(f.file.size / 1024 / 1024).toFixed(2)} MB</span>
-                          </div>
-                        </div>
-                        {(uploading || f.status === 'uploading' || f.status === 'success' || f.status === 'error') && (
-                           <div className="adm-progress-bar">
-                             <div className={`adm-progress-fill${f.status === 'error' ? ' error' : ''}${f.status === 'success' ? ' success' : ''}`}
-                                style={{ width: `${f.status === 'error' ? 100 : f.progress}%` }} />
-                           </div>
-                         )}
-                         {f.status === 'error' && f.errorMessage && (
-                           <div style={{ fontSize: '0.7rem', color: '#f87171', marginTop: 4, fontWeight: 500 }}>
-                             {f.errorMessage}
-                           </div>
-                         )}
-                   </div>
-                   {!uploading && f.status !== 'uploading' && (
-                     <button className="adm-icon-btn adm-icon-btn--danger" onClick={() => removeFile(f.file.name)}><X size={12} /></button>
-                   )}
-                   {f.status === 'success' && <CheckCircle2 size={16} style={{ color: '#4ade80', flexShrink: 0 }} />}
-                   {f.status === 'error'  && <AlertCircle  size={16} style={{ color: '#f87171', flexShrink: 0 }} />}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {blocks.map((block, index) => {
+            const blockFiles = files.filter(f => f.contentId === block.contentId);
+            return (
+              <div key={block.id} className="adm-table-card" style={{ padding: '20px', position: 'relative' }}>
+              
+              <div style={{ marginBottom: 16, maxWidth: 400 }}>
+                  <label style={{ display: 'block', fontSize: '.75rem', color: 'var(--adm-muted)', marginBottom: 6, fontWeight: 600 }}>PELÍCULA / CONTENIDO {index + 1}</label>
+                  <select 
+                    className="adm-select" 
+                    style={{ width: '100%', padding: '10px 12px' }}
+                    value={block.contentId}
+                    onChange={e => updateBlockContent(block.id, e.target.value)}
+                    disabled={uploading}
+                  >
+                    <option value="" disabled>Selecciona una película...</option>
+                    {contentList.map(c => (
+                      <option 
+                        key={c.id} 
+                        value={c.id} 
+                        disabled={c.id !== block.contentId && usedContentIds.has(c.id)}
+                      >
+                        {c.translations?.[0]?.title || c.slug} {c.id !== block.contentId && usedContentIds.has(c.id) ? '(En uso)' : ''}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              ))}
-            </div>
-          )}
 
-          <div style={{ padding: '16px 20px 20px' }}>
-            <button className="adm-btn adm-btn--primary"
-              style={{ width: '100%', justifyContent: 'center' }}
-              disabled={!files.length || uploading}
-              onClick={handleUpload}>
-              {uploading
-                ? <><span className="adm-login-spinner" style={{ width: 16, height: 16 }} /> Procesando lote...</>
-                : <><UploadCloud size={16} /> Iniciar subidas → Cola BullMQ</>}
-            </button>
-          </div>
+                {block.contentId ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                    <label
+                    htmlFor={`upload-${block.id}`}
+                    className={`adm-dropzone${draggingBlockId === block.id ? ' dragging' : ''}`}
+                    onDragOver={e => { e.preventDefault(); setDraggingBlockId(block.id); }}
+                    onDragLeave={() => setDraggingBlockId(null)}
+                    onDrop={e => { e.preventDefault(); setDraggingBlockId(null); addFiles(Array.from(e.dataTransfer.files), block.contentId); }}
+                  >
+                      <UploadCloud size={30} className="adm-dropzone-icon" />
+                      <span className="adm-dropzone-label" style={{ fontSize: '.85rem' }}>Arrastra archivos para esta película</span>
+                      <input id={`upload-${block.id}`} type="file" accept="video/*" multiple hidden disabled={uploading}
+                        onChange={e => addFiles(Array.from(e.target.files || []), block.contentId)} />
+                    </label>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {blockFiles.length === 0 && (
+                         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--adm-bg-secondary)', borderRadius: 8, color: 'var(--adm-muted)', fontSize: '.8rem', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                           Sin archivos
+                         </div>
+                      )}
+                      {blockFiles.map(f => (
+                        <div key={f.file.name} className="adm-upload-file" style={{ padding: '10px 14px' }}>
+                          <FileVideo size={16} style={{ color: '#a78bfa', flexShrink: 0 }} />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                              <span style={{ fontSize: '.8rem', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 150 }} title={f.file.name}>{f.file.name}</span>
+                              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                <select 
+                                    className="adm-select" 
+                                    style={{ padding: '2px 8px', fontSize: '0.75rem' }}
+                                    value={f.type}
+                                    onChange={(e) => updateType(f.file.name, e.target.value as any)}
+                                    disabled={uploading}
+                                >
+                                    <option value="MOVIE">Película</option>
+                                    <option value="TRAILER">Tráiler</option>
+                                </select>
+                                <span style={{ fontSize: '.7rem', color: 'var(--adm-muted)' }}>{(f.file.size / 1024 / 1024).toFixed(1)} MB</span>
+                              </div>
+                            </div>
+                            {(uploading || f.status !== 'idle') && (
+                               <div className="adm-progress-bar">
+                                 <div className={`adm-progress-fill${f.status === 'error' ? ' error' : ''}${f.status === 'success' ? ' success' : ''}`}
+                                    style={{ width: `${f.status === 'error' ? 100 : f.progress}%` }} />
+                               </div>
+                             )}
+                             {f.status === 'error' && f.errorMessage && (
+                               <div style={{ fontSize: '0.7rem', color: '#f87171', marginTop: 4 }}>{f.errorMessage}</div>
+                             )}
+                          </div>
+                          {!uploading && f.status !== 'uploading' && (
+                            <button className="adm-icon-btn adm-icon-btn--danger" onClick={() => removeFile(f.file.name)}><X size={12} /></button>
+                          )}
+                          {f.status === 'success' && <CheckCircle2 size={16} style={{ color: '#4ade80', flexShrink: 0 }} />}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: '20px', textAlign: 'center', background: 'var(--adm-bg-secondary)', borderRadius: 8, border: '1px dashed rgba(255,255,255,0.1)', color: 'var(--adm-muted)' }}>
+                    Selecciona una película
+                  </div>
+                )}
+              </div>
+            );
+          })}
 
           {status === 'success' && (
-            <div style={{ margin: '0 20px 20px', padding: '12px 16px', background: 'rgba(74,222,128,.08)', border: '1px solid rgba(74,222,128,.2)', borderRadius: 10, display: 'flex', gap: 10, alignItems: 'center' }}>
+            <div style={{ padding: '12px 16px', background: 'rgba(74,222,128,.08)', border: '1px solid rgba(74,222,128,.2)', borderRadius: 10, display: 'flex', gap: 10, alignItems: 'center' }}>
               <CheckCircle2 size={18} style={{ color: '#4ade80', flexShrink: 0 }} />
               <div>
                 <div style={{ fontSize: '.83rem', fontWeight: 600, color: '#4ade80' }}>Lote enviado con éxito</div>
-                <div style={{ fontSize: '.75rem', color: 'var(--adm-muted)', marginTop: 2 }}>El worker FFmpeg procesará los archivos según la concurrencia configurada</div>
               </div>
             </div>
           )}
           {(status === 'error' || status === 'partial') && (
-            <div style={{ margin: '0 20px 20px', padding: '12px 16px', background: 'rgba(248,113,113,.08)', border: '1px solid rgba(248,113,113,.2)', borderRadius: 10, display: 'flex', gap: 10, alignItems: 'center' }}>
+            <div style={{ padding: '12px 16px', background: 'rgba(248,113,113,.08)', border: '1px solid rgba(248,113,113,.2)', borderRadius: 10, display: 'flex', gap: 10, alignItems: 'center' }}>
               <AlertCircle size={18} style={{ color: '#f87171', flexShrink: 0 }} />
               <div style={{ fontSize: '.83rem', color: '#f87171', fontWeight: 600 }}>
                 {status === 'error' ? 'Error al subir todos los archivos' : 'Algunos archivos fallaron'}
@@ -263,7 +292,6 @@ export default function UploadManagerPage() {
           )}
         </div>
 
-        {/* Info panel */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div className="adm-table-card">
             <div className="adm-table-card-header">

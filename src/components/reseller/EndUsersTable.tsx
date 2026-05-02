@@ -20,14 +20,17 @@ function formatDate(d?: string | null) {
   return new Date(d).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function expiryBadge(endDate?: string | null) {
-  if (!endDate) return <span className="adm-badge adm-badge--gray">Sin plan</span>;
-  const end = new Date(endDate);
+function expiryBadge(user: EndUserAccount) {
+  if (!user.endDate) {
+    if (user.plan) return <span className="adm-badge adm-badge--yellow">Pendiente Login</span>;
+    return <span className="adm-badge adm-badge--gray">Sin plan</span>;
+  }
+  const end = new Date(user.endDate);
   const now = new Date();
   const diffDays = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  if (diffDays < 0) return <span className="adm-badge adm-badge--red">{formatDate(endDate)}</span>;
-  if (diffDays <= 7) return <span className="adm-badge adm-badge--yellow">{formatDate(endDate)}</span>;
-  return <span className="adm-badge adm-badge--green">{formatDate(endDate)}</span>;
+  if (diffDays < 0) return <span className="adm-badge adm-badge--red">{formatDate(user.endDate)}</span>;
+  if (diffDays <= 7) return <span className="adm-badge adm-badge--yellow">{formatDate(user.endDate)}</span>;
+  return <span className="adm-badge adm-badge--green">{formatDate(user.endDate)}</span>;
 }
 
 interface Props {
@@ -86,7 +89,7 @@ export default function EndUsersTable({ users, loading, search, onSearchChange, 
                   <td><div style={{ display: 'flex', alignItems: 'center', gap: '.3rem' }}><span style={{ fontFamily: 'monospace', fontSize: '.8rem' }}>{visiblePw.has(u.id) ? u.password : '••••••'}</span><button className="adm-btn adm-btn--ghost" style={{ padding: '2px' }} onClick={() => togglePw(u.id)}>{visiblePw.has(u.id) ? <EyeOff size={12} /> : <Eye size={12} />}</button><button className="adm-btn adm-btn--ghost" style={{ padding: '2px' }} onClick={() => copyText(u.password)} title="Copiar"><Copy size={12} /></button></div></td>
                   <td className="adm-table-muted" style={{ fontSize: '.82rem' }}>{u.managedBy?.name || u.managedBy?.email || '—'}</td>
                   <td className="adm-table-muted" style={{ fontSize: '.82rem' }}>{formatDate(u.startDate)}</td>
-                  <td>{expiryBadge(u.endDate)}</td>
+                  <td>{expiryBadge(u)}</td>
                   <td><span className={`adm-badge adm-badge--${STATUS_COLORS[u.status] || 'gray'}`}>{u.status}</span></td>
                   <td><span className={`adm-badge adm-badge--${TYPE_COLORS[u.type] || 'gray'}`}>{u.type}</span></td>
                   <td><button className="adm-btn adm-btn--ghost" style={{ padding: '2px 4px', fontSize: '.8rem' }} onClick={() => setDevicesModal(u)}><DeviceIcons count={u.connectedDevicesCount} max={u.maxDevices} /></button></td>

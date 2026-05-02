@@ -83,6 +83,7 @@ export const API_ROUTES = {
     USERS: `${API_BASE_URL}/admin/users`,
     SETTINGS: `${API_BASE_URL}/admin/settings`,
     VIDEOS_STATUS: `${API_BASE_URL}/admin/videos/status`,
+    JOB_LOGS: (jobId: string) => `${API_BASE_URL}/admin/videos/job/${jobId}/logs`,
     UPLOAD: {
       BASE: `${API_BASE_URL}/upload`,
       CHUNK: `${API_BASE_URL}/upload/chunk`,
@@ -127,6 +128,13 @@ export const API_ROUTES = {
   TMDB: {
     SEARCH: `${API_BASE_URL}/admin/tmdb/search`,
     DETAILS: (type: string, id: string | number) => `${API_BASE_URL}/admin/tmdb/details/${type}/${id}`,
+  },
+  MEDIA_SCANNER: {
+    DIRECTORIES: `${API_BASE_URL}/admin/media-scanner/directories`,
+    SCAN: `${API_BASE_URL}/admin/media-scanner/scan`,
+    IMPORT: `${API_BASE_URL}/admin/media-scanner/import`,
+    STATUS: `${API_BASE_URL}/admin/media-scanner/status`,
+    APPLY_TMDB: `${API_BASE_URL}/admin/media-scanner/apply-tmdb`,
   },
 } as const;
 

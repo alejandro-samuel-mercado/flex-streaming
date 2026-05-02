@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
 import { Play, Pause, Volume2, VolumeX, Maximize, Settings, RotateCcw, SkipBack, SkipForward, Lock, Unlock, MessageSquare, Headphones, ArrowLeft, RotateCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { parseVTT, SubtitleCue } from '@/lib/vtt-parser';
 
 interface VideoPlayerProps {
     src: string; // The .m3u8 URL
@@ -41,6 +42,11 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
     const [levels, setLevels] = useState<any[]>([]);
     const [currentLevel, setCurrentLevel] = useState(-1);
     const [isQualityMenuOpen, setIsQualityMenuOpen] = useState(false);
+
+    // Custom Subtitles State
+    const [activeCues, setActiveCues] = useState<SubtitleCue[]>([]);
+    const [currentCue, setCurrentCue] = useState<SubtitleCue | null>(null);
+    const [subtitleError, setSubtitleError] = useState<string | null>(null);
 
     const hlsRef = useRef<Hls | null>(null);
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -82,15 +88,18 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
             hls = new Hls({
                 capLevelToPlayerSize: true,
                 autoStartLoad: true,
+                startPosition: initialTime > 0 ? initialTime : -1,
+                renderTextTracksNatively: true,
             });
             hlsRef.current = hls;
             hls.loadSource(src);
             hls.attachMedia(video);
 
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                console.log('📄 [VideoPlayer] Manifest parsed. Levels:', hls?.levels.length, 'Audios:', hls?.audioTracks.length);
                 setAudioTracks(hls?.audioTracks || []);
                 setCurrentAudio(hls?.audioTrack || -1);
-                
+
                 const hlsSubs = (hls?.subtitleTracks || []).map(s => ({ ...s, type: 'HLS' }));
                 setSubtitleTracks(prev => {
                     const extSubs = prev.filter(s => s.type === 'EXTERNAL');
@@ -102,6 +111,17 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
                 const availableLevels = hls?.levels || [];
                 setLevels(availableLevels);
                 setCurrentLevel(hls?.currentLevel || -1);
+            });
+
+            hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_event, data) => {
+                console.log('🔊 [VideoPlayer] Audio tracks updated:', data.audioTracks.length);
+                setAudioTracks(data.audioTracks || []);
+            });
+
+            hls.on(Hls.Events.ERROR, (_event, data) => {
+                if (data.fatal) {
+                    console.error('🔥 [VideoPlayer] Fatal HLS error:', data.type, data.details);
+                }
             });
 
             hls.on(Hls.Events.LEVEL_SWITCHED, (_event, data) => {
@@ -121,10 +141,30 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
         }
 
         return () => {
-            video.removeEventListener('loadedmetadata', handleLoadedMetadata);
             if (hls) hls.destroy();
         };
-    }, [src, initialTime]);
+    }, [src]); // Removed initialTime from here
+
+    // Separate effect for initial seeking
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video || initialTime === 0 || initialTimeSetRef.current) return;
+
+        const handleCanPlay = () => {
+            if (!initialTimeSetRef.current) {
+                console.log('🕒 [VideoPlayer] Seeking to initial time:', initialTime);
+                video.currentTime = initialTime;
+                initialTimeSetRef.current = true;
+            }
+        };
+
+        if (video.readyState >= 1) {
+            handleCanPlay();
+        } else {
+            video.addEventListener('loadedmetadata', handleCanPlay);
+            return () => video.removeEventListener('loadedmetadata', handleCanPlay);
+        }
+    }, [initialTime]);
 
     const togglePlay = () => {
         if (isLocked) return;
@@ -176,8 +216,45 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
         return `${h > 0 ? h + ':' : ''}${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
     };
 
+    // Handle custom subtitle loading
+    useEffect(() => {
+        const loadSubtitle = async () => {
+            const track = subtitleTracks[currentSubtitle];
+            if (track?.type === 'EXTERNAL' && track.url) {
+                try {
+                    console.log('📥 [VideoPlayer] Fetching VTT:', track.url);
+                    const res = await fetch(track.url);
+                    if (!res.ok) throw new Error('Failed to fetch subtitle');
+                    const text = await res.text();
+                    const cues = parseVTT(text);
+                    console.log(`📝 [VideoPlayer] Subtitle cues loaded: ${cues.length}`);
+                    setActiveCues(cues);
+                } catch (err) {
+                    console.error('❌ [VideoPlayer] Error loading subtitle:', err);
+                    setSubtitleError('Error al cargar subtítulos');
+                }
+            } else {
+                setActiveCues([]);
+                setCurrentCue(null);
+            }
+        };
+
+        loadSubtitle();
+    }, [currentSubtitle, subtitleTracks]);
+
+    // Handle subtitle cue matching on timeupdate
+    useEffect(() => {
+        if (activeCues.length === 0) return;
+
+        const cue = activeCues.find(c => currentTime >= c.start && currentTime <= c.end);
+        if (cue !== currentCue) {
+            setCurrentCue(cue || null);
+        }
+    }, [currentTime, activeCues, currentCue]);
+
     const changeAudio = (id: number) => {
         if (hlsRef.current) {
+            console.log('🔊 [VideoPlayer] Switching to audio track:', id);
             hlsRef.current.audioTrack = id;
             setIsAudioMenuOpen(false);
         }
@@ -185,6 +262,7 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
 
     const changeLevel = (id: number) => {
         if (hlsRef.current) {
+            console.log('🎬 [VideoPlayer] Switching to quality level:', id);
             hlsRef.current.currentLevel = id;
             setCurrentLevel(id);
             setIsQualityMenuOpen(false);
@@ -192,10 +270,45 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
     };
 
     const changeSubtitle = (id: number) => {
+        console.log('📝 [VideoPlayer] Switching to subtitle track:', id);
+
+        // Handle HLS internal tracks
         if (hlsRef.current) {
-            hlsRef.current.subtitleTrack = id;
-            setIsSubtitleMenuOpen(false);
+            // Find if this ID is an HLS track or External
+            const track = subtitleTracks[id];
+            if (track?.type === 'HLS') {
+                hlsRef.current.subtitleTrack = id;
+            } else {
+                // If switching to external or disabling, disable HLS subs
+                hlsRef.current.subtitleTrack = -1;
+            }
         }
+
+        // Handle External tracks via native TextTrack API if needed
+        if (videoRef.current) {
+            const tracks = videoRef.current.textTracks;
+            for (let i = 0; i < tracks.length; i++) {
+                tracks[i].mode = 'disabled';
+            }
+
+            const selectedTrack = subtitleTracks[id];
+            if (selectedTrack?.type === 'EXTERNAL') {
+                console.log('🔍 [VideoPlayer] Activating external track:', selectedTrack.name);
+                // Find the track element and enable it
+                const trackElements = videoRef.current.querySelectorAll('track');
+                let found = false;
+                trackElements.forEach((el: any) => {
+                    if (el.label.trim().toLowerCase() === selectedTrack.name.trim().toLowerCase()) {
+                        el.track.mode = 'showing';
+                        found = true;
+                    }
+                });
+                if (!found) console.warn('⚠️ [VideoPlayer] External track not found in DOM:', selectedTrack.name);
+            }
+        }
+
+        setCurrentSubtitle(id);
+        setIsSubtitleMenuOpen(false);
     };
 
     const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -296,12 +409,26 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
             <video
                 ref={videoRef}
                 poster={poster}
+                crossOrigin="anonymous"
                 className="w-full h-full object-contain pointer-events-none"
                 onTimeUpdate={handleTimeUpdate}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
                 onEnded={onEnded}
             />
+            {/* Custom Subtitle Overlay */}
+            {currentCue && !isLocked && (
+                <div
+                    className="absolute bottom-[8%] left-0 right-0 flex justify-center pointer-events-none z-[100] px-10"
+
+                >
+                    <div className="bg-black/10  p-2! rounded-2xl text-center animate-fadeIn">
+                        <p className="text-white text-xl md:text-2xl font-medium leading-relaxed whitespace-pre-wrap">
+                            {currentCue.text}
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {/* Top Bar - Disney Style Refined */}
             {!isLocked && (
@@ -460,6 +587,7 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
                         <div className="relative">
                             <button
                                 onClick={() => {
+                                    console.log('🎧 [VideoPlayer] Audio button clicked. Current state:', isAudioMenuOpen);
                                     setIsAudioMenuOpen(!isAudioMenuOpen);
                                     setIsSubtitleMenuOpen(false);
                                     setIsQualityMenuOpen(false);
@@ -469,18 +597,24 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
                                 <Headphones size={28} />
                                 <span className="text-[10px] font-black uppercase tracking-widest">Audio</span>
                             </button>
-                            {isAudioMenuOpen && audioTracks.length > 0 && (
-                                <div className="absolute bottom-16 right-0 bg-black/90 backdrop-blur-3xl border border-white/10 rounded-2xl p-3 min-w-[200px] shadow-2xl animate-fadeSlideUp">
-                                    <p className="text-[10px] font-black uppercase tracking-[3px] text-white/40 mb-3 px-4">Pistas de Audio</p>
-                                    {audioTracks.map((track, idx) => (
-                                        <button
-                                            key={idx}
-                                            onClick={() => changeAudio(idx)}
-                                            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${currentAudio === idx ? 'bg-[var(--color-primary)] text-white shadow-[0_0_20px_var(--color-primary-glow)]' : 'text-white/80 hover:bg-white/10'}`}
-                                        >
-                                            {track.name || `Audio ${idx + 1}`}
-                                        </button>
-                                    ))}
+                            {isAudioMenuOpen && (
+                                <div className="absolute bottom-16 right-0 bg-black/90 backdrop-blur-3xl border border-white/10 rounded-2xl p-3! min-w-[200px] shadow-2xl animate-fadeSlideUp">
+                                    <p className="text-[10px] font-black uppercase tracking-[3px] text-white/40 mb-3 px-4!">Pistas de Audio</p>
+                                    {audioTracks.length > 0 ? (
+                                        audioTracks.map((track, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => changeAudio(idx)}
+                                                className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${currentAudio === idx ? 'bg-[var(--color-primary)] text-white shadow-[0_0_20px_var(--color-primary-glow)]' : 'text-white/80 hover:bg-white/10'}`}
+                                            >
+                                                {track.name || `Audio ${idx + 1}`}
+                                            </button>
+                                        ))
+                                    ) : (
+                                        <div className="px-4 py-3 text-sm text-white/40 italic">
+                                            No hay audios adicionales detectados
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

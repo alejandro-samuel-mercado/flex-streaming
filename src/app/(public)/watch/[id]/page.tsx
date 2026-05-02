@@ -14,6 +14,12 @@ interface ContentData {
     id: string;
     masterPlaylist: string;
     status: string;
+    subtitleTracks?: {
+      id: string;
+      language: string;
+      label: string;
+      url: string;
+    }[];
   }[];
 }
 
@@ -25,11 +31,13 @@ export default function WatchPage() {
   const [content, setContent] = useState<ContentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [initialTime, setInitialTime] = useState<number>(0);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
 
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const res = await fetch(`${API_ROUTES.CONTENT.BASE}/${id}`);
+        const res = await fetch(`${API_ROUTES.CONTENT.BASE}/${id}`, { cache: 'no-store' });
         if (!res.ok) throw new Error('No se pudo cargar el contenido');
         const resJson = await res.json();
         
@@ -53,6 +61,83 @@ export default function WatchPage() {
 
     fetchContent();
   }, [id]);
+
+  useEffect(() => {
+    if (!content) return;
+
+    const fetchHistory = async () => {
+      try {
+        const id = content.id;
+        // 1. Check LocalStorage first (instant)
+        const localProgress = localStorage.getItem(`watch_progress_${id}`);
+        if (localProgress) {
+            console.log('🕒 [WatchPage] Local storage found, resuming at:', localProgress);
+            setInitialTime(parseInt(localProgress));
+        }
+
+        const token = localStorage.getItem('token');
+        const profileId = localStorage.getItem('currentProfileId');
+        if (!token || !profileId) {
+            setHistoryLoaded(true);
+            return;
+        }
+
+        // 2. Fetch from API (for sync)
+        const res = await fetch(`${API_ROUTES.HISTORY.BASE}/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'X-Profile-Id': profileId
+          }
+        });
+        
+        if (res.ok) {
+          const resJson = await res.json();
+          if (resJson.success && resJson.data && resJson.data.progress) {
+             // Only update if API is significantly ahead or local is empty
+             if (!localProgress || resJson.data.progress > parseInt(localProgress) + 5) {
+                console.log('🕒 [WatchPage] API history found, updating to:', resJson.data.progress);
+                setInitialTime(resJson.data.progress);
+             }
+          }
+        }
+      } catch (e) {
+          console.error('History fetch error:', e);
+      } finally {
+          setHistoryLoaded(true);
+      }
+    };
+    fetchHistory();
+  }, [content?.id]);
+
+  const handleProgressUpdate = async (currentTime: number, duration: number) => {
+    if (!content || duration === 0) return;
+    
+    // 1. Save to LocalStorage (instant)
+    localStorage.setItem(`watch_progress_${content.id}`, Math.floor(currentTime).toString());
+
+    try {
+        const token = localStorage.getItem('token');
+        const profileId = localStorage.getItem('currentProfileId');
+        if (!token || !profileId) return;
+
+        // 2. Save to API (background)
+        await fetch(`${API_ROUTES.HISTORY.BASE}/progress`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'X-Profile-Id': profileId
+          },
+          body: JSON.stringify({
+            contentId: content.id,
+            progress: Math.floor(currentTime),
+            duration: Math.floor(duration)
+          })
+        });
+    } catch (e) {
+        console.error('Error saving progress:', e);
+    }
+  };
 
   if (loading) {
     return (
@@ -93,65 +178,12 @@ export default function WatchPage() {
     ? videoFile.masterPlaylist 
     : `${backendUrl}${videoFile.masterPlaylist.startsWith('/') ? '' : '/'}${videoFile.masterPlaylist}`;
 
-  const [initialTime, setInitialTime] = useState<number>(0);
-  const [historyLoaded, setHistoryLoaded] = useState(false);
-
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const profileId = localStorage.getItem('currentProfileId');
-        if (!token || !profileId) {
-            setHistoryLoaded(true);
-            return;
-        }
-
-        const res = await fetch(`${API_ROUTES.HISTORY.BASE}/${content.id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'X-Profile-Id': profileId
-          }
-        });
-        
-        if (res.ok) {
-          const resJson = await res.json();
-          if (resJson.success && resJson.data && resJson.data.progress) {
-             // If completed, maybe start from 0? Let's say if completed = false
-             if (!resJson.data.completed) {
-                 setInitialTime(resJson.data.progress);
-             }
-          }
-        }
-      } catch (e) {} finally {
-          setHistoryLoaded(true);
-      }
-    };
-    fetchHistory();
-  }, [content.id]);
-
-  const handleProgressUpdate = async (currentTime: number, duration: number) => {
-    try {
-        const token = localStorage.getItem('token');
-        const profileId = localStorage.getItem('currentProfileId');
-        if (!token || !profileId) return;
-
-        await fetch(`${API_ROUTES.HISTORY.BASE}/progress`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'X-Profile-Id': profileId
-          },
-          body: JSON.stringify({
-            contentId: content.id,
-            progress: currentTime,
-            duration: duration
-          })
-        });
-    } catch (e) {
-        console.error('Error saving progress:', e);
-    }
-  };
+  // Map subtitles for the player
+  const subtitles = videoFile.subtitleTracks?.map(s => ({
+    url: s.url.startsWith('http') ? s.url : `${backendUrl}${s.url.startsWith('/') ? '' : '/'}${s.url}`,
+    language: s.language,
+    label: s.label
+  })) || [];
 
   if (!historyLoaded) {
      return (
@@ -181,6 +213,7 @@ export default function WatchPage() {
         src={videoSrc}
         title={content.translations[0]?.title}
         initialTime={initialTime}
+        externalSubtitles={subtitles}
         onProgressUpdate={handleProgressUpdate}
         onEnded={() => console.log('Video terminado')}
       />
