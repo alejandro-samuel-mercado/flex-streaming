@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 import { API_ROUTES } from '@/lib/api-routes';
 import { Play, Plus, ThumbsUp, Share2, ChevronDown, Star, Film, ArrowLeft, MonitorPlay } from 'lucide-react';
 import ContentRow from '@/components/catalog/ContentRow';
+import FilmComments from '@/components/film/FilmComments';
+import TrailerModal from '@/components/film/TrailerModal';
 import Link from 'next/link';
 
 const DEMO_BACKDROP = 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=2574&auto=format&fit=crop';
@@ -31,7 +33,9 @@ export default function FilmDetailPage() {
     const id = params.id as string;
     const [activeTab, setActiveTab] = useState<'episodes' | 'related' | 'details'>('related');
     const [content, setContent] = useState<any>(null);
+    const [related, setRelated] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isTrailerOpen, setIsTrailerOpen] = useState(false);
 
     useEffect(() => {
         const fetchContent = async () => {
@@ -40,6 +44,13 @@ export default function FilmDetailPage() {
                 const resJson = await res.json();
                 if (resJson.success && resJson.data) {
                     setContent(resJson.data);
+                }
+
+                // Fetch related
+                const relatedRes = await fetch(`${API_ROUTES.CONTENT.BASE}/${id}/related`);
+                const relatedJson = await relatedRes.json();
+                if (relatedJson.success && relatedJson.data) {
+                    setRelated(relatedJson.data);
                 }
             } catch (err) {
                 console.error(err);
@@ -82,6 +93,7 @@ export default function FilmDetailPage() {
 
     return (
         <main className="min-h-screen bg-[#030612] text-white relative py-10!">
+            <TrailerModal url={content.trailerUrl || ''} isOpen={isTrailerOpen} onClose={() => setIsTrailerOpen(false)} />
             <div className="fixed inset-0 pointer-events-none opacity-40 mix-blend-screen bg-[radial-gradient(ellipse_at_20%_20%,rgba(0,229,255,0.15)_0%,transparent_50%),radial-gradient(ellipse_at_80%_80%,rgba(255,107,0,0.1)_0%,transparent_50%)] z-0" />
             {/* Hero Section — Enhanced Depth */}
             <section className="relative h-[85vh] w-full overflow-hidden">
@@ -145,16 +157,29 @@ export default function FilmDetailPage() {
 
                         {/* Massive Action Buttons */}
                         <div className="flex items-center gap-4 md:gap-6 flex-wrap">
-                            <Link href={`/watch/${id}`}
-                                className="flex items-center gap-3! md:gap-4! px-8! md:px-14! py-4! md:py-5! bg-gradient-to-r from-[#00E5FF] to-[#0099AA] text-black font-black rounded-xl hover:from-[#4DEDFF] hover:to-[#00E5FF] transition-all hover:scale-[1.03] active:scale-95 shadow-[0_10px_30px_rgba(0,229,255,0.4)] text-sm md:text-base">
-                                <Play size={24} fill="black" className="md:w-7 md:h-7" />
-                                REPRODUCIR
-                            </Link>
+                            {content.status === 'READY' || (content.videoFiles && content.videoFiles.some((v: any) => v.type === 'MOVIE' && v.status === 'COMPLETED')) ? (
+                                <Link href={`/watch/${id}`}
+                                    className="flex items-center gap-3! md:gap-4! px-8! md:px-14! py-4! md:py-5! bg-gradient-to-r from-[#00E5FF] to-[#0099AA] text-black font-black rounded-xl hover:from-[#4DEDFF] hover:to-[#00E5FF] transition-all hover:scale-[1.03] active:scale-95 shadow-[0_10px_30px_rgba(0,229,255,0.4)] text-sm md:text-base">
+                                    <Play size={24} fill="black" className="md:w-7 md:h-7" />
+                                    REPRODUCIR
+                                </Link>
+                            ) : (
+                                <button
+                                    disabled
+                                    className="flex items-center gap-3! md:gap-4! px-8! md:px-14! py-4! md:py-5! bg-gray-600/50 text-white/50 font-black rounded-xl cursor-not-allowed text-sm md:text-base border border-white/10">
+                                    <Play size={24} fill="currentColor" className="md:w-7 md:h-7" />
+                                    PRÓXIMAMENTE
+                                </button>
+                            )}
 
-                            <button className="flex items-center gap-3! md:gap-4! px-6! md:px-10! py-4! md:py-5! bg-[#080d24]/60 backdrop-blur-2xl border border-[#00E5FF]/30 text-white font-bold rounded-xl hover:border-[#00E5FF] hover:bg-[#00E5FF]/10 hover:text-[#00E5FF] hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all active:scale-95 shadow-2xl text-sm md:text-base">
-                                <MonitorPlay size={24} />
-                                TRÁILER
-                            </button>
+                            {content.trailerUrl && (
+                                <button 
+                                    onClick={() => setIsTrailerOpen(true)}
+                                    className="flex items-center gap-3! md:gap-4! px-6! md:px-10! py-4! md:py-5! bg-[#080d24]/60 backdrop-blur-2xl border border-[#00E5FF]/30 text-white font-bold rounded-xl hover:border-[#00E5FF] hover:bg-[#00E5FF]/10 hover:text-[#00E5FF] hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all active:scale-95 shadow-2xl text-sm md:text-base">
+                                    <MonitorPlay size={24} />
+                                    TRÁILER
+                                </button>
+                            )}
 
                             <div className="flex items-center gap-4">
                                 <button className="flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full border border-[#00E5FF]/30 bg-[#080d24]/60 backdrop-blur-2xl hover:border-[#00E5FF] hover:bg-[#00E5FF]/10 hover:text-[#00E5FF] hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all active:scale-90 shadow-2xl">
@@ -195,16 +220,24 @@ export default function FilmDetailPage() {
                         <div className="min-h-[500px] animate-fadeIn">
                             {activeTab === 'related' && (
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8">
-                                    {MOCK_RELATED.map(item => (
-                                        <Link key={item.id} href={`/film/${item.id}`} className="group block">
+                                    {(related.length > 0 ? related : MOCK_RELATED).map(item => {
+                                        // Support both mock items and real api content
+                                        const cId = item.id;
+                                        const title = item.translations?.[0]?.title || item.title || 'Relacionado';
+                                        const poster = item.thumbnails?.find((t: any) => t.type === 'POSTER')?.url;
+                                        const backdrop = item.thumbnails?.find((t: any) => t.type === 'BACKDROP')?.url;
+                                        const imageUrl = resolveUrl(poster || backdrop) || item.imageUrl;
+                                        
+                                        return (
+                                        <Link key={cId} href={`/film/${cId}`} className="group block">
                                             <div className="aspect-video rounded-xl overflow-hidden bg-[#080d24] mb-3 ring-1 ring-[#00E5FF]/10 group-hover:ring-[#00E5FF] transition-all shadow-lg group-hover:shadow-[0_8px_25px_rgba(0,229,255,0.3)]">
-                                                <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110 filter brightness-90 group-hover:brightness-110 contrast-125" />
+                                                <img src={imageUrl} alt={title} className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110 filter brightness-90 group-hover:brightness-110 contrast-125" />
                                             </div>
                                             <span className="text-sm md:text-base font-black text-gray-400 group-hover:text-[#00E5FF] transition line-clamp-1 uppercase tracking-wider drop-shadow-md">
-                                                {item.title}
+                                                {title}
                                             </span>
                                         </Link>
-                                    ))}
+                                    )})}
                                 </div>
                             )}
 
@@ -287,12 +320,24 @@ export default function FilmDetailPage() {
                             </div>
 
                             <div className="mt-14 pt-10 border-t border-[#00E5FF]/20">
-                                <div className="flex flex-wrap gap-3">
-                                    {(content.genres || []).map((g: any) => (
-                                        <span key={g.genre.id} className="px-5 py-2 bg-[#00E5FF]/5 hover:bg-[#00E5FF]/15 rounded-full text-[10px] font-black text-[#4DEDFF] hover:text-white border border-[#00E5FF]/30 hover:border-[#00E5FF] hover:shadow-[0_0_10px_rgba(0,229,255,0.3)] uppercase tracking-widest transition-all">
-                                            {g.genre.name}
-                                        </span>
-                                    ))}
+                                <div className="flex flex-col gap-6">
+                                    <div className="flex flex-wrap gap-3">
+                                        {(content.genres || []).map((g: any) => (
+                                            <Link href={`/explorar?genreId=${g.genre.id}`} key={g.genre.id} className="px-5 py-2 bg-[#00E5FF]/5 hover:bg-[#00E5FF]/15 rounded-full text-[10px] font-black text-[#4DEDFF] hover:text-white border border-[#00E5FF]/30 hover:border-[#00E5FF] hover:shadow-[0_0_10px_rgba(0,229,255,0.3)] uppercase tracking-widest transition-all cursor-pointer">
+                                                {g.genre.name}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                    
+                                    {content.tags && content.tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-2">
+                                            {content.tags.map((t: any) => (
+                                                <Link href={`/explorar?tagId=${t.tag.id}`} key={t.tag.id} className="px-3 py-1 bg-purple-500/5 hover:bg-purple-500/20 rounded-md text-[10px] font-bold text-purple-300 hover:text-white border border-purple-500/20 hover:border-purple-400 hover:shadow-[0_0_10px_rgba(168,85,247,0.3)] transition-all cursor-pointer">
+                                                    #{t.tag.name}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -300,10 +345,28 @@ export default function FilmDetailPage() {
                 </div>
             </section>
 
+            {/* Comments Section */}
+            <div className="relative z-10" style={{ paddingLeft: '7%', paddingRight: '7%' }}>
+                <FilmComments contentId={id as string} />
+            </div>
+
             {/* Recommendations Footer — High Spacing */}
             <div className="pb-48 relative z-10" style={{ paddingLeft: '7%', paddingRight: '7%' }}>
                 <div className="pt-32 border-t border-[#00E5FF]/10">
-                    <ContentRow title="Te puede gustar" items={MOCK_RELATED} />
+                    <ContentRow title="Te puede gustar" items={(related.length > 0 ? related : MOCK_RELATED).map(item => {
+                        const title = item.translations?.[0]?.title || item.title || 'Relacionado';
+                        const poster = item.thumbnails?.find((t: any) => t.type === 'POSTER')?.url;
+                        const backdrop = item.thumbnails?.find((t: any) => t.type === 'BACKDROP')?.url;
+                        const imageUrl = resolveUrl(poster || backdrop) || item.imageUrl;
+                        return {
+                            id: item.id,
+                            title,
+                            imageUrl: imageUrl,
+                            rating: item.rating || 8.5,
+                            year: item.releaseYear || item.year,
+                            type: item.type || 'MOVIE'
+                        };
+                    })} />
                 </div>
             </div>
         </main>

@@ -13,6 +13,9 @@ export default function AdminCategoriesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTagName, setNewTagName] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [isGenreModalOpen, setIsGenreModalOpen] = useState(false);
+  const [newGenreName, setNewGenreName] = useState('');
+  const [submittingGenre, setSubmittingGenre] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -83,6 +86,46 @@ export default function AdminCategoriesPage() {
     }
   };
 
+  const handleCreateGenre = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newGenreName) return;
+    setSubmittingGenre(true);
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(API_ROUTES.CATEGORIES.GENRES, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ name: newGenreName, slug: newGenreName.toLowerCase().replace(/\s+/g, '-') })
+      });
+      if (res.ok) {
+        setIsGenreModalOpen(false);
+        setNewGenreName('');
+        fetchData();
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmittingGenre(false);
+    }
+  };
+
+  const handleDeleteGenre = async (id: string, name: string) => {
+    if (!window.confirm(`¿Eliminar género "${name}"?`)) return;
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(API_ROUTES.CATEGORIES.DELETE_GENRE(id), {
+        method: 'DELETE',
+        headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+      });
+      if (res.ok) fetchData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className="adm-page">
       <div className="adm-page-header">
@@ -100,7 +143,12 @@ export default function AdminCategoriesPage() {
         <div className="adm-table-card">
           <div className="adm-table-card-header">
             <h2 className="adm-table-card-title">Géneros</h2>
-            <span className="adm-badge adm-badge--blue">Público</span>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span className="adm-badge adm-badge--blue">Público</span>
+              <button className="adm-icon-btn adm-icon-btn--primary" onClick={() => setIsGenreModalOpen(true)} title="Nuevo género">
+                <Plus size={16} />
+              </button>
+            </div>
           </div>
           <table className="adm-table">
             <thead>
@@ -115,7 +163,17 @@ export default function AdminCategoriesPage() {
                 <tr key={g.id}>
                   <td style={{ fontWeight: 600, color: 'white' }}>{g.name}</td>
                   <td><code style={{ color: '#60a5fa', fontSize: '.75rem' }}>{g.slug}</code></td>
-                  <td></td>
+                  <td>
+                    <div className="adm-table-actions">
+                      <button 
+                        className="adm-icon-btn adm-icon-btn--danger" 
+                        title="Eliminar"
+                        onClick={() => handleDeleteGenre(g.id, g.name)}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -191,6 +249,34 @@ export default function AdminCategoriesPage() {
                 <button type="button" className="adm-btn adm-btn--ghost" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setIsModalOpen(false)}>Cancelar</button>
                 <button type="submit" className="adm-btn adm-btn--primary" style={{ flex: 1, justifyContent: 'center' }} disabled={submitting}>
                   {submitting ? 'Creando...' : 'Crear'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isGenreModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="adm-table-card" style={{ width: '100%', maxWidth: 400, padding: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h2 className="adm-page-title" style={{ fontSize: '1.2rem', margin: 0 }}>Nuevo Género</h2>
+              <button className="adm-icon-btn" onClick={() => setIsGenreModalOpen(false)}><X size={18} /></button>
+            </div>
+            <form onSubmit={handleCreateGenre} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '.8rem', color: 'var(--adm-muted)', marginBottom: 6 }}>Nombre del género</label>
+                <input 
+                  type="text" required autoFocus
+                  className="adm-search-input" style={{ width: '100%', padding: '10px 12px' }}
+                  value={newGenreName}
+                  onChange={e => setNewGenreName(e.target.value)}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                <button type="button" className="adm-btn adm-btn--ghost" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setIsGenreModalOpen(false)}>Cancelar</button>
+                <button type="submit" className="adm-btn adm-btn--primary" style={{ flex: 1, justifyContent: 'center' }} disabled={submittingGenre}>
+                  {submittingGenre ? 'Creando...' : 'Crear'}
                 </button>
               </div>
             </form>

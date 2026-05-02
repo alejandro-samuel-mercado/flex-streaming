@@ -7,9 +7,10 @@ interface ExploreSidebarProps {
   activeFilters: any;
   genres: any[];
   platforms: any[];
+  tags?: any[];
 }
 
-export default function ExploreSidebar({ onFilterChange, activeFilters, genres, platforms }: ExploreSidebarProps) {
+export default function ExploreSidebar({ onFilterChange, activeFilters, genres, platforms, tags }: ExploreSidebarProps) {
   const types = [
     { id: 'MOVIE', name: 'Películas', icon: <Film size={18} /> },
     { id: 'SERIES', name: 'Series', icon: <Tv size={18} /> },
@@ -136,6 +137,28 @@ export default function ExploreSidebar({ onFilterChange, activeFilters, genres, 
           ))}
         </div>
       </div>
+
+      {/* Tags */}
+      {tags && tags.length > 0 && (
+        <div className="filter-section">
+          <label className="filter-title">Etiquetas / Tags</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            {tags.map(t => (
+              <button 
+                key={t.id}
+                onClick={() => updateFilter('tagId', activeFilters.tagId === t.id ? null : t.id)}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
+                  activeFilters.tagId === t.id 
+                    ? 'bg-[#00E5FF] text-black' 
+                    : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'
+                }`}
+              >
+                #{t.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </aside>
   );
 }

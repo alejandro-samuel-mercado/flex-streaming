@@ -8,6 +8,7 @@ import ExploreCard from '../../../components/explore/ExploreCard';
 import ExploreSidebar from '../../../components/explore/ExploreSidebar';
 import { ChevronLeft, ChevronRight, ListFilter } from 'lucide-react';
 import { API_ROUTES } from '@/lib/api-routes';
+import Link from 'next/link';
 
 function ExploreContent() {
     const searchParams = useSearchParams();
@@ -18,6 +19,7 @@ function ExploreContent() {
     const [loading, setLoading] = useState(true);
     const [genres, setGenres] = useState([]);
     const [platforms, setPlatforms] = useState([]);
+    const [tags, setTags] = useState<any[]>([]);
 
     // Get filter values from URL
     const page = Number(searchParams.get('page')) || 1;
@@ -25,6 +27,7 @@ function ExploreContent() {
     const type = searchParams.get('type') || null;
     const genreId = searchParams.get('genreId') || null;
     const platformId = searchParams.get('platformId') || null;
+    const tagId = searchParams.get('tagId') || null;
     const quick = searchParams.get('quick') || null;
     const sort = searchParams.get('sort') || 'recent';
 
@@ -48,6 +51,9 @@ function ExploreContent() {
         if (newFilters.platformId) params.set('platformId', newFilters.platformId);
         else params.delete('platformId');
 
+        if (newFilters.tagId) params.set('tagId', newFilters.tagId);
+        else params.delete('tagId');
+
         if (newFilters.quick) params.set('quick', newFilters.quick);
         else params.delete('quick');
 
@@ -61,14 +67,17 @@ function ExploreContent() {
     useEffect(() => {
         const fetchMetadata = async () => {
             try {
-                const [gRes, pRes] = await Promise.all([
+                const [gRes, pRes, tRes] = await Promise.all([
                     fetch(API_ROUTES.CATEGORIES.GENRES),
-                    fetch(API_ROUTES.PLATFORMS.LIST)
+                    fetch(API_ROUTES.PLATFORMS.LIST),
+                    fetch(API_ROUTES.CATEGORIES.TAGS)
                 ]);
                 const gJson = await gRes.json();
                 const pJson = await pRes.json();
+                const tJson = await tRes.json();
                 if (gJson.success) setGenres(gJson.data);
                 if (pJson.success) setPlatforms(pJson.data);
+                if (tJson.success) setTags(tJson.data);
             } catch (err) {
                 console.error('Error fetching metadata:', err);
             }
@@ -89,6 +98,7 @@ function ExploreContent() {
                     ...(type && { type }),
                     ...(genreId && { genreId }),
                     ...(platformId && { platformId }),
+                    ...(tagId && { tagId }),
                     ...(quick === 'free' && { isFree: 'true' }),
                     ...(quick === 'recommended' && { featured: 'true' }),
                 });
@@ -111,7 +121,7 @@ function ExploreContent() {
 
         const timeoutId = setTimeout(fetchContent, 200);
         return () => clearTimeout(timeoutId);
-    }, [page, search, type, genreId, platformId, quick, sort]);
+    }, [page, search, type, genreId, platformId, tagId, quick, sort]);
 
     const totalPages = Math.ceil(total / 50);
 
@@ -123,7 +133,8 @@ function ExploreContent() {
                 <ExploreSidebar
                     genres={genres}
                     platforms={platforms}
-                    activeFilters={{ page, search, type, genreId, platformId, quick, sort }}
+                    tags={tags}
+                    activeFilters={{ page, search, type, genreId, platformId, tagId, quick, sort }}
                     onFilterChange={updateFilters}
                 />
 
@@ -141,7 +152,7 @@ function ExploreContent() {
                                     <button
                                         key={s}
                                         className={`px-4! py-2! rounded-lg text-xs font-black uppercase transition ${sort === s ? 'bg-[var(--color-primary)] text-black' : 'text-white/40 hover:text-white'}`}
-                                        onClick={() => updateFilters({ page, search, type, genreId, platformId, quick, sort: s })}
+                                        onClick={() => updateFilters({ page, search, type, genreId, platformId, tagId, quick, sort: s })}
                                     >
                                         {s === 'recent' ? 'Recientes' : s === 'popular' ? 'Populares' : 'A-Z'}
                                     </button>
@@ -171,7 +182,7 @@ function ExploreContent() {
                             <button
                                 className="pagination-btn"
                                 disabled={page === 1}
-                                onClick={() => updateFilters({ page: page - 1, search, type, genreId, platformId, quick, sort })}
+                                onClick={() => updateFilters({ page: page - 1, search, type, genreId, platformId, tagId, quick, sort })}
                             >
                                 <ChevronLeft size={20} />
                             </button>
@@ -181,7 +192,7 @@ function ExploreContent() {
                             <button
                                 className="pagination-btn"
                                 disabled={page === totalPages}
-                                onClick={() => updateFilters({ page: page + 1, search, type, genreId, platformId, quick, sort })}
+                                onClick={() => updateFilters({ page: page + 1, search, type, genreId, platformId, tagId, quick, sort })}
                             >
                                 <ChevronRight size={20} />
                             </button>

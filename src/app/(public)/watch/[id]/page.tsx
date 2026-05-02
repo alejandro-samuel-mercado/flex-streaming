@@ -93,6 +93,75 @@ export default function WatchPage() {
     ? videoFile.masterPlaylist 
     : `${backendUrl}${videoFile.masterPlaylist.startsWith('/') ? '' : '/'}${videoFile.masterPlaylist}`;
 
+  const [initialTime, setInitialTime] = useState<number>(0);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const profileId = localStorage.getItem('currentProfileId');
+        if (!token || !profileId) {
+            setHistoryLoaded(true);
+            return;
+        }
+
+        const res = await fetch(`${API_ROUTES.HISTORY.BASE}/${content.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'X-Profile-Id': profileId
+          }
+        });
+        
+        if (res.ok) {
+          const resJson = await res.json();
+          if (resJson.success && resJson.data && resJson.data.progress) {
+             // If completed, maybe start from 0? Let's say if completed = false
+             if (!resJson.data.completed) {
+                 setInitialTime(resJson.data.progress);
+             }
+          }
+        }
+      } catch (e) {} finally {
+          setHistoryLoaded(true);
+      }
+    };
+    fetchHistory();
+  }, [content.id]);
+
+  const handleProgressUpdate = async (currentTime: number, duration: number) => {
+    try {
+        const token = localStorage.getItem('token');
+        const profileId = localStorage.getItem('currentProfileId');
+        if (!token || !profileId) return;
+
+        await fetch(`${API_ROUTES.HISTORY.BASE}/progress`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'X-Profile-Id': profileId
+          },
+          body: JSON.stringify({
+            contentId: content.id,
+            progress: currentTime,
+            duration: duration
+          })
+        });
+    } catch (e) {
+        console.error('Error saving progress:', e);
+    }
+  };
+
+  if (!historyLoaded) {
+     return (
+       <div className="h-screen w-full bg-black flex flex-col items-center justify-center text-white">
+         <Loader2 className="animate-spin mb-4" size={48} color="var(--color-primary)" />
+         <p className="text-xl font-medium">Restaurando sesión...</p>
+       </div>
+     );
+  }
+
   return (
     <div className="h-screen w-full bg-black relative overflow-hidden">
       {/* Top Header — visible on hover */}
@@ -111,6 +180,8 @@ export default function WatchPage() {
       <VideoPlayer 
         src={videoSrc}
         title={content.translations[0]?.title}
+        initialTime={initialTime}
+        onProgressUpdate={handleProgressUpdate}
         onEnded={() => console.log('Video terminado')}
       />
     </div>

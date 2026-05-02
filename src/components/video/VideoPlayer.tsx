@@ -9,10 +9,17 @@ interface VideoPlayerProps {
     src: string; // The .m3u8 URL
     title?: string;
     poster?: string;
+    initialTime?: number;
+    externalSubtitles?: Array<{
+        url: string;
+        language: string;
+        label: string;
+    }>;
+    onProgressUpdate?: (currentTime: number, duration: number) => void;
     onEnded?: () => void;
 }
 
-export default function VideoPlayer({ src, title, poster, onEnded }: VideoPlayerProps) {
+export default function VideoPlayer({ src, title, poster, initialTime = 0, externalSubtitles = [], onProgressUpdate, onEnded }: VideoPlayerProps) {
     const router = useRouter();
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -37,12 +44,39 @@ export default function VideoPlayer({ src, title, poster, onEnded }: VideoPlayer
 
     const hlsRef = useRef<Hls | null>(null);
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const lastProgressTimeRef = useRef<number>(0);
+    const initialTimeSetRef = useRef(false);
+
+    useEffect(() => {
+        if (externalSubtitles && externalSubtitles.length > 0) {
+            setSubtitleTracks(prev => {
+                const hlsSubs = prev.filter(s => s.type === 'HLS'); // Keep original HLS subs if any
+                const extSubs = externalSubtitles.map((s, i) => ({
+                    id: `ext-${i}`,
+                    name: s.label,
+                    lang: s.language,
+                    url: s.url,
+                    type: 'EXTERNAL'
+                }));
+                return [...hlsSubs, ...extSubs];
+            });
+        }
+    }, [externalSubtitles]);
 
     useEffect(() => {
         const video = videoRef.current;
         if (!video) return;
 
         let hls: Hls | null = null;
+
+        const handleLoadedMetadata = () => {
+            if (initialTime > 0 && !initialTimeSetRef.current) {
+                video.currentTime = initialTime;
+                initialTimeSetRef.current = true;
+            }
+        };
+
+        video.addEventListener('loadedmetadata', handleLoadedMetadata);
 
         if (Hls.isSupported()) {
             hls = new Hls({
@@ -56,7 +90,12 @@ export default function VideoPlayer({ src, title, poster, onEnded }: VideoPlayer
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
                 setAudioTracks(hls?.audioTracks || []);
                 setCurrentAudio(hls?.audioTrack || -1);
-                setSubtitleTracks(hls?.subtitleTracks || []);
+                
+                const hlsSubs = (hls?.subtitleTracks || []).map(s => ({ ...s, type: 'HLS' }));
+                setSubtitleTracks(prev => {
+                    const extSubs = prev.filter(s => s.type === 'EXTERNAL');
+                    return [...hlsSubs, ...extSubs];
+                });
                 setCurrentSubtitle(hls?.subtitleTrack || -1);
 
                 // Get available quality levels
@@ -82,9 +121,10 @@ export default function VideoPlayer({ src, title, poster, onEnded }: VideoPlayer
         }
 
         return () => {
+            video.removeEventListener('loadedmetadata', handleLoadedMetadata);
             if (hls) hls.destroy();
         };
-    }, [src]);
+    }, [src, initialTime]);
 
     const togglePlay = () => {
         if (isLocked) return;
@@ -101,6 +141,14 @@ export default function VideoPlayer({ src, title, poster, onEnded }: VideoPlayer
             setCurrentTime(v.currentTime);
             setDuration(v.duration);
             setProgress((v.currentTime / v.duration) * 100);
+
+            if (onProgressUpdate) {
+                const now = Date.now();
+                if (now - lastProgressTimeRef.current > 10000) {
+                    lastProgressTimeRef.current = now;
+                    onProgressUpdate(v.currentTime, v.duration);
+                }
+            }
         }
     };
 

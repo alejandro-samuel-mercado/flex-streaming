@@ -6,6 +6,8 @@ interface UploadFile {
   file: File;
   progress: number;
   status: 'idle' | 'uploading' | 'success' | 'error';
+  type: 'MOVIE' | 'TRAILER';
+  errorMessage?: string;
 }
 
 interface UploadState {
@@ -14,6 +16,8 @@ interface UploadState {
   removeFile: (name: string) => void;
   updateProgress: (name: string, progress: number) => void;
   updateStatus: (name: string, status: UploadFile['status']) => void;
+  updateType: (name: string, type: UploadFile['type']) => void;
+  setErrorMessage: (name: string, message: string) => void;
   clearCompleted: () => void;
 }
 
@@ -26,7 +30,7 @@ export const useUploadStore = create<UploadState>((set) => ({
     return {
       files: [
         ...state.files,
-        ...filtered.map(f => ({ file: f, progress: 0, status: 'idle' as const }))
+        ...filtered.map(f => ({ file: f, progress: 0, status: 'idle' as const, type: 'MOVIE' as const }))
       ]
     };
   }),
@@ -34,10 +38,22 @@ export const useUploadStore = create<UploadState>((set) => ({
     files: state.files.filter(f => f.file.name !== name)
   })),
   updateProgress: (name, progress) => set((state) => ({
-    files: state.files.map(f => f.file.name === name ? { ...f, progress } : f)
+    files: state.files.map(f => {
+      if (f.file.name === name) {
+        // Sanity check: progress should never go backwards
+        return { ...f, progress: Math.max(f.progress, progress) };
+      }
+      return f;
+    })
   })),
   updateStatus: (name, status) => set((state) => ({
-    files: state.files.map(f => f.file.name === name ? { ...f, status } : f)
+    files: state.files.map(f => f.file.name === name ? { ...f, status, errorMessage: status !== 'error' ? undefined : f.errorMessage } : f)
+  })),
+  updateType: (name, type) => set((state) => ({
+    files: state.files.map(f => f.file.name === name ? { ...f, type } : f)
+  })),
+  setErrorMessage: (name, errorMessage) => set((state) => ({
+    files: state.files.map(f => f.file.name === name ? { ...f, errorMessage } : f)
   })),
   clearCompleted: () => set((state) => ({
     files: state.files.filter(f => f.status !== 'success')

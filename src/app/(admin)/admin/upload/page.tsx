@@ -6,9 +6,10 @@ import { API_ROUTES } from '@/lib/api-routes';
 import { useUploadStore } from '@/lib/upload-store';
 
 export default function UploadManagerPage() {
-  const { files, addFiles, removeFile, updateProgress, updateStatus } = useUploadStore();
+  const { files, addFiles, removeFile, updateProgress, updateStatus, updateType, setErrorMessage } = useUploadStore();
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState<'' | 'success' | 'error' | 'partial'>('');
+  const [globalError, setGlobalError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [contentList, setContentList] = useState<any[]>([]);
   const [selectedContentId, setSelectedContentId] = useState('');
@@ -28,37 +29,109 @@ export default function UploadManagerPage() {
       .catch(() => {});
   }, []);
 
+  const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB
+  const CONCURRENCY = 3;
+
   const handleUpload = async () => {
     if (!files.length || !selectedContentId) return;
-    setUploading(true); setStatus('');
+    setUploading(true);
+    setStatus('');
+    setGlobalError(null);
 
-    let okCount = 0, errCount = 0;
-    await Promise.all(files.map(async f => {
-      if (f.status === 'success') { okCount++; return; }
-      
-      updateStatus(f.file.name, 'uploading');
-      try {
-        const fd = new FormData();
-        fd.append('video', f.file);
-        fd.append('contentId', selectedContentId);
-        
-        const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
-        const res = await fetch(API_ROUTES.ADMIN.UPLOAD, { 
-          method: 'POST', 
-          body: fd,
-          headers: {
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-          }
-        });
-        if (!res.ok) throw new Error();
-        updateProgress(f.file.name, 100);
-        updateStatus(f.file.name, 'success');
+    const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
+    const headers = { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
+
+    let okCount = 0;
+    let errCount = 0;
+
+    for (const f of files) {
+      if (f.status === 'success') {
         okCount++;
-      } catch {
+        continue;
+      }
+
+      updateStatus(f.file.name, 'uploading');
+      const totalChunks = Math.ceil(f.file.size / CHUNK_SIZE);
+      const fileId = Math.random().toString(36).substring(2, 15);
+
+      try {
+        // Upload chunks in parallel with concurrency limit
+        const chunkIndices = Array.from({ length: totalChunks }, (_, i) => i);
+        let completedChunks = 0;
+
+        const uploadChunk = async (i: number) => {
+          const start = i * CHUNK_SIZE;
+          const end = Math.min(start + CHUNK_SIZE, f.file.size);
+          const chunk = f.file.slice(start, end);
+
+          const fd = new FormData();
+          fd.append('chunk', chunk);
+          fd.append('fileId', fileId);
+          fd.append('chunkIndex', i.toString());
+
+          const res = await fetch(API_ROUTES.ADMIN.UPLOAD.CHUNK, {
+            method: 'POST',
+            body: fd,
+            headers
+          });
+
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.error || `Error en chunk ${i}`);
+          }
+
+          completedChunks++;
+          const progress = Math.round((completedChunks / totalChunks) * 100);
+          updateProgress(f.file.name, progress);
+        };
+
+        // Sliding window for parallel uploads (smoother)
+        const queue = [...chunkIndices];
+        const activeUploads: Promise<void>[] = [];
+        
+        while (queue.length > 0 || activeUploads.length > 0) {
+          while (queue.length > 0 && activeUploads.length < CONCURRENCY) {
+            const idx = queue.shift()!;
+            const uploadPromise = uploadChunk(idx).then(() => {
+              activeUploads.splice(activeUploads.indexOf(uploadPromise), 1);
+            });
+            activeUploads.push(uploadPromise);
+          }
+          if (activeUploads.length > 0) {
+            await Promise.race(activeUploads);
+          }
+        }
+
+        // Finalize
+        const completeRes = await fetch(API_ROUTES.ADMIN.UPLOAD.COMPLETE, {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileId,
+            fileName: f.file.name,
+            totalChunks,
+            contentId: selectedContentId,
+            type: f.type
+          })
+        });
+
+        if (!completeRes.ok) {
+          const errData = await completeRes.json().catch(() => ({}));
+          throw new Error(errData.error || 'Error al finalizar subida');
+        }
+
+        updateStatus(f.file.name, 'success');
+        updateProgress(f.file.name, 100);
+        // Remove from list after a short delay so the user sees the success state briefly
+        setTimeout(() => removeFile(f.file.name), 1500);
+        okCount++;
+      } catch (err: any) {
+        console.error(err);
+        setErrorMessage(f.file.name, err.message);
         updateStatus(f.file.name, 'error');
         errCount++;
       }
-    }));
+    }
 
     setStatus(errCount === 0 ? 'success' : okCount === 0 ? 'error' : 'partial');
     setUploading(false);
@@ -119,18 +192,36 @@ export default function UploadManagerPage() {
           {/* File list */}
           {files.length > 0 && (
             <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {files.map((f, i) => (
-                <div key={i} className="adm-upload-file">
+              {files.map((f) => (
+                <div key={f.file.name} className="adm-upload-file">
                    <FileVideo size={16} style={{ color: '#a78bfa', flexShrink: 0 }} />
-                   <div style={{ flex: 1, minWidth: 0 }}>
-                     <div style={{ fontSize: '.83rem', color: 'white', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.file.name}</div>
-                     <div style={{ fontSize: '.7rem', color: 'var(--adm-muted)' }}>{(f.file.size / 1024 / 1024).toFixed(1)} MB</div>
-                     {(uploading || f.status === 'uploading' || f.status === 'success' || f.status === 'error') && (
-                       <div className="adm-progress-bar">
-                         <div className={`adm-progress-fill${f.status === 'error' ? ' error' : ''}${f.status === 'success' ? ' success' : ''}`}
-                           style={{ width: `${f.status === 'error' ? 100 : f.progress}%` }} />
-                       </div>
-                     )}
+                   <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                          <span style={{ fontSize: '.85rem', fontWeight: 500 }}>{f.file.name}</span>
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <select 
+                                className="adm-select" 
+                                style={{ padding: '2px 8px', fontSize: '0.75rem' }}
+                                value={f.type}
+                                onChange={(e) => updateType(f.file.name, e.target.value as any)}
+                            >
+                                <option value="MOVIE">Película</option>
+                                <option value="TRAILER">Tráiler</option>
+                            </select>
+                            <span style={{ fontSize: '.75rem', color: 'var(--adm-muted)' }}>{(f.file.size / 1024 / 1024).toFixed(2)} MB</span>
+                          </div>
+                        </div>
+                        {(uploading || f.status === 'uploading' || f.status === 'success' || f.status === 'error') && (
+                           <div className="adm-progress-bar">
+                             <div className={`adm-progress-fill${f.status === 'error' ? ' error' : ''}${f.status === 'success' ? ' success' : ''}`}
+                                style={{ width: `${f.status === 'error' ? 100 : f.progress}%` }} />
+                           </div>
+                         )}
+                         {f.status === 'error' && f.errorMessage && (
+                           <div style={{ fontSize: '0.7rem', color: '#f87171', marginTop: 4, fontWeight: 500 }}>
+                             {f.errorMessage}
+                           </div>
+                         )}
                    </div>
                    {!uploading && f.status !== 'uploading' && (
                      <button className="adm-icon-btn adm-icon-btn--danger" onClick={() => removeFile(f.file.name)}><X size={12} /></button>

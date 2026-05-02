@@ -125,8 +125,56 @@ export default function HomePage() {
     const [data, setData] = useState<HomepageData | null>(null);
     const [loading, setLoading] = useState(true);
     const [useMock, setUseMock] = useState(false);
+    
+    // Auth state and Continue Watching
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [continueWatching, setContinueWatching] = useState<any[]>([]);
 
     useEffect(() => {
+        const token = localStorage.getItem('token');
+        const profileId = localStorage.getItem('currentProfileId');
+        
+        if (token && profileId) {
+            setIsLoggedIn(true);
+            
+            // Sync Favorites
+            const localFavorites = JSON.parse(localStorage.getItem('localFavorites') || '[]');
+            if (localFavorites.length > 0) {
+                fetch(`${API_ROUTES.FAVORITES.BASE}/sync`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'X-Profile-Id': profileId
+                    },
+                    body: JSON.stringify({ contentIds: localFavorites })
+                }).then(res => res.json()).then(resJson => {
+                    if (resJson.success) {
+                        localStorage.removeItem('localFavorites');
+                    }
+                }).catch(console.error);
+            }
+
+            // Fetch Continue Watching
+            fetch(`${API_ROUTES.HISTORY.BASE}/continue`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'X-Profile-Id': profileId
+                }
+            })
+            .then(res => res.json())
+            .then(resJson => {
+                if (resJson.success && resJson.data) {
+                    setContinueWatching(resJson.data.map((h: any) => ({
+                        ...mapContentToFilm(h.content),
+                        progress: h.progress,
+                        duration: h.duration
+                    })));
+                }
+            })
+            .catch(console.error);
+        }
+
         fetch(API_ROUTES.HOMEPAGE.DATA, { cache: 'no-store' })
             .then(r => r.json())
             .then(res => {
@@ -195,8 +243,7 @@ export default function HomePage() {
     // Random backdrop for footer
     const footerBackdrop = trending[Math.floor(Math.random() * Math.max(trending.length, 1))]?.backdropUrl || undefined;
 
-    // For now, assume not logged in and no plan (can be connected to auth later)
-    const isLoggedIn = false;
+    // For now, assume hasPlan is false unless implemented later
     const hasPlan = false;
 
     if (loading) {
@@ -231,6 +278,17 @@ export default function HomePage() {
 
                 {/* 2. Platform Marquee */}
                 <PlatformMarquee platforms={platforms} />
+
+                {/* 2.5 Continue Watching */}
+                {continueWatching.length > 0 && (
+                    <FilmRow
+                        title="⏱️ Continuar viendo"
+                        subtitle="Retoma donde lo dejaste"
+                        items={continueWatching}
+                        variant="large"
+                        accentColor="#FF6B00"
+                    />
+                )}
 
                 {/* 3. Trending */}
                 <FilmRow

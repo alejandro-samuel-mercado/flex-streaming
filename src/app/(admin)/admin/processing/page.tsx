@@ -8,6 +8,7 @@ import { API_ROUTES } from '@/lib/api-routes';
 interface VideoStatus {
   id: string;
   contentId: string;
+  processingJobId: string | null;
   status: 'PENDING' | 'QUEUED' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
   masterPlaylist: string | null;
   createdAt: string;
@@ -50,21 +51,48 @@ export default function ProcessingMonitorPage() {
     const s = io(backendUrl, { withCredentials: true });
     
     s.on('video-progress', ({ jobId, progress }) => {
-      setVideos(prev => prev.map(v => 
-        // We assume processingJobId matches for now or we map it
-        // For simplicity, we update the one in PROCESSING status if multiple
-        v.status === 'PROCESSING' ? { ...v, progress } : v
-      ));
+      setVideos(prev => prev.map(v => {
+        if (v.processingJobId === jobId) {
+          // Progress should never go backwards
+          const currentProgress = v.progress || 0;
+          return { ...v, progress: Math.max(currentProgress, progress), status: 'PROCESSING' };
+        }
+        return v;
+      }));
     });
 
     s.on('video-status', ({ jobId, status }) => {
-      // Refresh list on status change
+      // If a job finishes or fails, we refresh the whole list to get updated metadata
       fetchStatus();
     });
 
     setSocket(s);
     return () => { s.disconnect(); };
   }, []);
+
+  const handleCancel = async (id: string, slug: string) => {
+    if (!window.confirm(`¿Estás seguro de que deseas cancelar la subida de "${slug}"?`)) return;
+
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
+      const res = await fetch(API_ROUTES.ADMIN.UPLOAD.DELETE_VIDEO(id), {
+        method: 'DELETE',
+        headers: {
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
+      });
+
+      if (res.ok) {
+        setVideos(prev => prev.filter(v => v.id !== id));
+      } else {
+        const err = await res.json();
+        alert(`Error al cancelar: ${err.error || 'No se pudo cancelar'}`);
+      }
+    } catch (err) {
+      console.error('Cancel error:', err);
+      alert('Error de conexión al intentar cancelar');
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -152,7 +180,18 @@ export default function ProcessingMonitorPage() {
                       <div style={{ fontSize: '.7rem', color: 'var(--adm-muted)' }}>{new Date(v.createdAt).toLocaleTimeString()}</div>
                     </td>
                     <td>
-                      <button className="adm-btn adm-btn--gray" style={{ padding: '6px 12px' }}>Detalles</button>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button className="adm-btn adm-btn--gray" style={{ padding: '6px 12px' }}>Detalles</button>
+                        {v.status !== 'COMPLETED' && (
+                          <button 
+                            className="adm-btn" 
+                            style={{ padding: '6px 12px', background: 'var(--adm-danger)', color: 'white', border: 'none' }}
+                            onClick={() => handleCancel(v.id, v.content.slug)}
+                          >
+                            Cancelar
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -162,10 +201,21 @@ export default function ProcessingMonitorPage() {
         )}
       </div>
 
-      <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+      <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
         <div className="adm-table-card" style={{ padding: 20 }}>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <div style={{ background: 'var(--adm-primary)22', color: 'var(--adm-primary)', padding: 10, borderRadius: 12 }}>
+              <Activity size={20} className="animate-pulse" />
+            </div>
+            <div>
+              <div style={{ fontSize: '.75rem', color: 'var(--adm-muted)', fontWeight: 600 }}>PROCESANDO</div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>{videos.filter(v => v.status === 'PROCESSING').length}</div>
+            </div>
+          </div>
+        </div>
+        <div className="adm-table-card" style={{ padding: 20 }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <div style={{ background: 'var(--adm-yellow)22', color: 'var(--adm-yellow)', padding: 10, borderRadius: 12 }}>
               <Clock size={20} />
             </div>
             <div>

@@ -1,8 +1,56 @@
 'use client';
-
-import { Settings, Globe, Bell, Shield, Palette, Save } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Settings, Globe, Bell, Shield, Palette, Save, MessageSquare } from 'lucide-react';
+import { API_ROUTES } from '@/lib/api-routes';
 
 export default function AdminSettingsPage() {
+    const [settings, setSettings] = useState<Record<string, string>>({});
+    const [saving, setSaving] = useState(false);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const token = localStorage.getItem('adminToken');
+                const res = await fetch(API_ROUTES.ADMIN.BASE + '/settings', {
+                    headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+                });
+                const json = await res.json();
+                if (json.success) setSettings(json.data);
+            } catch (err) {
+                console.error('Error fetching settings:', err);
+            }
+        };
+        fetchSettings();
+    }, []);
+
+    const toggleSetting = (key: string) => {
+        setSettings(prev => ({
+            ...prev,
+            [key]: prev[key] === 'true' ? 'false' : 'true'
+        }));
+    };
+
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            const token = localStorage.getItem('adminToken');
+            await fetch(API_ROUTES.ADMIN.BASE + '/settings', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify(settings)
+            });
+            alert('Ajustes guardados correctamente.');
+        } catch (err) {
+            console.error('Error saving settings:', err);
+            alert('Error al guardar ajustes.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
     return (
         <div className="adm-page">
             <div className="adm-page-header">
@@ -10,10 +58,30 @@ export default function AdminSettingsPage() {
                     <h1 className="adm-page-title">Configuración</h1>
                     <p className="adm-page-subtitle">Ajustes globales de la plataforma</p>
                 </div>
-                <button className="adm-btn adm-btn--primary"><Save size={16} /> Guardar cambios</button>
+                <button 
+                    className="adm-btn adm-btn--primary" 
+                    onClick={handleSave}
+                    disabled={saving}
+                >
+                    <Save size={16} /> {saving ? 'Guardando...' : 'Guardar cambios'}
+                </button>
             </div>
 
             <div className="adm-settings-grid">
+                {/* Comentarios y Reseñas */}
+                <div className="adm-settings-section">
+                    <div className="adm-settings-section-header">
+                        <MessageSquare size={18} className="adm-settings-icon" />
+                        <h2>Comentarios y Reseñas</h2>
+                    </div>
+                    <div className="adm-settings-body">
+                        <div className="adm-toggle-row" onClick={() => toggleSetting('COMMENTS_REQUIRE_MODERATION')} style={{ cursor: 'pointer' }}>
+                            <span>Requerir moderación en comentarios (pendientes de aprobación)</span>
+                            <div className={`adm-toggle${settings['COMMENTS_REQUIRE_MODERATION'] === 'true' ? ' adm-toggle--on' : ''}`} />
+                        </div>
+                    </div>
+                </div>
+
                 {/* General */}
                 <div className="adm-settings-section">
                     <div className="adm-settings-section-header">
@@ -23,103 +91,11 @@ export default function AdminSettingsPage() {
                     <div className="adm-settings-body">
                         <div className="adm-form-row">
                             <label>Nombre del sitio</label>
-                            <input className="adm-input" defaultValue="FlexStreaming" />
-                        </div>
-                        <div className="adm-form-row">
-                            <label>URL del sitio</label>
-                            <input className="adm-input" defaultValue="https://FlexStreaming.com" />
-                        </div>
-                        <div className="adm-form-row">
-                            <label>Idioma por defecto</label>
-                            <select className="adm-input">
-                                <option>Español (es)</option>
-                                <option>English (en)</option>
-                                <option>Português (pt)</option>
-                            </select>
-                        </div>
-                        <div className="adm-form-row">
-                            <label>Zona horaria</label>
-                            <select className="adm-input">
-                                <option>America/Buenos_Aires (UTC-3)</option>
-                                <option>America/Mexico_City (UTC-6)</option>
-                                <option>Europe/Madrid (UTC+1)</option>
-                            </select>
+                            <input className="adm-input" value={settings['SITE_NAME'] || 'FlexStreaming'} onChange={e => setSettings({...settings, SITE_NAME: e.target.value})} />
                         </div>
                     </div>
                 </div>
 
-                {/* Notificaciones */}
-                <div className="adm-settings-section">
-                    <div className="adm-settings-section-header">
-                        <Bell size={18} className="adm-settings-icon" />
-                        <h2>Notificaciones</h2>
-                    </div>
-                    <div className="adm-settings-body">
-                        {[
-                            { label: 'Email al completar procesamiento de video', default: true },
-                            { label: 'Alerta por errores en la cola BullMQ', default: true },
-                            { label: 'Reporte semanal de actividad', default: false },
-                            { label: 'Notificar nuevos registros de usuarios', default: false },
-                        ].map((item, i) => (
-                            <div key={i} className="adm-toggle-row">
-                                <span>{item.label}</span>
-                                <div className={`adm-toggle${item.default ? ' adm-toggle--on' : ''}`} />
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Seguridad */}
-                <div className="adm-settings-section">
-                    <div className="adm-settings-section-header">
-                        <Shield size={18} className="adm-settings-icon" />
-                        <h2>Seguridad</h2>
-                    </div>
-                    <div className="adm-settings-body">
-                        <div className="adm-form-row">
-                            <label>Duración del token JWT (acceso)</label>
-                            <input className="adm-input" defaultValue="15m" />
-                        </div>
-                        <div className="adm-form-row">
-                            <label>Duración del refresh token</label>
-                            <input className="adm-input" defaultValue="7d" />
-                        </div>
-                        <div className="adm-form-row">
-                            <label>Máx. intentos de login</label>
-                            <input className="adm-input" type="number" defaultValue="10" />
-                        </div>
-                        <div className="adm-toggle-row">
-                            <span>Requerir 2FA para administradores</span>
-                            <div className="adm-toggle" />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Streaming */}
-                <div className="adm-settings-section">
-                    <div className="adm-settings-section-header">
-                        <Palette size={18} className="adm-settings-icon" />
-                        <h2>Streaming y Codificación</h2>
-                    </div>
-                    <div className="adm-settings-body">
-                        <div className="adm-form-row">
-                            <label>Concurrencia máxima FFmpeg</label>
-                            <input className="adm-input" type="number" defaultValue="2" />
-                        </div>
-                        <div className="adm-form-row">
-                            <label>Ruta de medios</label>
-                            <input className="adm-input" defaultValue="./media" />
-                        </div>
-                        <div className="adm-form-row">
-                            <label>Calidades HLS por defecto</label>
-                            <input className="adm-input" defaultValue="360p, 720p, 1080p" />
-                        </div>
-                        <div className="adm-toggle-row">
-                            <span>Generar previews de miniaturas</span>
-                            <div className="adm-toggle adm-toggle--on" />
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     );

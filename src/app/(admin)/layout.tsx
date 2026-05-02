@@ -6,7 +6,9 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
     LayoutDashboard, Film, Users, Settings, LogOut,
     UploadCloud, MonitorPlay, ChevronLeft, Bell,
-    Search, Tag, Server, Menu, X, Activity
+    Search, Tag, Server, Menu, X, Activity,
+    Calendar, Package, UserCheck, Coins,
+    MessageSquare
 } from 'lucide-react';
 
 const NAV = [
@@ -18,6 +20,11 @@ const NAV = [
     { href: '/admin/platforms', label: 'Plataformas', icon: Server },
     { href: '/admin/users', label: 'Usuarios', icon: Users },
     { href: '/admin/homepage', label: 'Portada', icon: LayoutDashboard },
+    { href: '/admin/subscription-plans', label: 'Planes', icon: Calendar },
+    { href: '/admin/credit-packages', label: 'Paquetes Créditos', icon: Package },
+    { href: '/admin/resellers', label: 'Revendedores', icon: Coins },
+    { href: '/admin/end-users', label: 'Clientes Finales', icon: UserCheck },
+    { href: '/admin/comments', label: 'Comentarios', icon: MessageSquare },
     { href: '/admin/settings', label: 'Configuración', icon: Settings },
 ];
 

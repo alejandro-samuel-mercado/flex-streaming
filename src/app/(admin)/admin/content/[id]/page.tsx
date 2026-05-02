@@ -7,7 +7,8 @@ import {
     Languages, Layout, Loader2, CheckCircle2, AlertCircle,
     Play, Clock, AlertTriangle, Check,
     Link, UploadCloud,
-    X
+    X, MessageSquare,
+    Import
 } from 'lucide-react';
 import { API_ROUTES } from '@/lib/api-routes';
 import { adminFetch } from '@/lib/admin-api';
@@ -29,9 +30,11 @@ interface ContentData {
     duration?: number;
     rating?: number;
     featured?: boolean;
+    trailerUrl?: string | null;
     translations: Translation[];
     platforms: { id: string; name: string }[];
     categories: { id: string; name: string }[];
+    tags?: { id: string; name: string }[];
     videoFiles?: {
         id: string;
         status: string;
@@ -40,6 +43,12 @@ interface ContentData {
         masterPlaylist?: string;
         episodeId?: string;
         qualities: { resolution: string }[];
+        subtitleTracks?: {
+            id: string;
+            language: string;
+            label: string;
+            url: string;
+        }[];
     }[];
     thumbnails?: {
         id?: string;
@@ -59,24 +68,29 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
     const [success, setSuccess] = useState(false);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [activeVideo, setActiveVideo] = useState<{ url: string, title: string } | null>(null);
+    const [trailerFile, setTrailerFile] = useState<File | null>(null);
+    const [uploadingSubtitle, setUploadingSubtitle] = useState<string | null>(null); // videoFileId
 
     const [data, setData] = useState<ContentData | null>(null);
     const [allPlatforms, setAllPlatforms] = useState<{ id: string; name: string }[]>([]);
     const [allGenres, setAllGenres] = useState<{ id: string; name: string }[]>([]);
+    const [allTags, setAllTags] = useState<{ id: string; name: string }[]>([]);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const [contentRes, platformsRes, genresRes] = await Promise.all([
+            const [contentRes, platformsRes, genresRes, tagsRes] = await Promise.all([
                 adminFetch(API_ROUTES.CONTENT.DETAIL(id)),
                 adminFetch(API_ROUTES.PLATFORMS.LIST),
-                adminFetch(API_ROUTES.CATEGORIES.GENRES)
+                adminFetch(API_ROUTES.CATEGORIES.GENRES),
+                adminFetch(API_ROUTES.CATEGORIES.TAGS)
             ]);
 
-            const [contentJson, platformsJson, genresJson] = await Promise.all([
+            const [contentJson, platformsJson, genresJson, tagsJson] = await Promise.all([
                 contentRes.json(),
                 platformsRes.json(),
-                genresRes.json()
+                genresRes.json(),
+                tagsRes.json()
             ]);
 
             if (contentJson.success && contentJson.data) {
@@ -95,6 +109,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                     translations: mappedTranslations.length > 0 ? mappedTranslations : [{ lang: 'es', title: '', description: '' }],
                     platforms: item.platform ? [item.platform] : [],
                     categories: (item.genres || []).map((g: any) => g.genre),
+                    tags: (item.tags || []).map((t: any) => t.tag),
                     videoFiles: item.videoFiles,
                     thumbnails: item.thumbnails || []
                 });
@@ -103,6 +118,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
 
             setAllPlatforms(platformsJson.data || []);
             setAllGenres(genresJson.data || []);
+            setAllTags(tagsJson.data || []);
 
         } catch (err) {
             console.error(err);
@@ -133,7 +149,9 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                 rating: data.rating ? Number(data.rating) : undefined,
                 featured: data.featured,
                 platformId: data.platforms[0]?.id || null,
+                trailerUrl: data.trailerUrl,
                 genreIds: data.categories.map(c => c.id),
+                tagIds: data.tags?.map(t => t.id) || [],
                 translations: data.translations.map(t => ({
                     language: t.lang,
                     title: t.title,
@@ -148,6 +166,29 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
 
             const json = await res.json();
             if (res.ok && json.success) {
+                // Upload local trailer if selected
+                if (trailerFile) {
+                    const uploadFd = new FormData();
+                    uploadFd.append('video', trailerFile);
+                    uploadFd.append('contentId', id as string);
+                    uploadFd.append('type', 'TRAILER');
+
+                    const token = localStorage.getItem('adminToken');
+                    const uploadRes = await fetch(API_ROUTES.ADMIN.UPLOAD.BASE, {
+                        method: 'POST',
+                        headers: {
+                            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                        },
+                        body: uploadFd
+                    });
+
+                    if (!uploadRes.ok) {
+                        console.error('Error uploading trailer', await uploadRes.json());
+                    } else {
+                        setTrailerFile(null);
+                    }
+                }
+
                 setSuccess(true);
                 await fetchData();
                 setTimeout(() => setSuccess(false), 3000);
@@ -188,7 +229,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
             fd.append('contentId', id);
             fd.append('type', type);
 
-            const res = await adminFetch(API_ROUTES.ADMIN.UPLOAD + '/image', {
+            const res = await adminFetch(API_ROUTES.ADMIN.UPLOAD.BASE + '/image', {
                 method: 'POST',
                 body: fd
             });
@@ -215,11 +256,57 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
         }
     };
 
+    const handleUploadSubtitle = async (videoFileId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const language = prompt('Ingresa el código de idioma (ej: es, en, pt):', 'es');
+        if (!language) return;
+        const label = prompt('Ingresa la etiqueta (ej: Español, Inglés):', 'Español');
+        if (!label) return;
+
+        setUploadingSubtitle(videoFileId);
+        const formData = new FormData();
+        formData.append('subtitle', file);
+        formData.append('videoFileId', videoFileId);
+        formData.append('language', language);
+        formData.append('label', label);
+
+        try {
+            const res = await adminFetch(API_ROUTES.ADMIN.UPLOAD.SUBTITLE, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (res.ok) {
+                fetchData();
+            } else {
+                const err = await res.json();
+                alert(`Error: ${err.error || 'No se pudo subir el subtítulo'}`);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Error de conexión');
+        } finally {
+            setUploadingSubtitle(null);
+        }
+    };
+
+    const handleDeleteSubtitle = async (subtitleId: string) => {
+        if (!confirm('¿Eliminar este subtítulo?')) return;
+        try {
+            const res = await adminFetch(API_ROUTES.ADMIN.UPLOAD.DELETE_SUBTITLE(subtitleId), { method: 'DELETE' });
+            if (res.ok) {
+                fetchData();
+            }
+        } catch (err) { console.error(err); }
+    };
+
     const handleDeleteVideo = async (videoId: string) => {
         if (!window.confirm('¿Estás seguro de que deseas eliminar este archivo de video?')) return;
 
         try {
-            const res = await adminFetch(`${API_ROUTES.ADMIN.UPLOAD}/video/${videoId}`, {
+            const res = await adminFetch(`${API_ROUTES.ADMIN.UPLOAD.BASE}/video/${videoId}`, {
                 method: 'DELETE'
             });
             if (res.ok) {
@@ -243,6 +330,16 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
             ? data.categories.filter(c => c.id !== genre.id)
             : [...data.categories, genre];
         setData({ ...data, categories: newCategories });
+    };
+
+    const toggleTag = (tag: { id: string; name: string }) => {
+        if (!data) return;
+        const currentTags = data.tags || [];
+        const exists = currentTags.find(t => t.id === tag.id);
+        const newTags = exists
+            ? currentTags.filter(t => t.id !== tag.id)
+            : [...currentTags, tag];
+        setData({ ...data, tags: newTags });
     };
 
     const updateTranslation = (lang: string, field: string, value: string) => {
@@ -405,6 +502,44 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                 className={`adm-toggle ${data?.featured ? 'adm-toggle--on' : ''}`}
                                 onClick={() => setData(d => d ? { ...d, featured: !d.featured } : null)}
                             />
+                        </div>
+                        <div className="adm-form-row" style={{ marginTop: 16 }}>
+                            <label>URL del Tráiler o Archivo Local</label>
+                            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                                <input
+                                    type="text"
+                                    className="adm-input"
+                                    placeholder="Ej: https://youtube.com/watch?v=..."
+                                    value={data?.trailerUrl || ''}
+                                    onChange={e => setData(d => d ? { ...d, trailerUrl: e.target.value } : null)}
+                                    disabled={!!trailerFile}
+                                    style={{ flex: 1, opacity: trailerFile ? 0.5 : 1 }}
+                                />
+                                <span style={{ color: 'var(--adm-muted)', fontSize: '0.8rem' }}>o</span>
+                                <label className="adm-btn adm-btn--ghost adm-btn--sm" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                                    <Import size={16} style={{ marginRight: 6 }} />
+                                    {trailerFile ? 'Cambiar Archivo' : 'Subir Local'}
+                                    <input
+                                        type="file"
+                                        accept="video/*"
+                                        hidden
+                                        onChange={(e) => {
+                                            if (e.target.files && e.target.files[0]) {
+                                                setTrailerFile(e.target.files[0]);
+                                                setData(d => d ? { ...d, trailerUrl: '' } : null);
+                                            }
+                                        }}
+                                    />
+                                </label>
+                            </div>
+                            {trailerFile && (
+                                <div style={{ fontSize: '0.8rem', color: 'var(--color-primary)', marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <CheckCircle2 size={14} /> Archivo seleccionado: {trailerFile.name}
+                                </div>
+                            )}
+                            <span style={{ fontSize: '0.8rem', color: 'var(--adm-muted)', marginTop: 4, display: 'block' }}>
+                                Acepta enlaces de YouTube, Vimeo o URLs directas a archivos .mp4. Si subes un archivo local, se procesará al guardar.
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -574,6 +709,25 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                 })}
                             </div>
                         </div>
+                        <div className="adm-form-row" style={{ marginTop: 12 }}>
+                            <label>Etiquetas (Tags)</label>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                                {allTags.map(t => {
+                                    const isActive = data?.tags?.some(tag => tag.id === t.id);
+                                    return (
+                                        <button
+                                            key={t.id}
+                                            type="button"
+                                            onClick={() => toggleTag(t)}
+                                            className={`adm-badge ${isActive ? 'adm-badge--blue' : 'adm-badge--gray'}`}
+                                            style={{ cursor: 'pointer', border: 'none' }}
+                                        >
+                                            #{t.name}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -720,6 +874,59 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                 ))}
                                             </div>
                                         )}
+
+                                        {/* Subtitles management */}
+                                        <div style={{
+                                            borderTop: '1px solid rgba(255,255,255,0.05)',
+                                            marginTop: 10,
+                                            paddingTop: 10,
+                                        }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                                <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)', fontWeight: 600, display: 'flex', gap: 6, alignItems: 'center' }}>
+                                                    <MessageSquare size={12} /> SUBTÍTULOS
+                                                </span>
+                                                <label className="adm-btn adm-btn--gray adm-btn--sm" style={{ padding: '2px 8px', fontSize: '.7rem', cursor: 'pointer' }}>
+                                                    {uploadingSubtitle === video.id ? <Loader2 className="animate-spin" size={12} /> : '+ Añadir'}
+                                                    <input 
+                                                        type="file" 
+                                                        accept=".vtt,.srt" 
+                                                        style={{ display: 'none' }} 
+                                                        onChange={(e) => handleUploadSubtitle(video.id, e)}
+                                                        disabled={uploadingSubtitle === video.id}
+                                                    />
+                                                </label>
+                                            </div>
+
+                                            {video.subtitleTracks && video.subtitleTracks.length > 0 ? (
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                                    {video.subtitleTracks.map((sub: any) => (
+                                                        <div key={sub.id} style={{
+                                                            display: 'flex',
+                                                            justifyContent: 'space-between',
+                                                            alignItems: 'center',
+                                                            background: 'rgba(255,255,255,0.03)',
+                                                            padding: '4px 8px',
+                                                            borderRadius: '6px',
+                                                            fontSize: '0.75rem'
+                                                        }}>
+                                                            <div style={{ color: 'white' }}>
+                                                                <span style={{ fontWeight: 700, color: 'var(--adm-primary)' }}>{sub.language.toUpperCase()}</span> - {sub.label}
+                                                            </div>
+                                                            <button 
+                                                                onClick={() => handleDeleteSubtitle(sub.id)}
+                                                                style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}
+                                                            >
+                                                                <X size={12} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div style={{ fontSize: '.7rem', color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>
+                                                    No hay subtítulos externos.
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>

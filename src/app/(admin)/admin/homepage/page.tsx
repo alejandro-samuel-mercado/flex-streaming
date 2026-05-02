@@ -249,7 +249,7 @@ export default function AdminHomepageConfigPage() {
 
                     {/* Manual Selection Management */}
                     {(settings.home_banner_strategy === 'MANUAL' || settings.home_banner_strategy === 'COMBINED') && (
-                        <div className="adm-settings-section animate-fadeIn">
+                        <div className="adm-settings-section animate-fadeIn" style={{ overflow: 'visible' }}>
                             <div className="adm-settings-section-header">
                                 <Star className="adm-settings-icon" size={18} />
                                 <h2>Gestión de Lista Manual</h2>
@@ -271,7 +271,7 @@ export default function AdminHomepageConfigPage() {
 
                                     {/* Search Results Dropdown */}
                                     {searchResults.length > 0 && (
-                                        <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1e2e] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
+                                        <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1e2e] border border-white/10 rounded-xl shadow-2xl z-[100] max-h-72 overflow-y-auto">
                                             {searchResults.map(item => (
                                                 <button
                                                     key={item.id}
