@@ -22,6 +22,7 @@ interface Translation {
     lang: string;
     title: string;
     description: string;
+    tagline?: string;
 }
 
 interface ContentData {
@@ -92,8 +93,8 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
     const [allGenres, setAllGenres] = useState<{ id: string; name: string }[]>([]);
     const [allTags, setAllTags] = useState<{ id: string; name: string }[]>([]);
 
-    const fetchData = useCallback(async () => {
-        setLoading(true);
+    const fetchData = useCallback(async (silent = false) => {
+        if (!silent) setLoading(true);
         try {
             const [contentRes, platformsRes, genresRes, tagsRes] = await Promise.all([
                 adminFetch(API_ROUTES.CONTENT.DETAIL(id)),
@@ -117,7 +118,8 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                     id: t.id,
                     lang: t.language || t.lang,
                     title: t.title,
-                    description: t.description || t.synopsis
+                    description: t.description || t.synopsis || '',
+                    tagline: t.tagline || ''
                 }));
 
                 setData({
@@ -184,7 +186,8 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                 translations: data.translations.map(t => ({
                     language: t.lang,
                     title: t.title,
-                    description: t.description
+                    description: t.description,
+                    tagline: t.tagline
                 }))
             };
 
@@ -219,7 +222,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                 }
 
                 setSuccess(true);
-                await fetchData();
+                await fetchData(true);
                 setTimeout(() => setSuccess(false), 3000);
             } else {
                 setError(json.message || json.error || 'Error al guardar');
