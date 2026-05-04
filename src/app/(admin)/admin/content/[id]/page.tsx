@@ -11,7 +11,7 @@ import {
     Import,
     Headphones
 } from 'lucide-react';
-import { API_ROUTES } from '@/lib/api-routes';
+import { API_ROUTES, API_ORIGIN } from '@/lib/api-routes';
 import { adminFetch } from '@/lib/admin-api';
 import VideoPlayer from '@/components/video/VideoPlayer';
 import { createPortal } from 'react-dom';
@@ -29,14 +29,22 @@ interface ContentData {
     type: string;
     status: string;
     releaseYear?: number;
+    originalTitle?: string;
     duration?: number;
     rating?: number;
     featured?: boolean;
     trailerUrl?: string | null;
+    originalLanguage?: string;
+    budget?: number;
+    revenue?: number;
+    isAdult?: boolean;
+    isFreeWithMembership?: boolean;
     translations: Translation[];
     platforms: { id: string; name: string }[];
     categories: { id: string; name: string }[];
     tags?: { id: string; name: string }[];
+    actors?: { actor: { id: string; name: string; photoUrl?: string }; character?: string }[];
+    directors?: { director: { id: string; name: string; photoUrl?: string } }[];
     videoFiles?: {
         id: string;
         status: string;
@@ -118,8 +126,15 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                     platforms: item.platform ? [item.platform] : [],
                     categories: (item.genres || []).map((g: any) => g.genre),
                     tags: (item.tags || []).map((t: any) => t.tag),
+                    actors: item.actors || [],
+                    directors: item.directors || [],
                     videoFiles: item.videoFiles,
-                    thumbnails: item.thumbnails || []
+                    thumbnails: item.thumbnails || [],
+                    originalLanguage: item.originalLanguage || '',
+                    budget: item.budget ? Number(item.budget) : undefined,
+                    revenue: item.revenue ? Number(item.revenue) : undefined,
+                    isAdult: item.isAdult || false,
+                    isFreeWithMembership: item.isFreeWithMembership ?? true,
                 });
 
             }
@@ -158,6 +173,12 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                 featured: data.featured,
                 platformId: data.platforms[0]?.id || null,
                 trailerUrl: data.trailerUrl,
+                originalLanguage: data.originalLanguage || null,
+                originalTitle: data.originalTitle || null,
+                budget: data.budget ? data.budget : null,
+                revenue: data.revenue ? data.revenue : null,
+                isAdult: data.isAdult || false,
+                isFreeWithMembership: data.isFreeWithMembership,
                 genreIds: data.categories.map(c => c.id),
                 tagIds: data.tags?.map(t => t.id) || [],
                 translations: data.translations.map(t => ({
@@ -214,14 +235,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
     const resolveImageUrl = (url?: string) => {
         if (!url) return null;
         if (url.startsWith('http')) return url;
-
-        try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-            const backendUrl = new URL(apiUrl).origin;
-            return `${backendUrl}${url}`;
-        } catch (e) {
-            return url;
-        }
+        return `${API_ORIGIN}${url}`;
     };
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'POSTER' | 'BACKDROP') => {
@@ -437,581 +451,542 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                 </div>
             )}
 
-            <div className="adm-settings-grid">
-                {/* TMDB Suggestions for incomplete content */}
-                {data && data.status === 'PENDING' && (
-                    !data.translations.find(t => t.lang === 'es')?.description ||
-                    !data.thumbnails?.find(t => t.type === 'POSTER')
-                ) && (
-                        <div style={{ gridColumn: 'span 2' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)', gap: 24 }}>
+                {/* COLUMNA IZQUIERDA: Textos, Imágenes, Archivos de Video */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+                    {/* TMDB Suggestions for incomplete content */}
+                    {data && data.status === 'PENDING' && (
+                        !data.translations.find(t => t.lang === 'es')?.description ||
+                        !data.thumbnails?.find(t => t.type === 'POSTER')
+                    ) && (
                             <TMDBSuggestions
                                 title={data.translations.find(t => t.lang === 'es')?.title || ''}
                                 contentId={id}
                                 onApplied={() => fetchData()}
                             />
-                        </div>
-                    )}
+                        )}
 
-                {/* Información Principal */}
-                <div className="adm-settings-section">
-                    <div className="adm-settings-section-header">
-                        <Film className="adm-settings-icon" size={18} />
-                        <h2>Información General</h2>
-                    </div>
-                    <div className="adm-settings-body">
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                            <div className="adm-form-row">
-                                <label>Tipo de Contenido</label>
-                                <select
-                                    className="adm-select"
-                                    value={data?.type}
-                                    onChange={e => setData(d => d ? { ...d, type: e.target.value } : null)}
-                                >
-                                    <option value="MOVIE">Película</option>
-                                    <option value="SERIES">Serie</option>
-                                    <option value="ANIME">Anime</option>
-                                    <option value="DOCUMENTARY">Documental</option>
-                                </select>
-                            </div>
-                            <div className="adm-form-row">
-                                <label>Estado</label>
-                                <select
-                                    className="adm-select"
-                                    value={data?.status}
-                                    onChange={e => setData(d => d ? { ...d, status: e.target.value } : null)}
-                                >
-                                    <option value="ACTIVE">Activo</option>
-                                    <option value="PENDING">Pendiente</option>
-                                    <option value="READY">Listo</option>
-                                    <option value="ERROR">Error</option>
-                                </select>
-                            </div>
+                    {/* Textos (Español) */}
+                    <div className="adm-settings-section">
+                        <div className="adm-settings-section-header">
+                            <Languages className="adm-settings-icon" size={18} />
+                            <h2>Textos Principales</h2>
                         </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+                        <div className="adm-settings-body">
                             <div className="adm-form-row">
-                                <label>Año</label>
-                                <input
-                                    type="number"
-                                    className="adm-input"
-                                    value={data?.releaseYear || ''}
-                                    onChange={e => setData(d => d ? { ...d, releaseYear: parseInt(e.target.value) } : null)}
-                                />
-                            </div>
-                            <div className="adm-form-row">
-                                <label>Duración (min)</label>
-                                <input
-                                    type="number"
-                                    className="adm-input"
-                                    value={data?.duration || ''}
-                                    onChange={e => setData(d => d ? { ...d, duration: parseInt(e.target.value) } : null)}
-                                />
-                            </div>
-                            <div className="adm-form-row">
-                                <label>Rating (0-10)</label>
-                                <input
-                                    type="number" step="0.1" max="10" min="0"
-                                    className="adm-input"
-                                    value={data?.rating || ''}
-                                    onChange={e => setData(d => d ? { ...d, rating: parseFloat(e.target.value) } : null)}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="adm-toggle-row" style={{ marginTop: 8 }}>
-                            <span>Contenido Destacado</span>
-                            <div
-                                className={`adm-toggle ${data?.featured ? 'adm-toggle--on' : ''}`}
-                                onClick={() => setData(d => d ? { ...d, featured: !d.featured } : null)}
-                            />
-                        </div>
-                        <div className="adm-form-row" style={{ marginTop: 16 }}>
-                            <label>URL del Tráiler o Archivo Local</label>
-                            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                                <label>Título (Español)</label>
                                 <input
                                     type="text"
                                     className="adm-input"
-                                    placeholder="Ej: https://youtube.com/watch?v=..."
-                                    value={data?.trailerUrl || ''}
-                                    onChange={e => setData(d => d ? { ...d, trailerUrl: e.target.value } : null)}
-                                    disabled={!!trailerFile}
-                                    style={{ flex: 1, opacity: trailerFile ? 0.5 : 1 }}
+                                    value={data?.translations.find(t => t.lang === 'es')?.title || ''}
+                                    onChange={e => updateTranslation('es', 'title', e.target.value)}
                                 />
-                                <span style={{ color: 'var(--adm-muted)', fontSize: '0.8rem' }}>o</span>
-                                <label className="adm-btn adm-btn--ghost adm-btn--sm" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                                    <Import size={16} style={{ marginRight: 6 }} />
-                                    {trailerFile ? 'Cambiar Archivo' : 'Subir Local'}
+                            </div>
+                            <div className="adm-form-row">
+                                <label>Título Original</label>
+                                <input
+                                    type="text"
+                                    className="adm-input"
+                                    value={data?.originalTitle || ''}
+                                    onChange={e => setData(d => d ? { ...d, originalTitle: e.target.value } : null)}
+                                />
+                            </div>
+                            <div className="adm-form-row">
+                                <label>Sinopsis</label>
+                                <textarea
+                                    className="adm-input"
+                                    rows={5}
+                                    style={{ resize: 'vertical' }}
+                                    value={data?.translations.find(t => t.lang === 'es')?.description || ''}
+                                    onChange={e => updateTranslation('es', 'description', e.target.value)}
+                                />
+                            </div>
+                            <div className="adm-form-row" style={{ marginTop: 16 }}>
+                                <label>URL del Tráiler o Archivo Local</label>
+                                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                                     <input
-                                        type="file"
-                                        accept="video/*"
-                                        hidden
-                                        onChange={(e) => {
-                                            if (e.target.files && e.target.files[0]) {
-                                                setTrailerFile(e.target.files[0]);
-                                                setData(d => d ? { ...d, trailerUrl: '' } : null);
-                                            }
-                                        }}
+                                        type="text"
+                                        className="adm-input"
+                                        placeholder="Ej: https://youtube.com/watch?v=..."
+                                        value={data?.trailerUrl || ''}
+                                        onChange={e => setData(d => d ? { ...d, trailerUrl: e.target.value } : null)}
+                                        disabled={!!trailerFile}
+                                        style={{ flex: 1, opacity: trailerFile ? 0.5 : 1 }}
                                     />
-                                </label>
-                            </div>
-                            {trailerFile && (
-                                <div style={{ fontSize: '0.8rem', color: 'var(--color-primary)', marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                                    <CheckCircle2 size={14} /> Archivo seleccionado: {trailerFile.name}
+                                    <span style={{ color: 'var(--adm-muted)', fontSize: '0.8rem' }}>o</span>
+                                    <label className="adm-btn adm-btn--ghost adm-btn--sm" style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                                        <Import size={16} style={{ marginRight: 6 }} />
+                                        {trailerFile ? 'Cambiar' : 'Subir'}
+                                        <input
+                                            type="file"
+                                            accept="video/*"
+                                            hidden
+                                            onChange={(e) => {
+                                                if (e.target.files && e.target.files[0]) {
+                                                    setTrailerFile(e.target.files[0]);
+                                                    setData(d => d ? { ...d, trailerUrl: '' } : null);
+                                                }
+                                            }}
+                                        />
+                                    </label>
                                 </div>
-                            )}
-                            <span style={{ fontSize: '0.8rem', color: 'var(--adm-muted)', marginTop: 4, display: 'block' }}>
-                                Acepta enlaces de YouTube, Vimeo o URLs directas a archivos .mp4. Si subes un archivo local, se procesará al guardar.
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Imágenes y Multimedia */}
-                <div className="adm-settings-section">
-                    <div className="adm-settings-section-header">
-                        <ImageIcon className="adm-settings-icon" size={18} />
-                        <h2>Imágenes y Portadas</h2>
-                    </div>
-                    <div className="adm-settings-body">
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                            {/* Poster Upload */}
-                            <div className="adm-form-row">
-                                <label>Póster Vertical</label>
-                                <div style={{ position: 'relative', marginTop: 8 }}>
-                                    <div style={{
-                                        width: '100%',
-                                        aspectRatio: '2/3',
-                                        background: 'rgba(255,255,255,0.03)',
-                                        borderRadius: 12,
-                                        overflow: 'hidden',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        border: '1px dashed rgba(255,255,255,0.1)',
-                                        position: 'relative'
-                                    }}>
-                                        {data?.thumbnails?.find(t => t.type === 'POSTER')?.url ? (
-                                            <img
-                                                src={resolveImageUrl(data.thumbnails.find(t => t.type === 'POSTER')?.url) || ''}
-                                                alt="Poster"
-                                                style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }}
-                                                onClick={() => setPreviewImage(resolveImageUrl(data.thumbnails?.find(t => t.type === 'POSTER')?.url) || null)}
-                                            />
-                                        ) : (
-                                            <div style={{ textAlign: 'center', color: 'var(--adm-muted)' }}>
-                                                <ImageIcon size={32} style={{ marginBottom: 8, opacity: 0.3 }} />
-                                                <p style={{ fontSize: '.7rem' }}>Sin Póster</p>
-                                            </div>
-                                        )}
-
-                                        {uploadingImage === 'POSTER' && (
-                                            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <Loader2 className="animate-spin" size={24} />
-                                            </div>
-                                        )}
+                                {trailerFile && (
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-primary)', marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <CheckCircle2 size={14} /> Archivo: {trailerFile.name}
                                     </div>
-                                    <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                                        <label
-                                            className="adm-btn adm-btn--ghost adm-btn--sm"
-                                            style={{ flex: 1, justifyContent: 'center', cursor: 'pointer' }}
-                                        >
-                                            <UploadCloud size={14} /> {data?.thumbnails?.find(t => t.type === 'POSTER') ? 'Cambiar' : 'Subir'}
-                                            <input type="file" accept="image/*" hidden onChange={e => handleImageUpload(e, 'POSTER')} />
-                                        </label>
-                                        {data?.thumbnails?.find(t => t.type === 'POSTER') && (
-                                            <button
-                                                className="adm-icon-btn adm-icon-btn--danger"
-                                                onClick={() => setData(prev => ({ ...prev!, thumbnails: prev!.thumbnails?.filter(t => t.type !== 'POSTER') }))}
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Backdrop Upload */}
-                            <div className="adm-form-row">
-                                <label>Banner Horizontal</label>
-                                <div style={{ position: 'relative', marginTop: 8 }}>
-                                    <div style={{
-                                        width: '100%',
-                                        aspectRatio: '16/9',
-                                        background: 'rgba(255,255,255,0.03)',
-                                        borderRadius: 12,
-                                        overflow: 'hidden',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        border: '1px dashed rgba(255,255,255,0.1)',
-                                        position: 'relative'
-                                    }}>
-                                        {data?.thumbnails?.find(t => t.type === 'BACKDROP')?.url ? (
-                                            <img
-                                                src={resolveImageUrl(data.thumbnails.find(t => t.type === 'BACKDROP')?.url) || ''}
-                                                alt="Backdrop"
-                                                style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }}
-                                                onClick={() => setPreviewImage(resolveImageUrl(data.thumbnails?.find(t => t.type === 'BACKDROP')?.url) || null)}
-                                            />
-                                        ) : (
-                                            <div style={{ textAlign: 'center', color: 'var(--adm-muted)' }}>
-                                                <ImageIcon size={32} style={{ marginBottom: 8, opacity: 0.3 }} />
-                                                <p style={{ fontSize: '.7rem' }}>Sin Banner</p>
-                                            </div>
-                                        )}
-
-                                        {uploadingImage === 'BACKDROP' && (
-                                            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <Loader2 className="animate-spin" size={24} />
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                                        <label
-                                            className="adm-btn adm-btn--ghost adm-btn--sm"
-                                            style={{ flex: 1, justifyContent: 'center', cursor: 'pointer' }}
-                                        >
-                                            <UploadCloud size={14} /> {data?.thumbnails?.find(t => t.type === 'BACKDROP') ? 'Cambiar' : 'Subir'}
-                                            <input type="file" accept="image/*" hidden onChange={e => handleImageUpload(e, 'BACKDROP')} />
-                                        </label>
-                                        {data?.thumbnails?.find(t => t.type === 'BACKDROP') && (
-                                            <button
-                                                className="adm-icon-btn adm-icon-btn--danger"
-                                                onClick={() => setData(prev => ({ ...prev!, thumbnails: prev!.thumbnails?.filter(t => t.type !== 'BACKDROP') }))}
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Clasificación */}
-                <div className="adm-settings-section">
-                    <div className="adm-settings-section-header">
-                        <Layout className="adm-settings-icon" size={18} />
-                        <h2>Plataforma y Géneros</h2>
-                    </div>
-                    <div className="adm-settings-body">
-                        <div className="adm-form-row">
-                            <label>Plataforma principal</label>
-                            <select
-                                className="adm-select"
-                                value={data?.platforms[0]?.id || ''}
-                                onChange={e => {
-                                    const p = allPlatforms.find(x => x.id === e.target.value);
-                                    setData(d => d ? { ...d, platforms: p ? [p] : [] } : null);
-                                }}
-                            >
-                                <option value="">Ninguna</option>
-                                {allPlatforms.map(p => (
-                                    <option key={p.id} value={p.id}>{p.name}</option>
-                                ))}
-                            </select>
+                    {/* Imágenes y Multimedia */}
+                    <div className="adm-settings-section">
+                        <div className="adm-settings-section-header">
+                            <ImageIcon className="adm-settings-icon" size={18} />
+                            <h2>Imágenes y Portadas</h2>
                         </div>
-                        <div className="adm-form-row">
-                            <label>Géneros</label>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
-                                {allGenres.map(g => {
-                                    const isActive = data?.categories.some(c => c.id === g.id);
-                                    return (
-                                        <button
-                                            key={g.id}
-                                            type="button"
-                                            onClick={() => toggleGenre(g)}
-                                            className={`adm-badge ${isActive ? 'adm-badge--purple' : 'adm-badge--gray'}`}
-                                            style={{ cursor: 'pointer', border: 'none' }}
-                                        >
-                                            {g.name}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                        <div className="adm-form-row" style={{ marginTop: 12 }}>
-                            <label>Etiquetas (Tags)</label>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
-                                {allTags.map(t => {
-                                    const isActive = data?.tags?.some(tag => tag.id === t.id);
-                                    return (
-                                        <button
-                                            key={t.id}
-                                            type="button"
-                                            onClick={() => toggleTag(t)}
-                                            className={`adm-badge ${isActive ? 'adm-badge--blue' : 'adm-badge--gray'}`}
-                                            style={{ cursor: 'pointer', border: 'none' }}
-                                        >
-                                            #{t.name}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="adm-settings-section">
-                    <div className="adm-settings-section-header">
-                        <Play className="adm-settings-icon" size={18} />
-                        <h2>Archivos de Video y Previsualización</h2>
-                    </div>
-                    <div className="adm-settings-body">
-                        {/* Embedded Player Overlay via Portal to escape stacking context */}
-                        {activeVideo && typeof window !== 'undefined' && createPortal(
-                            <div style={{
-                                position: 'fixed',
-                                inset: 0,
-                                zIndex: 999999,
-                                background: 'black',
-                            }}>
-                                <button
-                                    onClick={() => setActiveVideo(null)}
-                                    style={{
-                                        position: 'absolute',
-                                        top: 20,
-                                        right: 20,
-                                        zIndex: 9999999,
-                                        background: 'rgba(229, 9, 20, 0.8)',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        padding: '8px 16px',
-                                        fontSize: '1rem',
-                                        fontWeight: 'bold',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
-                                    }}
-                                >
-                                    <X size={20} /> CERRAR VISTA PREVIA
-                                </button>
-                                <VideoPlayer
-                                    src={activeVideo.url}
-                                    title={activeVideo.title}
-                                    poster={resolveImageUrl(data?.thumbnails?.find(t => t.type === 'BACKDROP')?.url) || undefined}
-                                />
-                            </div>,
-                            document.body
-                        )}
-
-                        {!data?.videoFiles || data.videoFiles.length === 0 ? (
-                            <div style={{ textAlign: 'center', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: 12 }}>
-                                <AlertTriangle size={24} style={{ color: 'var(--adm-muted)', marginBottom: 8, margin: '0 auto' }} />
-                                <p style={{ fontSize: '.85rem', color: 'var(--adm-muted)' }}>No hay videos asociados.</p>
-                                <Link href="/admin/upload" className="adm-btn adm-btn--ghost adm-btn--sm mt-3" style={{ fontSize: '.75rem' }}>
-                                    Ir a Subidas
-                                </Link>
-                            </div>
-                        ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                                {data.videoFiles.map((video, idx) => (
-                                    <div key={video.id || idx} style={{
-                                        background: 'rgba(255,255,255,0.03)',
-                                        padding: '16px',
-                                        borderRadius: '16px',
-                                        border: '1px solid rgba(255,255,255,0.05)',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: 12
-                                    }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                            <div style={{ display: 'flex', gap: 12 }}>
-                                                <div style={{
-                                                    width: 40, height: 40, borderRadius: 10,
-                                                    background: video.status === 'COMPLETED' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(167, 139, 250, 0.1)',
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    color: video.status === 'COMPLETED' ? '#4ade80' : '#a78bfa'
-                                                }}>
-                                                    <Film size={20} />
+                        <div className="adm-settings-body">
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                                {/* Poster Upload */}
+                                <div className="adm-form-row">
+                                    <label>Póster Vertical</label>
+                                    <div style={{ position: 'relative', marginTop: 8 }}>
+                                        <div style={{
+                                            width: '100%',
+                                            aspectRatio: '2/3',
+                                            background: 'rgba(255,255,255,0.03)',
+                                            borderRadius: 12,
+                                            overflow: 'hidden',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            border: '1px dashed rgba(255,255,255,0.1)',
+                                            position: 'relative'
+                                        }}>
+                                            {data?.thumbnails?.find(t => t.type === 'POSTER')?.url ? (
+                                                <img
+                                                    src={resolveImageUrl(data.thumbnails.find(t => t.type === 'POSTER')?.url) || ''}
+                                                    alt="Poster"
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }}
+                                                    onClick={() => setPreviewImage(resolveImageUrl(data.thumbnails?.find(t => t.type === 'POSTER')?.url) || null)}
+                                                />
+                                            ) : (
+                                                <div style={{ textAlign: 'center', color: 'var(--adm-muted)' }}>
+                                                    <ImageIcon size={32} style={{ marginBottom: 8, opacity: 0.3 }} />
+                                                    <p style={{ fontSize: '.7rem' }}>Sin Póster</p>
                                                 </div>
-                                                <div>
-                                                    <p style={{ fontSize: '.9rem', fontWeight: 700, color: 'white' }}>
-                                                        {video.type || 'Archivo de Video'}
-                                                        <span style={{ marginLeft: 8, fontSize: '0.7rem', color: 'var(--adm-muted)', fontWeight: 400 }}>ID: {video.id}</span>
-                                                    </p>
-                                                    <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-                                                        <span className={`adm-badge ${video.status === 'COMPLETED' ? 'adm-badge--green' : 'adm-badge--blue'}`} style={{ fontSize: '0.65rem', padding: '2px 8px' }}>
-                                                            {video.status}
-                                                        </span>
-                                                        {video.resolution && (
-                                                            <span className="adm-badge adm-badge--gray" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>
-                                                                {video.resolution}
-                                                            </span>
-                                                        )}
-                                                    </div>
+                                            )}
+                                            {uploadingImage === 'POSTER' && (
+                                                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <Loader2 className="animate-spin" size={24} />
                                                 </div>
-                                            </div>
-
-                                            {video.status === 'COMPLETED' && video.masterPlaylist && (
-                                                <button
-                                                    onClick={() => {
-                                                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-                                                        const backendOrigin = new URL(apiUrl).origin;
-                                                        setActiveVideo({
-                                                            url: `${backendOrigin}${video.masterPlaylist}`,
-                                                            title: data?.translations.find(t => t.lang === 'es')?.title || 'Video'
-                                                        });
-                                                    }}
-                                                    className="adm-btn adm-btn--primary adm-btn--sm"
-                                                    style={{ fontSize: '.75rem', padding: '6px 12px' }}
-                                                >
-                                                    <Play size={14} fill="currentColor" /> Ver en Panel
+                                            )}
+                                        </div>
+                                        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                                            <label className="adm-btn adm-btn--ghost adm-btn--sm" style={{ flex: 1, justifyContent: 'center', cursor: 'pointer' }}>
+                                                <UploadCloud size={14} /> Subir
+                                                <input type="file" accept="image/*" hidden onChange={e => handleImageUpload(e, 'POSTER')} />
+                                            </label>
+                                            {data?.thumbnails?.find(t => t.type === 'POSTER') && (
+                                                <button className="adm-icon-btn adm-icon-btn--danger" onClick={() => setData(prev => ({ ...prev!, thumbnails: prev!.thumbnails?.filter(t => t.type !== 'POSTER') }))}>
+                                                    <Trash2 size={14} />
                                                 </button>
                                             )}
-                                            <button
-                                                onClick={() => handleDeleteVideo(video.id)}
-                                                className="adm-icon-btn adm-icon-btn--danger"
-                                                title="Eliminar Video"
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
                                         </div>
+                                    </div>
+                                </div>
 
-                                        {/* Qualities indicator */}
-                                        {video.qualities && video.qualities.length > 0 && (
-                                            <div style={{
-                                                borderTop: '1px solid rgba(255,255,255,0.05)',
-                                                paddingTop: 10,
-                                                display: 'flex',
-                                                flexWrap: 'wrap',
-                                                gap: 6
-                                            }}>
-                                                <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)', width: '100%', marginBottom: 4 }}>Resoluciones generadas:</span>
-                                                {video.qualities.map((q: any, i: number) => (
-                                                    <div key={i} style={{
-                                                        fontSize: '0.65rem',
-                                                        background: 'rgba(255,255,255,0.05)',
-                                                        padding: '2px 8px',
-                                                        borderRadius: '4px',
-                                                        color: 'white',
-                                                        border: '1px solid rgba(255,255,255,0.1)'
-                                                    }}>
-                                                        {q.resolution || q.quality || 'N/A'}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {/* Audio tracks indicator */}
-                                        {video.audioTracks && video.audioTracks.length > 0 && (
-                                            <div style={{
-                                                borderTop: '1px solid rgba(255,255,255,0.05)',
-                                                marginTop: 10,
-                                                paddingTop: 10,
-                                                display: 'flex',
-                                                flexWrap: 'wrap',
-                                                gap: 6
-                                            }}>
-                                                <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)', width: '100%', marginBottom: 4, display: 'flex', gap: 6, alignItems: 'center' }}>
-                                                    <Headphones size={12} /> AUDIOS EXTRAÍDOS:
-                                                </span>
-                                                {video.audioTracks.map((audio: any, i: number) => (
-                                                    <div key={i} style={{
-                                                        fontSize: '0.65rem',
-                                                        background: 'rgba(167, 139, 250, 0.05)',
-                                                        padding: '4px 10px',
-                                                        borderRadius: '6px',
-                                                        color: '#a78bfa',
-                                                        border: '1px solid rgba(167, 139, 250, 0.2)',
-                                                        fontWeight: 600
-                                                    }}>
-                                                        {audio.label} ({audio.language.toUpperCase()})
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {/* Subtitles management */}
+                                {/* Backdrop Upload */}
+                                <div className="adm-form-row">
+                                    <label>Banner Horizontal</label>
+                                    <div style={{ position: 'relative', marginTop: 8 }}>
                                         <div style={{
-                                            borderTop: '1px solid rgba(255,255,255,0.05)',
-                                            marginTop: 10,
-                                            paddingTop: 10,
+                                            width: '100%',
+                                            aspectRatio: '16/9',
+                                            background: 'rgba(255,255,255,0.03)',
+                                            borderRadius: 12,
+                                            overflow: 'hidden',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            border: '1px dashed rgba(255,255,255,0.1)',
+                                            position: 'relative'
                                         }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                                                <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)', fontWeight: 600, display: 'flex', gap: 6, alignItems: 'center' }}>
-                                                    <MessageSquare size={12} /> SUBTÍTULOS
-                                                </span>
-                                                <label className="adm-btn adm-btn--gray adm-btn--sm" style={{ padding: '2px 8px', fontSize: '.7rem', cursor: 'pointer' }}>
-                                                    {uploadingSubtitle === video.id ? <Loader2 className="animate-spin" size={12} /> : '+ Añadir'}
-                                                    <input
-                                                        type="file"
-                                                        accept=".vtt,.srt"
-                                                        style={{ display: 'none' }}
-                                                        onChange={(e) => handleUploadSubtitle(video.id, e)}
-                                                        disabled={uploadingSubtitle === video.id}
-                                                    />
-                                                </label>
-                                            </div>
-
-                                            {video.subtitleTracks && video.subtitleTracks.length > 0 ? (
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                                    {video.subtitleTracks.map((sub: any) => (
-                                                        <div key={sub.id} style={{
-                                                            display: 'flex',
-                                                            justifyContent: 'space-between',
-                                                            alignItems: 'center',
-                                                            background: 'rgba(255,255,255,0.03)',
-                                                            padding: '4px 8px',
-                                                            borderRadius: '6px',
-                                                            fontSize: '0.75rem'
-                                                        }}>
-                                                            <div style={{ color: 'white' }}>
-                                                                <span style={{ fontWeight: 700, color: 'var(--adm-primary)' }}>{sub.language.toUpperCase()}</span> - {sub.label}
-                                                            </div>
-                                                            <button
-                                                                onClick={() => handleDeleteSubtitle(sub.id)}
-                                                                style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}
-                                                            >
-                                                                <X size={12} />
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                </div>
+                                            {data?.thumbnails?.find(t => t.type === 'BACKDROP')?.url ? (
+                                                <img
+                                                    src={resolveImageUrl(data.thumbnails.find(t => t.type === 'BACKDROP')?.url) || ''}
+                                                    alt="Backdrop"
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }}
+                                                    onClick={() => setPreviewImage(resolveImageUrl(data.thumbnails?.find(t => t.type === 'BACKDROP')?.url) || null)}
+                                                />
                                             ) : (
-                                                <div style={{ fontSize: '.7rem', color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>
-                                                    No hay subtítulos externos.
+                                                <div style={{ textAlign: 'center', color: 'var(--adm-muted)' }}>
+                                                    <ImageIcon size={32} style={{ marginBottom: 8, opacity: 0.3 }} />
+                                                    <p style={{ fontSize: '.7rem' }}>Sin Banner</p>
+                                                </div>
+                                            )}
+                                            {uploadingImage === 'BACKDROP' && (
+                                                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <Loader2 className="animate-spin" size={24} />
                                                 </div>
                                             )}
                                         </div>
+                                        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                                            <label className="adm-btn adm-btn--ghost adm-btn--sm" style={{ flex: 1, justifyContent: 'center', cursor: 'pointer' }}>
+                                                <UploadCloud size={14} /> Subir
+                                                <input type="file" accept="image/*" hidden onChange={e => handleImageUpload(e, 'BACKDROP')} />
+                                            </label>
+                                            {data?.thumbnails?.find(t => t.type === 'BACKDROP') && (
+                                                <button className="adm-icon-btn adm-icon-btn--danger" onClick={() => setData(prev => ({ ...prev!, thumbnails: prev!.thumbnails?.filter(t => t.type !== 'BACKDROP') }))}>
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-                                ))}
+                                </div>
                             </div>
-                        )}
+                        </div>
+                    </div>
+
+                    {/* Archivos de Video */}
+                    <div className="adm-settings-section">
+                        <div className="adm-settings-section-header">
+                            <Play className="adm-settings-icon" size={18} />
+                            <h2>Archivos de Video</h2>
+                        </div>
+                        <div className="adm-settings-body">
+                            {/* Embedded Player Overlay */}
+                            {activeVideo && typeof window !== 'undefined' && createPortal(
+                                <div style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'black' }}>
+                                    <button
+                                        onClick={() => setActiveVideo(null)}
+                                        style={{
+                                            position: 'absolute', top: 20, right: 20, zIndex: 9999999,
+                                            background: 'rgba(229, 9, 20, 0.8)', color: 'white',
+                                            border: 'none', borderRadius: '8px', padding: '8px 16px',
+                                            fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer',
+                                            display: 'flex', alignItems: 'center', gap: '8px'
+                                        }}
+                                    >
+                                        <X size={20} /> CERRAR VISTA PREVIA
+                                    </button>
+                                    <VideoPlayer
+                                        src={activeVideo.url}
+                                        title={activeVideo.title}
+                                        poster={resolveImageUrl(data?.thumbnails?.find(t => t.type === 'BACKDROP')?.url) || undefined}
+                                    />
+                                </div>,
+                                document.body
+                            )}
+
+                            {!data?.videoFiles || data.videoFiles.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: 12 }}>
+                                    <AlertTriangle size={24} style={{ color: 'var(--adm-muted)', marginBottom: 8, margin: '0 auto' }} />
+                                    <p style={{ fontSize: '.85rem', color: 'var(--adm-muted)' }}>No hay videos asociados.</p>
+                                    <Link href="/admin/upload" className="adm-btn adm-btn--ghost adm-btn--sm mt-3" style={{ fontSize: '.75rem' }}>
+                                        Ir a Subidas
+                                    </Link>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                    {data.videoFiles.map((video, idx) => (
+                                        <div key={video.id || idx} style={{
+                                            background: 'rgba(255,255,255,0.03)', padding: '16px',
+                                            borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)'
+                                        }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                <div style={{ display: 'flex', gap: 12 }}>
+                                                    <div style={{
+                                                        width: 40, height: 40, borderRadius: 10,
+                                                        background: video.status === 'COMPLETED' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(167, 139, 250, 0.1)',
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                        color: video.status === 'COMPLETED' ? '#4ade80' : '#a78bfa'
+                                                    }}>
+                                                        <Film size={20} />
+                                                    </div>
+                                                    <div>
+                                                        <p style={{ fontSize: '.9rem', fontWeight: 700, color: 'white' }}>
+                                                            {video.type || 'Archivo de Video'}
+                                                            <span style={{ marginLeft: 8, fontSize: '0.7rem', color: 'var(--adm-muted)', fontWeight: 400 }}>ID: {video.id}</span>
+                                                        </p>
+                                                        <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                                                            <span className={`adm-badge ${video.status === 'COMPLETED' ? 'adm-badge--green' : 'adm-badge--blue'}`} style={{ fontSize: '0.65rem', padding: '2px 8px' }}>
+                                                                {video.status}
+                                                            </span>
+                                                            {video.resolution && (
+                                                                <span className="adm-badge adm-badge--gray" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>
+                                                                    {video.resolution}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div style={{ display: 'flex', gap: 8 }}>
+                                                    {video.status === 'COMPLETED' && video.masterPlaylist && (
+                                                        <button
+                                                            onClick={() => {
+                                                                const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+                                                                const backendOrigin = new URL(apiUrl).origin;
+                                                                setActiveVideo({
+                                                                    url: `${backendOrigin}${video.masterPlaylist}`,
+                                                                    title: data?.translations.find(t => t.lang === 'es')?.title || 'Video'
+                                                                });
+                                                            }}
+                                                            className="adm-btn adm-btn--primary adm-btn--sm"
+                                                            style={{ fontSize: '.75rem', padding: '6px 12px' }}
+                                                        >
+                                                            <Play size={14} fill="currentColor" /> Ver
+                                                        </button>
+                                                    )}
+                                                    <button onClick={() => handleDeleteVideo(video.id)} className="adm-icon-btn adm-icon-btn--danger">
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Audio Tracks */}
+                                            <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 10, paddingTop: 10 }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                                    <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)', fontWeight: 600, display: 'flex', gap: 6, alignItems: 'center' }}>
+                                                        <Headphones size={12} /> PISTAS DE AUDIO
+                                                    </span>
+                                                </div>
+                                                {video.audioTracks && video.audioTracks.length > 0 ? (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                                        {video.audioTracks.map((audio: any) => (
+                                                            <div key={audio.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem' }}>
+                                                                <div style={{ color: 'white' }}>
+                                                                    <span style={{ fontWeight: 700, color: '#facc15' }}>{audio.language.toUpperCase()}</span> - {audio.label}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div style={{ fontSize: '.7rem', color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>No hay pistas de audio adicionales extraídas.</div>
+                                                )}
+                                            </div>
+
+                                            {/* Subtitles */}
+                                            <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 10, paddingTop: 10 }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                                    <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)', fontWeight: 600, display: 'flex', gap: 6, alignItems: 'center' }}>
+                                                        <MessageSquare size={12} /> SUBTÍTULOS
+                                                    </span>
+                                                    <label className="adm-btn adm-btn--gray adm-btn--sm" style={{ padding: '2px 8px', fontSize: '.7rem', cursor: 'pointer' }}>
+                                                        {uploadingSubtitle === video.id ? <Loader2 className="animate-spin" size={12} /> : '+ Añadir'}
+                                                        <input type="file" accept=".vtt,.srt" style={{ display: 'none' }} onChange={(e) => handleUploadSubtitle(video.id, e)} disabled={uploadingSubtitle === video.id} />
+                                                    </label>
+                                                </div>
+                                                {video.subtitleTracks && video.subtitleTracks.length > 0 ? (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                                        {video.subtitleTracks.map((sub: any) => (
+                                                            <div key={sub.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem' }}>
+                                                                <div style={{ color: 'white' }}><span style={{ fontWeight: 700, color: 'var(--adm-primary)' }}>{sub.language.toUpperCase()}</span> - {sub.label}</div>
+                                                                <button onClick={() => handleDeleteSubtitle(sub.id)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}><X size={12} /></button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div style={{ fontSize: '.7rem', color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>No hay subtítulos externos.</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                {/* Traducciones (Español por defecto) */}
-                <div className="adm-settings-section" style={{ gridColumn: 'span 2' }}>
-                    <div className="adm-settings-section-header">
-                        <Languages className="adm-settings-icon" size={18} />
-                        <h2>Textos (Español)</h2>
-                    </div>
-                    <div className="adm-settings-body">
-                        <div className="adm-form-row">
-                            <label>Título</label>
-                            <input
-                                type="text"
-                                className="adm-input"
-                                value={data?.translations.find(t => t.lang === 'es')?.title || ''}
-                                onChange={e => updateTranslation('es', 'title', e.target.value)}
-                            />
+                {/* COLUMNA DERECHA: Configuración Técnica y Metadatos */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                    <div className="adm-settings-section">
+                        <div className="adm-settings-section-header">
+                            <Film className="adm-settings-icon" size={18} />
+                            <h2>Clasificación</h2>
                         </div>
-                        <div className="adm-form-row">
-                            <label>Sinopsis</label>
-                            <textarea
-                                className="adm-input"
-                                rows={5}
-                                style={{ resize: 'vertical' }}
-                                value={data?.translations.find(t => t.lang === 'es')?.description || ''}
-                                onChange={e => updateTranslation('es', 'description', e.target.value)}
-                            />
+                        <div className="adm-settings-body">
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                                <div className="adm-form-row">
+                                    <label>Tipo</label>
+                                    <select className="adm-select" value={data?.type} onChange={e => setData(d => d ? { ...d, type: e.target.value } : null)}>
+                                        <option value="MOVIE">Película</option>
+                                        <option value="SERIES">Serie</option>
+                                        <option value="ANIME">Anime</option>
+                                        <option value="ANIMATION">Animación</option>
+                                        <option value="DOCUMENTARY">Documental</option>
+                                        <option value="BIOGRAPHY">Biografía</option>
+                                        <option value="REALITY_SHOW">Reality Show</option>
+                                        <option value="TALK_SHOW">Talk Show</option>
+                                        <option value="VARIETY_SHOW">Variedad</option>
+                                        <option value="STAND_UP">Stand-up</option>
+                                        <option value="SPECIAL">Especial</option>
+                                        <option value="EDUCATIONAL">Educativo</option>
+                                        <option value="KIDS">Infantil</option>
+                                        <option value="FAMILY">Familiar</option>
+                                        <option value="INTERACTIVE">Interactivo</option>
+                                        <option value="EXPERIMENTAL">Experimental</option>
+                                        <option value="DOCUDRAMA">Docudrama</option>
+                                        <option value="NOVELA">Telenovela</option>
+                                        <option value="SHORT">Cortometraje</option>
+                                    </select>
+                                </div>
+                                <div className="adm-form-row">
+                                    <label>Estado</label>
+                                    <select className="adm-select" value={data?.status} onChange={e => setData(d => d ? { ...d, status: e.target.value } : null)}>
+                                        <option value="ACTIVE">Activo</option>
+                                        <option value="PENDING">Pendiente</option>
+                                        <option value="READY">Listo</option>
+                                        <option value="ERROR">Error</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 16 }}>
+                                <div className="adm-form-row">
+                                    <label>Año</label>
+                                    <input type="number" className="adm-input" value={data?.releaseYear || ''} onChange={e => setData(d => d ? { ...d, releaseYear: parseInt(e.target.value) } : null)} />
+                                </div>
+                                <div className="adm-form-row">
+                                    <label>Duración</label>
+                                    <input type="number" className="adm-input" value={data?.duration || ''} onChange={e => setData(d => d ? { ...d, duration: parseInt(e.target.value) } : null)} />
+                                </div>
+                                <div className="adm-form-row">
+                                    <label>Rating</label>
+                                    <input type="number" step="0.1" max="10" min="0" className="adm-input" value={data?.rating || ''} onChange={e => setData(d => d ? { ...d, rating: parseFloat(e.target.value) } : null)} />
+                                </div>
+                            </div>
+
+                            <div className="adm-form-row" style={{ marginTop: 16 }}>
+                                <label>Plataforma principal</label>
+                                <select className="adm-select" value={data?.platforms[0]?.id || ''} onChange={e => {
+                                    const p = allPlatforms.find(x => x.id === e.target.value);
+                                    setData(d => d ? { ...d, platforms: p ? [p] : [] } : null);
+                                }}>
+                                    <option value="">Ninguna</option>
+                                    {allPlatforms.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                </select>
+                            </div>
+
+                            <div className="adm-form-row" style={{ marginTop: 16 }}>
+                                <label>Géneros</label>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                                    {allGenres.map(g => {
+                                        const isActive = data?.categories.some(c => c.id === g.id);
+                                        return (
+                                            <button key={g.id} type="button" onClick={() => toggleGenre(g)} className={`adm-badge ${isActive ? 'adm-badge--purple' : 'adm-badge--gray'}`} style={{ cursor: 'pointer', border: 'none' }}>
+                                                {g.name}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <div className="adm-form-row" style={{ marginTop: 16 }}>
+                                <label>Etiquetas</label>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                                    {allTags.map(t => {
+                                        const isActive = data?.tags?.some(tag => tag.id === t.id);
+                                        return (
+                                            <button key={t.id} type="button" onClick={() => toggleTag(t)} className={`adm-badge ${isActive ? 'adm-badge--blue' : 'adm-badge--gray'}`} style={{ cursor: 'pointer', border: 'none' }}>
+                                                #{t.name}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <div className="adm-settings-section">
+                        <div className="adm-settings-section-header">
+                            <Layout className="adm-settings-icon" size={18} />
+                            <h2>Visibilidad</h2>
+                        </div>
+                        <div className="adm-settings-body">
+                            <div className="adm-toggle-row">
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                    <span>Contenido recomendado/destacado</span>
+                                    <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)' }}>Aparece en los recomendados del inicio (si no hay IDs fijos) y en filtros especiales.</span>
+                                </div>
+                                <div className={`adm-toggle ${data?.featured ? 'adm-toggle--on' : ''}`} onClick={() => setData(d => d ? { ...d, featured: !d.featured } : null)} />
+                            </div>
+                            <div className="adm-toggle-row" style={{ marginTop: 12 }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                    <span>Contenido para Adultos</span>
+                                    <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)' }}>Añade el indicativo +18 visible en la ficha de contenido.</span>
+                                </div>
+                                <div className={`adm-toggle ${data?.isAdult ? 'adm-toggle--on' : ''}`} onClick={() => setData(d => d ? { ...d, isAdult: !d.isAdult } : null)} />
+                            </div>
+                            <div className="adm-toggle-row" style={{ marginTop: 12 }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                    <span>Contenido Gratuito</span>
+                                    <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)' }}>Se puede ver sin tener plan activo. Se resalta en el inicio SOLO para usuarios no suscritos o deslogueados.</span>
+                                </div>
+                                <div className={`adm-toggle ${!data?.isFreeWithMembership ? 'adm-toggle--on' : ''}`} onClick={() => setData(d => d ? { ...d, isFreeWithMembership: !d.isFreeWithMembership } : null)} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="adm-settings-section">
+                        <div className="adm-settings-section-header">
+                            <Languages className="adm-settings-icon" size={18} />
+                            <h2>Metadatos Financieros</h2>
+                        </div>
+                        <div className="adm-settings-body">
+                            <div className="adm-form-row">
+                                <label>Idioma Original</label>
+                                <input type="text" className="adm-input" placeholder="ej: en, es, ja" value={data?.originalLanguage || ''} onChange={e => setData(d => d ? { ...d, originalLanguage: e.target.value } : null)} />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
+                                <div className="adm-form-row">
+                                    <label>Presupuesto (USD)</label>
+                                    <input type="number" className="adm-input" placeholder="0" value={data?.budget || ''} onChange={e => setData(d => d ? { ...d, budget: parseInt(e.target.value) || 0 } : null)} />
+                                </div>
+                                <div className="adm-form-row">
+                                    <label>Ingresos (USD)</label>
+                                    <input type="number" className="adm-input" placeholder="0" value={data?.revenue || ''} onChange={e => setData(d => d ? { ...d, revenue: parseInt(e.target.value) || 0 } : null)} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {(data?.directors && data.directors.length > 0 || data?.actors && data.actors.length > 0) && (
+                        <div className="adm-settings-section">
+                            <div className="adm-settings-section-header">
+                                <Film className="adm-settings-icon" size={18} />
+                                <h2>Reparto y Equipo</h2>
+                            </div>
+                            <div className="adm-settings-body">
+                                {data?.directors && data.directors.length > 0 && (
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '.75rem', color: 'var(--adm-muted)', marginBottom: 8, fontWeight: 600 }}>Director(es)</label>
+                                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                                            {data.directors.map((d: any, i: number) => (
+                                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.04)', padding: '6px 12px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)' }}>
+                                                    {d.director.photoUrl && <img src={d.director.photoUrl} alt={d.director.name} style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />}
+                                                    <span style={{ fontSize: '.8rem', fontWeight: 600, color: 'white' }}>{d.director.name}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {data?.actors && data.actors.length > 0 && (
+                                    <div style={{ marginTop: 16 }}>
+                                        <label style={{ display: 'block', fontSize: '.75rem', color: 'var(--adm-muted)', marginBottom: 8, fontWeight: 600 }}>Reparto principal ({data.actors.length})</label>
+                                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                            {data.actors.map((a: any, i: number) => (
+                                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.04)', padding: '4px 8px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)', fontSize: '.75rem' }}>
+                                                    {a.actor.photoUrl && <img src={a.actor.photoUrl} alt={a.actor.name} style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }} />}
+                                                    <span style={{ fontWeight: 600, color: 'white' }}>{a.actor.name}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

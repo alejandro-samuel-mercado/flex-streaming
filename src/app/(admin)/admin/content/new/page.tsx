@@ -36,7 +36,13 @@ export default function NewContentPage() {
         posterPath: '',
         backdropPath: '',
         genreIds: [] as string[],
-        tagIds: [] as string[]
+        tagIds: [] as string[],
+        budget: 0,
+        revenue: 0,
+        isAdult: false,
+        originalLanguage: '',
+        actors: [] as any[],
+        directors: [] as any[],
     });
 
     const fetchData = useCallback(async () => {
@@ -84,6 +90,12 @@ export default function NewContentPage() {
             rating: data.rating,
             posterPath: data.posterPath,
             backdropPath: data.backdropPath,
+            budget: data.budget,
+            revenue: data.revenue,
+            isAdult: data.isAdult,
+            originalLanguage: data.originalLanguage,
+            actors: data.actors,
+            directors: data.directors,
         }));
     };
 
@@ -106,6 +118,12 @@ export default function NewContentPage() {
             tagIds: formData.tagIds,
             posterPath: formData.posterPath,
             backdropPath: formData.backdropPath,
+            budget: formData.budget,
+            revenue: formData.revenue,
+            isAdult: formData.isAdult,
+            originalLanguage: formData.originalLanguage,
+            actors: formData.actors,
+            directors: formData.directors,
             translations: [{
                 language: 'es',
                 title: formData.title,
@@ -257,7 +275,22 @@ export default function NewContentPage() {
                                     <option value="MOVIE">Película</option>
                                     <option value="SERIES">Serie</option>
                                     <option value="ANIME">Anime</option>
+                                    <option value="ANIMATION">Animación</option>
                                     <option value="DOCUMENTARY">Documental</option>
+                                    <option value="BIOGRAPHY">Biografía</option>
+                                    <option value="REALITY_SHOW">Reality Show</option>
+                                    <option value="TALK_SHOW">Talk Show</option>
+                                    <option value="VARIETY_SHOW">Variedad</option>
+                                    <option value="STAND_UP">Stand-up</option>
+                                    <option value="SPECIAL">Especial</option>
+                                    <option value="EDUCATIONAL">Educativo</option>
+                                    <option value="KIDS">Infantil</option>
+                                    <option value="FAMILY">Familiar</option>
+                                    <option value="INTERACTIVE">Interactivo</option>
+                                    <option value="EXPERIMENTAL">Experimental</option>
+                                    <option value="DOCUDRAMA">Docudrama</option>
+                                    <option value="NOVELA">Telenovela</option>
+                                    <option value="SHORT">Cortometraje</option>
                                 </select>
                             </div>
                             <div className="adm-form-row">

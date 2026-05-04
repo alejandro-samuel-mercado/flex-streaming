@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { History, Search, Film, Tv, Clock, Loader2 } from 'lucide-react';
-import { API_ROUTES } from '@/lib/api-routes';
+import { API_ROUTES, API_ORIGIN } from '@/lib/api-routes';
 
 export default function AdminHistoryPage() {
   const [history, setHistory] = useState<any[]>([]);
@@ -45,7 +45,7 @@ export default function AdminHistoryPage() {
   const resolveUrl = (url?: string) => {
     if (!url) return '';
     if (url.startsWith('http')) return url;
-    return `http://localhost:4000${url}`;
+    return `${API_ORIGIN}${url}`;
   };
 
   const formatTime = (seconds: number) => {

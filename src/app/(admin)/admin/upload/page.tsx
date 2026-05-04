@@ -48,10 +48,9 @@ export default function UploadManagerPage() {
         if (prev[i]) {
           newBlocks.push(prev[i]);
         } else {
-          // Find first available contentId not used in newBlocks so far
-          const usedSoFar: Set<string> = new Set(newBlocks.map(b => b.contentId).filter(Boolean));
-          const available: any = contentList.find((c: any) => !usedInPrev.has(c.id) && !usedSoFar.has(c.id));
-          newBlocks.push({ id: Math.random().toString(), contentId: available ? available.id : '' });
+          // Initialize empty blocks so the user can choose freely.
+          // Pre-selecting content was causing items to be marked as "(En uso)" immediately.
+          newBlocks.push({ id: Math.random().toString(), contentId: '' });
         }
       }
       return newBlocks;

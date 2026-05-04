@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import ContentRow from '@/components/catalog/ContentRow';
+import { API_ROUTES } from '@/lib/api-routes';
 
 interface Platform {
   id: string;
@@ -16,7 +17,7 @@ export default function PlatformPage({ params }: { params: { slug: string } }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/platforms/${params.slug}` : `http://localhost:4000/api/platforms/${params.slug}`)
+    fetch(API_ROUTES.PLATFORMS.DETAIL(params.slug))
       .then(r => r.json())
       .then(data => {
         setPlatform(data.data || null);

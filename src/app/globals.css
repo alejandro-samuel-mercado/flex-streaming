@@ -2160,7 +2160,8 @@ body {
 .adm-search-wrap {
     position: relative;
     flex: 1;
-    min-width: 200px;
+    min-width: 50px;
+
 }
 
 .adm-search-icon {
@@ -5599,4 +5600,27 @@ body {
 
 .adm-link:hover {
     text-decoration: underline;
+}
+
+/* ─── EPISODE CARD ─────────────────────────────────────────────────────────── */
+.episode-card {
+    background: rgba(8, 13, 36, 0.5);
+    border: 1px solid rgba(0, 229, 255, 0.08);
+    transition: all 0.3s ease;
+}
+
+.episode-card:hover {
+    background: rgba(0, 229, 255, 0.05);
+    border-color: rgba(0, 229, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 229, 255, 0.1);
+}
+
+.episode-card:hover .episode-play-btn {
+    opacity: 1 !important;
+    transform: scale(1.1);
+}
+
+.episode-play-btn {
+    transition: all 0.3s ease;
 }

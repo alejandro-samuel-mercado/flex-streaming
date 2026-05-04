@@ -8,22 +8,25 @@ import {
     UploadCloud, MonitorPlay, ChevronLeft, Bell,
     Search, Tag, Server, Menu, X, Activity,
     Calendar, Package, UserCheck, Coins,
-    MessageSquare
+    MessageSquare, Loader2
 } from 'lucide-react';
+import { adminFetch } from '@/lib/admin-api';
+import { API_ROUTES } from '@/lib/api-routes';
 
 const NAV = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
     { href: '/admin/content', label: 'Contenido', icon: Film },
     { href: '/admin/upload', label: 'Subidas / HLS', icon: UploadCloud },
     { href: '/admin/processing', label: 'Monitor Proceso', icon: Activity },
-    { href: '/admin/categories', label: 'Categorías', icon: Tag },
-    { href: '/admin/platforms', label: 'Plataformas', icon: Server },
+    { href: '/admin/taxonomy', label: 'Taxonomía', icon: Tag },
+    { href: '/admin/homepage', label: 'Gestión Contenido', icon: LayoutDashboard },
+    
+    // ── User Management ──────────────────────────────────────────────────
     { href: '/admin/users', label: 'Usuarios', icon: Users },
-    { href: '/admin/homepage', label: 'Portada', icon: LayoutDashboard },
+    
+    // ── Billing & Support ────────────────────────────────────────────────
     { href: '/admin/subscription-plans', label: 'Planes', icon: Calendar },
     { href: '/admin/credit-packages', label: 'Paquetes Créditos', icon: Package },
-    { href: '/admin/resellers', label: 'Revendedores', icon: Coins },
-    { href: '/admin/end-users', label: 'Clientes Finales', icon: UserCheck },
     { href: '/admin/comments', label: 'Comentarios', icon: MessageSquare },
     { href: '/admin/settings', label: 'Configuración', icon: Settings },
 ];
@@ -38,6 +41,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [authed, setAuthed] = useState<boolean | null>(null);
+
+    // Notifications State
+    const [notifOpen, setNotifOpen] = useState(false);
+    const [notifs, setNotifs] = useState<any[]>([]);
+    const [loadingNotifs, setLoadingNotifs] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    const fetchNotifs = async () => {
+        setLoadingNotifs(true);
+        try {
+            const res = await adminFetch(API_ROUTES.ADMIN.DASHBOARD);
+            const json = await res.json();
+            if (json.success && json.data?.activity) {
+                setNotifs(json.data.activity);
+                setUnreadCount(json.data.activity.length);
+            }
+        } catch(e) {}
+        setLoadingNotifs(false);
+    };
 
     useEffect(() => {
         if (pathname === '/admin/login') { setAuthed(true); return; }
@@ -119,10 +141,54 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </div>
                     <div className="adm-header-right">
                         <button className="adm-header-btn" title="Buscar"><Search size={16} /></button>
-                        <button className="adm-header-btn adm-notif-btn" title="Notificaciones">
-                            <Bell size={16} />
-                            <span className="adm-notif-dot" />
-                        </button>
+                        <div className="relative">
+                            <button 
+                                className={`adm-header-btn adm-notif-btn ${notifOpen ? 'text-[var(--color-primary)]' : ''}`}
+                                title="Notificaciones"
+                                onClick={() => {
+                                    setNotifOpen(!notifOpen);
+                                    if (!notifOpen && notifs.length === 0) fetchNotifs();
+                                }}
+                            >
+                                <Bell size={16} />
+                                {unreadCount > 0 && <span className="adm-notif-dot" />}
+                            </button>
+
+                            {notifOpen && (
+                                <div className="!absolute !top-full !right-0 !mt-3 !w-80 !bg-[#0A0A0F] !border !border-white/10 !shadow-2xl !rounded-xl !z-[99999] !overflow-hidden animate-in fade-in slide-in-from-top-2">
+                                    <div className="!p-4 !border-b !border-white/10 !flex !justify-between !items-center !bg-[#141414]">
+                                        <h3 className="!font-bold !text-white !text-sm !m-0">Notificaciones</h3>
+                                        {unreadCount > 0 && (
+                                            <button 
+                                                className="!text-xs !text-[var(--color-primary)] hover:!underline !bg-transparent !border-none !p-0 !cursor-pointer"
+                                                onClick={() => setUnreadCount(0)}
+                                            >
+                                                Marcar leídas
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="!max-h-[300px] !overflow-y-auto !bg-[#0A0A0F]">
+                                        {loadingNotifs ? (
+                                            <div className="!p-6 !flex !justify-center"><Loader2 className="animate-spin text-[var(--color-primary)]" size={20} /></div>
+                                        ) : notifs.length === 0 ? (
+                                            <div className="!p-6 !text-center !text-[var(--adm-muted)] !text-sm">
+                                                No hay notificaciones recientes.
+                                            </div>
+                                        ) : (
+                                            notifs.map((n: any, idx: number) => (
+                                                <div key={idx} className="!p-4 !border-b !border-white/5 hover:!bg-white/5 !transition-colors !cursor-pointer !flex !gap-3 !items-start">
+                                                    <div className={`!mt-0.5 !w-2 !h-2 !rounded-full ${n.status === 'COMPLETED' ? '!bg-green-400' : n.status === 'FAILED' ? '!bg-red-400' : '!bg-blue-400'}`} />
+                                                    <div className="!flex-1">
+                                                        <p className="!text-xs !text-white !font-medium !mb-1 !m-0">{n.name}</p>
+                                                        <p className="!text-[10px] !text-[var(--adm-muted)] !uppercase !m-0">{n.status} • {n.time}</p>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                         <div className="adm-avatar" title="Admin">A</div>
                     </div>
                 </header>

@@ -53,7 +53,21 @@ export default function TMDBImport({ onImport, onClose }: TMDBImportProps) {
                     tmdbId: details.id.toString(),
                     posterPath: details.poster_path,
                     backdropPath: details.backdrop_path,
-                    // We can also extract genres if they match our IDs (logic needed)
+                    budget: details.budget || 0,
+                    revenue: details.revenue || 0,
+                    isAdult: details.adult || false,
+                    originalLanguage: details.original_language || '',
+                    actors: details.credits?.cast?.slice(0, 15).map((actor: any) => ({
+                        name: actor.name,
+                        tmdbId: actor.id.toString(),
+                        character: actor.character,
+                        photoUrl: actor.profile_path ? `https://image.tmdb.org/t/p/w185${actor.profile_path}` : null
+                    })) || [],
+                    directors: details.credits?.crew?.filter((crew: any) => crew.job === 'Director').map((director: any) => ({
+                        name: director.name,
+                        tmdbId: director.id.toString(),
+                        photoUrl: director.profile_path ? `https://image.tmdb.org/t/p/w185${director.profile_path}` : null
+                    })) || []
                 };
                 onImport(mappedData);
                 onClose();

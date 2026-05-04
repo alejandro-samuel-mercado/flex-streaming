@@ -10,7 +10,7 @@ import CollageSection from '@/components/catalog/CollageSection';
 import FAQSection from '@/components/catalog/FAQSection';
 import Footer from '@/components/layout/Footer';
 import ParticlesBackground from '@/components/layout/ParticlesBackground';
-import { API_ROUTES } from '@/lib/api-routes';
+import { API_ROUTES, API_ORIGIN } from '@/lib/api-routes';
 
 // ─── Mock data for when DB is empty ──────────────────────────────────────────
 const MOCK_FILMS = [
@@ -89,14 +89,12 @@ const DEMO_BACKDROP = 'https://images.unsplash.com/photo-1542204165-65bf26472b9b
 function mapContentToFilm(c: any) {
     const title = c.translations?.[0]?.title || c.slug || 'Sin título';
     const desc = c.translations?.[0]?.description || '';
-    
+
     const resolveUrl = (url: string) => {
         if (!url) return DEMO_BACKDROP;
         if (url.startsWith('http')) return url;
         try {
-            const publicApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-            const backendUrl = new URL(publicApiUrl).origin;
-            return `${backendUrl}${url}`;
+            return `${API_ORIGIN}${url}`;
         } catch (e) {
             return url;
         }
@@ -125,7 +123,7 @@ export default function HomePage() {
     const [data, setData] = useState<HomepageData | null>(null);
     const [loading, setLoading] = useState(true);
     const [useMock, setUseMock] = useState(false);
-    
+
     // Auth state and Continue Watching
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [continueWatching, setContinueWatching] = useState<any[]>([]);
@@ -133,10 +131,10 @@ export default function HomePage() {
     useEffect(() => {
         const token = localStorage.getItem('token');
         const profileId = localStorage.getItem('currentProfileId');
-        
+
         if (token && profileId) {
             setIsLoggedIn(true);
-            
+
             // Sync Favorites
             const localFavorites = JSON.parse(localStorage.getItem('localFavorites') || '[]');
             if (localFavorites.length > 0) {
@@ -162,17 +160,17 @@ export default function HomePage() {
                     'X-Profile-Id': profileId
                 }
             })
-            .then(res => res.json())
-            .then(resJson => {
-                if (resJson.success && resJson.data) {
-                    setContinueWatching(resJson.data.map((h: any) => ({
-                        ...mapContentToFilm(h.content),
-                        progress: h.progress,
-                        duration: h.duration
-                    })));
-                }
-            })
-            .catch(console.error);
+                .then(res => res.json())
+                .then(resJson => {
+                    if (resJson.success && resJson.data) {
+                        setContinueWatching(resJson.data.map((h: any) => ({
+                            ...mapContentToFilm(h.content),
+                            progress: h.progress,
+                            duration: h.duration
+                        })));
+                    }
+                })
+                .catch(console.error);
         }
 
         fetch(API_ROUTES.HOMEPAGE.DATA, { cache: 'no-store' })
@@ -233,7 +231,7 @@ export default function HomePage() {
             uniqueItemsMap.set(item.id, item);
         }
     });
-    
+
     const allItems = Array.from(uniqueItemsMap.values()).slice(0, 12).map((f: any) => ({
         id: f.id,
         posterUrl: f.posterUrl || f.backdropUrl,
@@ -292,7 +290,7 @@ export default function HomePage() {
 
                 {/* 3. Trending */}
                 <FilmRow
-                    title="🔥 En Tendencia"
+                    title="En Tendencia"
                     subtitle="Lo más visto en este momento"
                     items={trending}
                     variant="large"
@@ -302,7 +300,7 @@ export default function HomePage() {
 
                 {/* 4. Recent / New Releases */}
                 <FilmRow
-                    title="✨ Estrenos"
+                    title="Estrenos"
                     subtitle="Recién llegados al catálogo"
                     items={recent}
                     variant="large"

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Star, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { getContentTypeLabel } from '@/lib/content-types';
 
 interface HeroSlide {
   id: string;
@@ -70,11 +71,7 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
   };
 
   const typeLabel = (type?: string) => {
-    const map: Record<string, string> = {
-      MOVIE: 'Película', SERIES: 'Serie', DOCUMENTARY: 'Documental',
-      ANIME: 'Anime', NOVELA: 'Novela', SHORT: 'Corto', BIOGRAPHY: 'Biografía',
-    };
-    return map[type || ''] || type;
+    return getContentTypeLabel(type);
   };
 
   const variants = {

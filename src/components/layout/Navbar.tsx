@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { Search, Heart, ChevronDown, Menu, X, User, LogIn, Film, Tv, Clapperboard, Monitor } from 'lucide-react';
+import { Search, Heart, ChevronDown, Menu, X, User, LogIn, Film, Tv, Clapperboard, Monitor, Play, Star, Mic, Layout, Sparkles, BookOpen, Baby, Users, MousePointer, FlaskConical, Clock } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname } from 'next/navigation';
+import { API_ROUTES, API_ORIGIN } from '@/lib/api-routes';
 
 interface NavContentType {
     type: string;
@@ -31,22 +32,7 @@ interface NavbarProps {
     userName?: string;
 }
 
-const TYPE_ICONS: Record<string, React.ReactNode> = {
-    MOVIE: <Film size={16} />,
-    SERIES: <Tv size={16} />,
-    DOCUMENTARY: <Clapperboard size={16} />,
-    ANIME: <Monitor size={16} />,
-};
-
-const TYPE_LABELS: Record<string, string> = {
-    MOVIE: 'Películas',
-    SERIES: 'Series',
-    DOCUMENTARY: 'Documentales',
-    ANIME: 'Anime',
-    NOVELA: 'Novelas',
-    SHORT: 'Cortos',
-    BIOGRAPHY: 'Biografías',
-};
+import { CONTENT_TYPES_LIST, getContentTypeLabel, getContentTypeIcon } from '@/lib/content-types';
 
 export default function Navbar({ contentTypes = [], platforms = [], genres = [], isLoggedIn = false, userName }: NavbarProps) {
     const pathname = usePathname();
@@ -90,7 +76,7 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [],
         const fetchResults = async () => {
             setIsSearching(true);
             try {
-                const res = await fetch(`http://localhost:4000/api/content?search=${encodeURIComponent(searchQuery)}&limit=6`);
+                const res = await fetch(`${API_ROUTES.CONTENT.LIST}?search=${encodeURIComponent(searchQuery)}&limit=6`);
                 const result = await res.json();
                 if (result.success) {
                     setSearchResults(result.data);
@@ -153,18 +139,21 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [],
                                     {activeDropdown === 'tipo' && (
                                         <div className="nav-cinema-popup" onMouseEnter={keepDropdown} onMouseLeave={closeDropdown}>
                                             <div className="nav-cinema-popup-grid nav-cinema-popup-grid--types">
-                                                {contentTypes.map(ct => (
-                                                    <Link
-                                                        key={ct.type}
-                                                        href={`/explorar?type=${ct.type}`}
-                                                        className="nav-cinema-popup-link"
-                                                        onClick={() => setActiveDropdown(null)}
-                                                    >
-                                                        <span className="nav-cinema-popup-icon">{TYPE_ICONS[ct.type] || <Film size={16} />}</span>
-                                                        <span className="nav-cinema-popup-label">{TYPE_LABELS[ct.type] || ct.type}</span>
-                                                        <span className="nav-cinema-popup-count">{ct.count}</span>
-                                                    </Link>
-                                                ))}
+                                                {CONTENT_TYPES_LIST.map(type => {
+                                                    const ct = contentTypes.find(c => c.type === type);
+                                                    return (
+                                                        <Link
+                                                            key={type}
+                                                            href={`/explorar?type=${type}`}
+                                                            className="nav-cinema-popup-link"
+                                                            onClick={() => setActiveDropdown(null)}
+                                                        >
+                                                            <span className="nav-cinema-popup-icon">{getContentTypeIcon(type, 16)}</span>
+                                                            <span className="nav-cinema-popup-label">{getContentTypeLabel(type)}</span>
+                                                            <span className="nav-cinema-popup-count">{ct?.count || 0}</span>
+                                                        </Link>
+                                                    );
+                                                })}
                                                 <Link href="/explorar/gratis" className="nav-cinema-popup-link nav-cinema-popup-link--free" onClick={() => setActiveDropdown(null)}>
 
                                                     <span className="nav-cinema-popup-label">Gratis</span>
@@ -285,7 +274,7 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [],
                                             >
                                                 <div className="w-16 h-20 rounded-lg overflow-hidden flex-shrink-0 border border-white/10 group-hover:border-[var(--color-primary)] transition-all">
                                                     <img
-                                                        src={item.thumbnails?.[0]?.url.startsWith('http') ? item.thumbnails[0].url : `http://localhost:4000${item.thumbnails?.[0]?.url}`}
+                                                        src={item.thumbnails?.[0]?.url.startsWith('http') ? item.thumbnails[0].url : `${API_ORIGIN}${item.thumbnails?.[0]?.url}`}
                                                         alt=""
                                                         className="w-full h-full object-cover"
                                                     />
@@ -360,9 +349,9 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [],
 
                         <div className="nav-cinema-mobile-divider" />
                         <p className="nav-cinema-mobile-label">Por Tipo</p>
-                        {contentTypes.map(ct => (
-                            <Link key={ct.type} href={`/explorar/${ct.type.toLowerCase()}`} onClick={() => setMobileMenuOpen(false)} className="nav-cinema-mobile-link">
-                                {TYPE_LABELS[ct.type] || ct.type}
+                        {CONTENT_TYPES_LIST.map(type => (
+                            <Link key={type} href={`/explorar?type=${type}`} onClick={() => setMobileMenuOpen(false)} className="nav-cinema-mobile-link">
+                                {getContentTypeLabel(type)}
                             </Link>
                         ))}
                         <Link href="/explorar/gratis" onClick={() => setMobileMenuOpen(false)} className="nav-cinema-mobile-link nav-cinema-mobile-link--free">

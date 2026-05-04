@@ -126,14 +126,14 @@ export default function FilmComments({ contentId }: { contentId: string }) {
 
     return (
         <div className="mt-16 pt-10 border-t border-white/10" id="comments">
-            <h3 className="text-2xl font-black mb-8 flex items-center gap-3">
+            <h3 className="text-2xl font-black my-8! flex items-center gap-3">
                 <MessageSquare className="text-[#00E5FF]" />
                 Comentarios y Valoraciones
             </h3>
 
             {/* Comment Form */}
             {user ? (
-                <div className="bg-white/5 rounded-2xl p-6 mb-10 border border-white/10">
+                <div className="bg-white/5 rounded-2xl p-6! mb-10 border border-white/10">
                     <h4 className="font-bold text-lg mb-4">Deja tu valoración</h4>
                     <form onSubmit={handleSubmit}>
                         <div className="flex gap-2 mb-4">
@@ -141,11 +141,10 @@ export default function FilmComments({ contentId }: { contentId: string }) {
                                 <Star
                                     key={star}
                                     size={24}
-                                    className={`cursor-pointer transition-all ${
-                                        (hoverRating || newRating) >= star 
-                                            ? 'text-yellow-400 fill-yellow-400' 
-                                            : 'text-white/20'
-                                    }`}
+                                    className={`cursor-pointer transition-all ${(hoverRating || newRating) >= star
+                                        ? 'text-yellow-400 fill-yellow-400'
+                                        : 'text-white/20'
+                                        }`}
                                     onMouseEnter={() => setHoverRating(star)}
                                     onMouseLeave={() => setHoverRating(0)}
                                     onClick={() => setNewRating(star)}
@@ -172,7 +171,7 @@ export default function FilmComments({ contentId }: { contentId: string }) {
                     </form>
                 </div>
             ) : (
-                <div className="bg-white/5 rounded-2xl p-8 mb-10 border border-white/10 text-center">
+                <div className="bg-white/5 rounded-2xl p-8! my-10! border border-white/10 text-center">
                     <MessageSquare size={40} className="mx-auto text-white/20 mb-4" />
                     <h4 className="font-bold text-xl mb-2">Inicia sesión para comentar</h4>
                     <p className="text-white/60">Únete a la comunidad y comparte tu opinión sobre este contenido.</p>
@@ -207,9 +206,9 @@ export default function FilmComments({ contentId }: { contentId: string }) {
                                         )}
                                     </div>
                                     <p className="text-white/80 leading-relaxed mb-3">{review.body}</p>
-                                    
+
                                     {user && (
-                                        <button 
+                                        <button
                                             onClick={() => setReplyingTo(replyingTo === review.id ? null : review.id)}
                                             className="text-xs font-bold text-white/40 hover:text-[#00E5FF] transition-colors flex items-center gap-1"
                                         >
@@ -220,14 +219,14 @@ export default function FilmComments({ contentId }: { contentId: string }) {
                                     {/* Reply Box */}
                                     {replyingTo === review.id && (
                                         <div className="mt-4 flex gap-2">
-                                            <input 
-                                                type="text" 
+                                            <input
+                                                type="text"
                                                 className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00E5FF]"
                                                 placeholder="Escribe una respuesta..."
                                                 value={replyBody}
                                                 onChange={e => setReplyBody(e.target.value)}
                                             />
-                                            <button 
+                                            <button
                                                 onClick={() => handleReplySubmit(review.id)}
                                                 disabled={submittingReply}
                                                 className="bg-[#00E5FF] text-black px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50"

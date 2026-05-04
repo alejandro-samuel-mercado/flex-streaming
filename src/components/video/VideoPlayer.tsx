@@ -51,7 +51,42 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
     const hlsRef = useRef<Hls | null>(null);
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastProgressTimeRef = useRef<number>(0);
+    const lastTimeUpdateRef = useRef<number>(0); // Throttle timeupdate re-renders
     const initialTimeSetRef = useRef(false);
+    const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+
+    // ── Screen Wake Lock ────────────────────────────────────────────────
+    // Prevents the screen from turning off during playback.
+    // Without this, the user's screen goes dark after a few minutes of inactivity
+    // even though they're watching a movie.
+    useEffect(() => {
+        const acquireWakeLock = async () => {
+            if (!('wakeLock' in navigator)) return; // Not supported — silent no-op
+            try {
+                wakeLockRef.current = await navigator.wakeLock.request('screen');
+            } catch (err) {
+                // Wake lock request can fail (e.g., low battery mode)
+                console.warn('[VideoPlayer] Wake lock request failed:', err);
+            }
+        };
+
+        const releaseWakeLock = async () => {
+            if (wakeLockRef.current) {
+                try {
+                    await wakeLockRef.current.release();
+                } catch { /* already released */ }
+                wakeLockRef.current = null;
+            }
+        };
+
+        if (isPlaying) {
+            acquireWakeLock();
+        } else {
+            releaseWakeLock();
+        }
+
+        return () => { releaseWakeLock(); };
+    }, [isPlaying]);
 
     useEffect(() => {
         if (externalSubtitles && externalSubtitles.length > 0) {
@@ -90,6 +125,18 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
                 autoStartLoad: true,
                 startPosition: initialTime > 0 ? initialTime : -1,
                 renderTextTracksNatively: true,
+                // Buffer tuning for smooth playback
+                maxBufferLength: 30,             // Buffer up to 30s ahead
+                maxMaxBufferLength: 60,          // Allow up to 60s in good conditions
+                maxBufferSize: 60 * 1000 * 1000, // 60MB max buffer size
+                maxBufferHole: 0.5,              // Tolerate 0.5s gaps without stalling
+                // ABR tuning for stability
+                abrEwmaDefaultEstimate: 5000000, // Start assuming 5Mbps connection
+                abrBandWidthFactor: 0.95,        // Conservative bandwidth estimation
+                abrBandWidthUpFactor: 0.7,       // Slower to upgrade quality (avoids oscillation)
+                // Low-latency is not needed for VOD
+                lowLatencyMode: false,
+                backBufferLength: 30,            // Keep 30s of back-buffer for rewind
             });
             hlsRef.current = hls;
             hls.loadSource(src);
@@ -98,19 +145,20 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
                 console.log('📄 [VideoPlayer] Manifest parsed. Levels:', hls?.levels.length, 'Audios:', hls?.audioTracks.length);
                 setAudioTracks(hls?.audioTracks || []);
-                setCurrentAudio(hls?.audioTrack || -1);
+                // Use ?? instead of || so that index 0 is not treated as falsy
+                setCurrentAudio(hls?.audioTrack ?? -1);
 
                 const hlsSubs = (hls?.subtitleTracks || []).map(s => ({ ...s, type: 'HLS' }));
                 setSubtitleTracks(prev => {
                     const extSubs = prev.filter(s => s.type === 'EXTERNAL');
                     return [...hlsSubs, ...extSubs];
                 });
-                setCurrentSubtitle(hls?.subtitleTrack || -1);
+                setCurrentSubtitle(hls?.subtitleTrack ?? -1);
 
                 // Get available quality levels
                 const availableLevels = hls?.levels || [];
                 setLevels(availableLevels);
-                setCurrentLevel(hls?.currentLevel || -1);
+                setCurrentLevel(hls?.currentLevel ?? -1);
             });
 
             hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_event, data) => {
@@ -121,19 +169,35 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
             hls.on(Hls.Events.ERROR, (_event, data) => {
                 if (data.fatal) {
                     console.error('🔥 [VideoPlayer] Fatal HLS error:', data.type, data.details);
+                    // Attempt automatic recovery instead of freezing
+                    switch (data.type) {
+                        case Hls.ErrorTypes.NETWORK_ERROR:
+                            console.warn('🔄 [VideoPlayer] Network error — attempting recovery...');
+                            hls?.startLoad();
+                            break;
+                        case Hls.ErrorTypes.MEDIA_ERROR:
+                            console.warn('🔄 [VideoPlayer] Media error — attempting recovery...');
+                            hls?.recoverMediaError();
+                            break;
+                        default:
+                            // Unrecoverable — destroy and report
+                            console.error('💀 [VideoPlayer] Unrecoverable HLS error. Destroying.');
+                            hls?.destroy();
+                            break;
+                    }
                 }
+            });
+
+            hls.on(Hls.Events.AUDIO_TRACK_SWITCHED, () => {
+                setCurrentAudio(hls?.audioTrack ?? -1);
+            });
+
+            hls.on(Hls.Events.SUBTITLE_TRACK_SWITCH, () => {
+                setCurrentSubtitle(hls?.subtitleTrack ?? -1);
             });
 
             hls.on(Hls.Events.LEVEL_SWITCHED, (_event, data) => {
                 setCurrentLevel(data.level);
-            });
-
-            hls.on(Hls.Events.AUDIO_TRACK_SWITCHED, () => {
-                setCurrentAudio(hls?.audioTrack || -1);
-            });
-
-            hls.on(Hls.Events.SUBTITLE_TRACK_SWITCH, () => {
-                setCurrentSubtitle(hls?.subtitleTrack || -1);
             });
 
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
@@ -141,9 +205,10 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
         }
 
         return () => {
+            video.removeEventListener('loadedmetadata', handleLoadedMetadata);
             if (hls) hls.destroy();
         };
-    }, [src]); // Removed initialTime from here
+    }, [src]);
 
     // Separate effect for initial seeking
     useEffect(() => {
@@ -175,20 +240,26 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
         }
     };
 
+    // Throttled to max 1 React state update per second.
+    // The browser fires timeupdate ~4x/sec — without throttling that's 3 setState × 4 = 12
+    // re-renders/sec, which drains CPU and contributes to perceived low FPS in the video.
     const handleTimeUpdate = () => {
-        if (videoRef.current) {
-            const v = videoRef.current;
+        if (!videoRef.current) return;
+        const v = videoRef.current;
+
+        const now = Date.now();
+        // Update display state at most once per second
+        if (now - lastTimeUpdateRef.current >= 1000) {
+            lastTimeUpdateRef.current = now;
             setCurrentTime(v.currentTime);
             setDuration(v.duration);
             setProgress((v.currentTime / v.duration) * 100);
+        }
 
-            if (onProgressUpdate) {
-                const now = Date.now();
-                if (now - lastProgressTimeRef.current > 10000) {
-                    lastProgressTimeRef.current = now;
-                    onProgressUpdate(v.currentTime, v.duration);
-                }
-            }
+        // Progress save callback — every 10 seconds
+        if (onProgressUpdate && now - lastProgressTimeRef.current > 10000) {
+            lastProgressTimeRef.current = now;
+            onProgressUpdate(v.currentTime, v.duration);
         }
     };
 

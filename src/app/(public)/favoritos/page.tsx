@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import { Loader2 } from 'lucide-react';
-import { API_ROUTES } from '@/lib/api-routes';
+import { API_ROUTES, API_ORIGIN } from '@/lib/api-routes';
 
 export default function FavoritosPage() {
   const [favorites, setFavorites] = useState<any[]>([]);
@@ -83,19 +83,19 @@ export default function FavoritosPage() {
                 const resolveUrl = (url: string) => {
                   if (!url) return '';
                   if (url.startsWith('http')) return url;
-                  return `http://localhost:4000${url}`;
+                  return `${API_ORIGIN}${url}`;
                 };
                 return (
-                  <Link href={`/film/${c.id}`} key={c.id} className="poster-card block group origin-center transition-transform hover:scale-105 hover:z-10 duration-300">
-                    <div className="relative aspect-[2/3] w-full bg-[#141414] rounded overflow-hidden shadow-xl">
+                  <Link href={`/film/${c.id}`} key={c.id} className="block group origin-center transition-transform hover:scale-105 hover:z-10 duration-300 relative">
+                    <div className="relative aspect-[2/3] w-full bg-[#141414] rounded-lg overflow-hidden shadow-xl border border-white/5 group-hover:border-[var(--color-primary)] transition-colors">
                       <img 
                         src={resolveUrl(poster)} 
                         alt={c.translations?.[0]?.title} 
                         className="w-full h-full object-cover group-hover:brightness-110 transition"
                       />
                     </div>
-                    <div className="mt-2 flex flex-col gap-1">
-                      <h3 className="font-semibold text-sm text-gray-200 line-clamp-1">{c.translations?.[0]?.title}</h3>
+                    <div className="mt-3 flex flex-col gap-1 px-1">
+                      <h3 className="font-bold text-sm text-gray-300 line-clamp-1 group-hover:text-white transition-colors">{c.translations?.[0]?.title}</h3>
                     </div>
                   </Link>
                 );

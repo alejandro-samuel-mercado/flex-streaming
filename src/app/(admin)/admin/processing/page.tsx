@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { Activity, Clock, CheckCircle2, AlertCircle, PlayCircle, Loader2, X, Terminal } from 'lucide-react';
 import Link from 'next/link';
-import { API_ROUTES } from '@/lib/api-routes';
+import { API_ROUTES, API_ORIGIN } from '@/lib/api-routes';
 
 interface VideoStatus {
     id: string;
@@ -50,9 +50,20 @@ export default function ProcessingMonitorPage() {
 
         fetchStatus();
 
-        // 2. Setup Sockets
-        const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:4000';
-        const s = io(backendUrl, { withCredentials: true });
+        // 2. Setup Sockets - Robust URL handling
+        let socketUrl = API_ORIGIN;
+        if (process.env.NEXT_PUBLIC_API_URL) {
+            try {
+                const url = new URL(process.env.NEXT_PUBLIC_API_URL);
+                socketUrl = url.origin;
+            } catch (e) {
+                socketUrl = process.env.NEXT_PUBLIC_API_URL.replace('/api', '');
+            }
+        }
+        const s = io(socketUrl, { 
+            withCredentials: true,
+            transports: ['websocket', 'polling']
+        });
 
         s.on('video-progress', ({ jobId, progress }) => {
             setVideos(prev => prev.map(v => {

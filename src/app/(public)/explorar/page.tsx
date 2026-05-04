@@ -101,7 +101,14 @@ function ExploreContent() {
                     ...(tagId && { tagId }),
                     ...(quick === 'free' && { isFree: 'true' }),
                     ...(quick === 'recommended' && { featured: 'true' }),
+                    ...(quick === 'premieres' && { minYear: new Date().getFullYear().toString() }),
+                    ...(quick === 'latest' && { sort: 'recent' }),
                 });
+
+                // If 'latest' is active, override sort parameter
+                if (quick === 'latest') {
+                    queryParams.set('sort', 'recent');
+                }
 
                 const fetchUrl = `${API_ROUTES.CONTENT.LIST}?${queryParams.toString()}`;
                 console.log('[Explore] Fetching with params:', Object.fromEntries(queryParams.entries()));
@@ -148,7 +155,7 @@ function ExploreContent() {
 
                         <div className="flex items-center gap-4">
                             <div className="flex items-center bg-white/5 border border-white/10 rounded-xl p-1 gap-1">
-                                {['recent', 'popular', 'az'].map((s) => (
+                                {['az'].map((s) => (
                                     <button
                                         key={s}
                                         className={`px-4! py-2! rounded-lg text-xs font-black uppercase transition ${sort === s ? 'bg-[var(--color-primary)] text-black' : 'text-white/40 hover:text-white'}`}

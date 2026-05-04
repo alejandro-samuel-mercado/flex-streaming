@@ -3,7 +3,7 @@
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import VideoPlayer from '../video/VideoPlayer';
-
+import { API_ORIGIN } from '@/lib/api-routes';
 interface TrailerModalProps {
     url: string;
     isOpen: boolean;
@@ -26,7 +26,7 @@ export default function TrailerModal({ url, isOpen, onClose }: TrailerModalProps
         // Resolve local URL if it's a relative path
         let finalUrl = url;
         if (url.startsWith('/media/')) {
-            const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:4000';
+            const backendUrl = API_ORIGIN;
             finalUrl = `${backendUrl}${url}`;
         }
 

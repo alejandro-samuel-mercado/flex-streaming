@@ -2,373 +2,402 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { API_ROUTES } from '@/lib/api-routes';
-import { Play, Plus, ThumbsUp, Share2, ChevronDown, Star, Film, ArrowLeft, MonitorPlay } from 'lucide-react';
-import ContentRow from '@/components/catalog/ContentRow';
+import { API_ROUTES, API_ORIGIN } from '@/lib/api-routes';
+import { Play, Plus, ThumbsUp, Star, ArrowLeft, MonitorPlay, Clock, Globe, Calendar, DollarSign, Users, Clapperboard, ChevronDown } from 'lucide-react';
+import FilmRow from '@/components/catalog/FilmRow';
 import FilmComments from '@/components/film/FilmComments';
 import TrailerModal from '@/components/film/TrailerModal';
 import Link from 'next/link';
+import { getContentTypeLabel } from '@/lib/content-types';
 
-const DEMO_BACKDROP = 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=2574&auto=format&fit=crop';
+// Types that have seasons/episodes
+const SERIES_TYPES = ['SERIES', 'ANIME', 'NOVELA', 'REALITY_SHOW', 'TALK_SHOW', 'VARIETY_SHOW', 'EDUCATIONAL', 'KIDS', 'FAMILY', 'DOCUDRAMA'];
 
-const MOCK_RELATED = Array.from({ length: 8 }, (_, i) => ({
-    id: String(i + 100),
-    title: `Título relacionado ${i + 1}`,
-    imageUrl: [
-        'https://images.unsplash.com/photo-1534809027769-b00d750a6bac?q=80&w=600',
-        'https://images.unsplash.com/photo-1574375927938-d5a98e8d7e28?q=80&w=600',
-        'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?q=80&w=600',
-        'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=600',
-        'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=600',
-        'https://images.unsplash.com/photo-1626278664285-f796b9ee7806?q=80&w=600',
-        'https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=600',
-        'https://images.unsplash.com/photo-1535016120-3b1a6e3e1eb0?q=80&w=600',
-    ][i],
-    match: `${88 + Math.floor(Math.random() * 11)}%`,
-    year: 2022 + Math.floor(Math.random() * 3),
-    quality: ['HD', '4K'][Math.floor(Math.random() * 2)],
-}));
+// Friendly type labels
+const TYPE_LABELS: Record<string, string> = {
+    // We'll use the central getContentTypeLabel instead
+};
+
 export default function FilmDetailPage() {
     const params = useParams();
     const id = params.id as string;
-    const [activeTab, setActiveTab] = useState<'episodes' | 'related' | 'details'>('related');
     const [content, setContent] = useState<any>(null);
     const [related, setRelated] = useState<any[]>([]);
+    const [trending, setTrending] = useState<any[]>([]);
+    const [recommended, setRecommended] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isTrailerOpen, setIsTrailerOpen] = useState(false);
+    const [selectedSeason, setSelectedSeason] = useState(0);
 
     useEffect(() => {
         const fetchContent = async () => {
             try {
                 const res = await fetch(`${API_ROUTES.CONTENT.BASE}/${id}`, { cache: 'no-store' });
                 const resJson = await res.json();
-                if (resJson.success && resJson.data) {
-                    setContent(resJson.data);
-                }
+                if (resJson.success && resJson.data) setContent(resJson.data);
 
-                // Fetch related
-                const relatedRes = await fetch(`${API_ROUTES.CONTENT.BASE}/${id}/related`);
-                const relatedJson = await relatedRes.json();
-                if (relatedJson.success && relatedJson.data) {
-                    setRelated(relatedJson.data);
-                }
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
+                const [relatedRes, trendingRes, recommendedRes] = await Promise.all([
+                    fetch(`${API_ROUTES.CONTENT.BASE}/${id}/related`),
+                    fetch(`${API_ROUTES.CONTENT.TRENDING}`),
+                    fetch(`${API_ROUTES.CONTENT.FEATURED}`)
+                ]);
+                
+                const [relatedJson, trendingJson, recommendedJson] = await Promise.all([
+                    relatedRes.json(),
+                    trendingRes.json(),
+                    recommendedRes.json()
+                ]);
+
+                if (relatedJson.success && relatedJson.data) setRelated(relatedJson.data);
+                if (trendingJson.success && trendingJson.data) setTrending(trendingJson.data.filter((item: any) => item.id !== id));
+                if (recommendedJson.success && recommendedJson.data) setRecommended(recommendedJson.data.filter((item: any) => item.id !== id));
+            } catch (err) { console.error(err); }
+            finally { setLoading(false); }
         };
         fetchContent();
     }, [id]);
 
-    if (loading) return <div className="h-screen bg-black flex items-center justify-center text-white">Cargando...</div>;
-    if (!content) return <div className="h-screen bg-black flex items-center justify-center text-white">No encontrado</div>;
+    if (loading) return <div style={{ minHeight: '100vh', background: '#030612', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>Cargando...</div>;
+    if (!content) return <div style={{ minHeight: '100vh', background: '#030612', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>No encontrado</div>;
 
-    const translation = content.translations?.[0] || { title: 'Sin título', description: 'Sin descripción disponible.' };
-
-    // Thumbnails
+    const translation = content.translations?.[0] || { title: 'Sin título', description: '' };
     const thumbnails = content.thumbnails || [];
     const poster = thumbnails.find((t: any) => t.type === 'POSTER')?.url;
-    const backdrop = thumbnails.find((t: any) => t.type === 'BACKDROP')?.url || poster || DEMO_BACKDROP;
+    const backdrop = thumbnails.find((t: any) => t.type === 'BACKDROP')?.url || poster;
+    const genres = (content.genres || []).map((g: any) => g.genre);
+    const directors = (content.directors || []).map((d: any) => d.director);
+    const cast = (content.actors || []).slice(0, 15);
+    const isSeries = SERIES_TYPES.includes(content.type);
+    const seasons = content.seasons || [];
+    const currentSeason = seasons[selectedSeason];
 
     const resolveUrl = (url: string) => {
-        if (!url) return DEMO_BACKDROP;
+        if (!url) return '';
         if (url.startsWith('http')) return url;
         try {
-            const publicApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-            const backendUrl = new URL(publicApiUrl).origin;
-            return `${backendUrl}${url}`;
-        } catch (e) {
-            return url;
-        }
+            return `${API_ORIGIN}${url}`;
+        } catch { return url; }
     };
 
     const backdropUrl = resolveUrl(backdrop);
     const posterUrl = resolveUrl(poster);
-
-    // Metadata strings
-    const genres = (content.genres || []).map((g: any) => g.genre?.name).join(', ');
-    const director = (content.directors || []).map((d: any) => d.director?.name).join(', ') || 'Desconocido';
-    const cast = (content.actors || []).map((a: any) => a.actor?.name).join(', ') || 'No disponible';
+    const canPlay = content.status === 'READY' || content.videoFiles?.some((v: any) => v.type === 'MOVIE' && v.status === 'COMPLETED');
+    const formatMoney = (n: any) => {
+        if (!n || n === '0' || n === 0) return null;
+        const num = Number(n);
+        if (num >= 1_000_000) return `$${(num / 1_000_000).toFixed(1)}M`;
+        if (num >= 1_000) return `$${(num / 1_000).toFixed(0)}K`;
+        return `$${num}`;
+    };
 
     return (
-        <main className="min-h-screen bg-[#030612] text-white relative py-10!">
+        <main style={{ minHeight: '100vh', background: '#030612', color: 'white', position: 'relative' }}>
             <TrailerModal url={content.trailerUrl || ''} isOpen={isTrailerOpen} onClose={() => setIsTrailerOpen(false)} />
-            <div className="fixed inset-0 pointer-events-none opacity-40 mix-blend-screen bg-[radial-gradient(ellipse_at_20%_20%,rgba(0,229,255,0.15)_0%,transparent_50%),radial-gradient(ellipse_at_80%_80%,rgba(255,107,0,0.1)_0%,transparent_50%)] z-0" />
-            {/* Hero Section — Enhanced Depth */}
-            <section className="relative h-[85vh] w-full overflow-hidden">
-                {/* Backdrop Image with Parallax-like effect (static but centered) */}
-                <div
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-[2000ms] scale-105"
-                    style={{ backgroundImage: `url(${backdropUrl})`, backgroundPosition: 'center 15%' }}
-                />
 
-                {/* Deep Cinematic Gradients */}
-                <div className="absolute inset-0 bg-gradient-to-r from-[#030612] via-[#030612]/70 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#030612] via-[#030612]/30 to-transparent" />
-                <div className="absolute inset-0 bg-black/10 mix-blend-multiply" />
+            {/* ═══ HERO BANNER ═══ */}
+            <section style={{ position: 'relative', height: '85vh', width: '100%', overflow: 'hidden' }}>
+                {backdropUrl && <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${backdropUrl})`, backgroundSize: 'cover', backgroundPosition: 'center 15%', transform: 'scale(1.05)' }} />}
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, #030612 0%, rgba(3,6,18,0.7) 50%, transparent 100%)' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #030612 0%, rgba(3,6,18,0.3) 50%, transparent 100%)' }} />
 
-                {/* Back Button */}
-                <div className="absolute top-8 left-[7%] z-50">
-                    <Link href="/" className="flex items-center justify-center w-12 h-12 rounded-full bg-[#030612]/50 backdrop-blur-md border border-[#00E5FF]/20 text-white hover:bg-[#00E5FF]/20 hover:border-[#00E5FF] hover:text-[#00E5FF] hover:shadow-[0_0_15px_rgba(0,229,255,0.4)] transition-all">
+                {/* Back */}
+                <div style={{ position: 'absolute', top: 64, left: '7%', zIndex: 50 }}>
+                    <Link href="/" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 48, height: 48, borderRadius: '50%', background: 'rgba(3,6,18,0.5)', backdropFilter: 'blur(12px)', border: '1px solid rgba(0,229,255,0.2)', color: 'white', textDecoration: 'none', transition: 'all 0.3s' }}>
                         <ArrowLeft size={24} />
                     </Link>
                 </div>
 
-                {/* Content Overlay */}
-                <div className="absolute inset-0 flex flex-col justify-end" style={{ paddingLeft: '7%', paddingRight: '7%', paddingBottom: '120px' }}>
-                    <div className="max-w-5xl animate-fadeSlideUp relative z-10">
-                        {/* Action Badges */}
-                        <div className="flex items-center gap-3 flex-wrap mb-6">
+                {/* Hero Content */}
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingLeft: '7%', paddingRight: '7%', paddingBottom: 120 }}>
+                    <div style={{ maxWidth: '900px' }}>
+                        {/* Badges */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 24 }}>
                             {content.featured && (
-                                <span className="bg-gradient-to-r from-[#FF6B00] to-[#FF0055] text-white px-3 py-1 text-[11px] font-black rounded-sm tracking-[2px] shadow-[0_4px_15px_rgba(255,107,0,0.4)]">
-                                    TOP 10
-                                </span>
+                                <span style={{ background: 'linear-gradient(135deg, #FF6B00, #FF0055)', color: 'white', padding: '4px 12px', fontSize: 11, fontWeight: 900, borderRadius: 4, letterSpacing: 2, textTransform: 'uppercase' }}>TOP 10</span>
                             )}
-                            <span className="bg-[#0f1532]/80 backdrop-blur-xl border border-[#00E5FF]/30 text-white px-3 py-1 text-[11px] font-black rounded-sm tracking-[2px] uppercase shadow-[0_0_10px_rgba(0,229,255,0.2)]">
-                                {content.type || 'Película'}
+                            <span style={{ background: 'rgba(15,21,50,0.8)', backdropFilter: 'blur(20px)', border: '1px solid rgba(0,229,255,0.3)', color: 'white', padding: '4px 12px', fontSize: 11, fontWeight: 900, borderRadius: 4, letterSpacing: 2, textTransform: 'uppercase' }}>
+                                {getContentTypeLabel(content.type)}
                             </span>
-                            <span className="text-[#00E5FF] text-sm md:text-base font-black tracking-tight drop-shadow-[0_0_8px_rgba(0,229,255,0.6)]">
-                                98% coincidencia
-                            </span>
+                            {content.isAdult && (
+                                <span style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', color: '#fca5a5', padding: '4px 10px', fontSize: 11, fontWeight: 800, borderRadius: 4 }}>+18</span>
+                            )}
                         </div>
 
-                        {/* Premium Typography Title */}
-                        <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 uppercase tracking-tighter leading-[0.9] drop-shadow-2xl text-wrap" style={{ fontFamily: 'var(--font-display)', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))' }}>
+                        <h1 style={{ fontSize: 'clamp(2.5rem, 6vw, 5rem)', fontWeight: 900, marginBottom: 24, textTransform: 'uppercase', letterSpacing: '-0.03em', lineHeight: 0.95, textShadow: '0 10px 20px rgba(0,0,0,0.5)' }}>
                             {translation.title}
                         </h1>
 
-                        {/* Polished Metadata Bar */}
-                        <div className="flex items-center gap-6 text-gray-300 text-base font-bold mb-10">
-                            <span className="text-white bg-white/10 px-2 py-0.5 rounded">{content.releaseYear}</span>
-                            <span className="border-2 border-white/40 px-2 py-0.5 rounded text-xs text-white">16+</span>
-                            <span>{content.duration} min</span>
-                            <span className="text-gray-400 font-black tracking-widest text-xs">ULTRA HD 4K</span>
-                            <div className="flex items-center gap-2 text-yellow-500 bg-yellow-500/10 px-3 py-1 rounded-full border border-yellow-500/20">
-                                <Star size={18} fill="currentColor" />
-                                <span className="text-white font-black">{content.rating || '8.5'}</span>
-                            </div>
+                        {/* Meta bar */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 20, color: '#d1d5db', fontSize: 15, fontWeight: 700, marginBottom: 32, flexWrap: 'wrap' }}>
+                            {content.releaseYear && <span style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 10px', borderRadius: 4, color: 'white' }}>{content.releaseYear}</span>}
+                            {content.ageRating && <span style={{ border: '2px solid rgba(255,255,255,0.4)', padding: '2px 8px', borderRadius: 4, fontSize: 12, color: 'white' }}>{content.ageRating.code}</span>}
+                            {content.duration && !isSeries && <span>{content.duration} min</span>}
+                            {isSeries && seasons.length > 0 && <span>{seasons.length} temporada{seasons.length > 1 ? 's' : ''}</span>}
+                            {content.rating > 0 && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(245,197,24,0.1)', padding: '4px 12px', borderRadius: 20, border: '1px solid rgba(245,197,24,0.2)' }}>
+                                    <Star size={16} fill="#f5c518" style={{ color: '#f5c518' }} />
+                                    <span style={{ color: 'white', fontWeight: 900 }}>{content.rating}</span>
+                                </div>
+                            )}
                         </div>
 
-                        {/* Synopsis with better line height */}
-                        <p className="text-gray-200 text-base md:text-xl leading-relaxed mb-10 max-w-3xl font-medium drop-shadow-md line-clamp-3 md:line-clamp-none" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                        {/* Synopsis */}
+                        <p style={{ color: '#e5e7eb', fontSize: 'clamp(0.9rem, 1.5vw, 1.15rem)', lineHeight: 1.7, marginBottom: 32, maxWidth: 700, fontWeight: 500, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
                             {translation.description}
                         </p>
 
-                        {/* Massive Action Buttons */}
-                        <div className="flex items-center gap-4 md:gap-6 flex-wrap">
-                            {content.status === 'READY' || (content.videoFiles && content.videoFiles.some((v: any) => v.type === 'MOVIE' && v.status === 'COMPLETED')) ? (
-                                <Link href={`/watch/${id}`}
-                                    className="flex items-center gap-3! md:gap-4! px-8! md:px-14! py-4! md:py-5! bg-gradient-to-r from-[#00E5FF] to-[#0099AA] text-black font-black rounded-xl hover:from-[#4DEDFF] hover:to-[#00E5FF] transition-all hover:scale-[1.03] active:scale-95 shadow-[0_10px_30px_rgba(0,229,255,0.4)] text-sm md:text-base">
-                                    <Play size={24} fill="black" className="md:w-7 md:h-7" />
-                                    REPRODUCIR
+                        {/* Action Buttons */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                            {canPlay ? (
+                                <Link href={`/watch/${id}`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 48px', background: 'linear-gradient(135deg, #00E5FF, #0099AA)', color: 'black', fontWeight: 900, borderRadius: 12, textDecoration: 'none', fontSize: 15, boxShadow: '0 10px 30px rgba(0,229,255,0.4)', transition: 'all 0.3s' }}>
+                                    <Play size={22} fill="black" /> REPRODUCIR
                                 </Link>
                             ) : (
-                                <button
-                                    disabled
-                                    className="flex items-center gap-3! md:gap-4! px-8! md:px-14! py-4! md:py-5! bg-gray-600/50 text-white/50 font-black rounded-xl cursor-not-allowed text-sm md:text-base border border-white/10">
-                                    <Play size={24} fill="currentColor" className="md:w-7 md:h-7" />
-                                    PRÓXIMAMENTE
+                                <button disabled style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 48px', background: 'rgba(107,114,128,0.5)', color: 'rgba(255,255,255,0.5)', fontWeight: 900, borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', cursor: 'not-allowed', fontSize: 15 }}>
+                                    <Play size={22} fill="currentColor" /> PRÓXIMAMENTE
                                 </button>
                             )}
-
                             {content.trailerUrl && (
-                                <button 
-                                    onClick={() => setIsTrailerOpen(true)}
-                                    className="flex items-center gap-3! md:gap-4! px-6! md:px-10! py-4! md:py-5! bg-[#080d24]/60 backdrop-blur-2xl border border-[#00E5FF]/30 text-white font-bold rounded-xl hover:border-[#00E5FF] hover:bg-[#00E5FF]/10 hover:text-[#00E5FF] hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all active:scale-95 shadow-2xl text-sm md:text-base">
-                                    <MonitorPlay size={24} />
-                                    TRÁILER
+                                <button onClick={() => setIsTrailerOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 40px', background: 'rgba(8,13,36,0.6)', backdropFilter: 'blur(20px)', border: '1px solid rgba(0,229,255,0.3)', color: 'white', fontWeight: 700, borderRadius: 12, cursor: 'pointer', fontSize: 15, transition: 'all 0.3s' }}>
+                                    <MonitorPlay size={22} /> TRÁILER
                                 </button>
                             )}
-
-                            <div className="flex items-center gap-4">
-                                <button className="flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full border border-[#00E5FF]/30 bg-[#080d24]/60 backdrop-blur-2xl hover:border-[#00E5FF] hover:bg-[#00E5FF]/10 hover:text-[#00E5FF] hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all active:scale-90 shadow-2xl">
-                                    <Plus size={28} />
-                                </button>
-                                <button className="flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full border border-[#00E5FF]/30 bg-[#080d24]/60 backdrop-blur-2xl hover:border-[#00E5FF] hover:bg-[#00E5FF]/10 hover:text-[#00E5FF] hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all active:scale-90 shadow-2xl">
-                                    <ThumbsUp size={24} />
-                                </button>
-                            </div>
+                            <button style={{ width: 56, height: 56, borderRadius: '50%', border: '1px solid rgba(0,229,255,0.3)', background: 'rgba(8,13,36,0.6)', backdropFilter: 'blur(20px)', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Plus size={26} />
+                            </button>
+                            <button style={{ width: 56, height: 56, borderRadius: '50%', border: '1px solid rgba(0,229,255,0.3)', background: 'rgba(8,13,36,0.6)', backdropFilter: 'blur(20px)', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <ThumbsUp size={22} />
+                            </button>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Main Content */}
-            <section className="pt-20 pb-24 relative z-10" style={{ paddingLeft: '7%', paddingRight: '7%' }}>
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
-                    {/* Left: Interactive Tabs Content */}
-                    <div className="lg:col-span-8 space-y-16">
-                        {/* Premium Tab Navigation */}
-                        <div className="flex gap-14 border-b border-[#00E5FF]/20 relative">
-                            {(['related', 'episodes', 'details'] as const).map(tab => (
-                                <button
-                                    key={tab}
-                                    onClick={() => setActiveTab(tab)}
-                                    className={`pb-8 text-sm font-black uppercase tracking-[0.3em] transition-all relative
-                    ${activeTab === tab ? 'text-white' : 'text-gray-500 hover:text-[#00E5FF]'}`}
-                                >
-                                    {tab === 'related' ? 'Similares' : tab === 'episodes' ? 'Episodios' : 'Detalles'}
-                                    {activeTab === tab && (
-                                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#00E5FF] shadow-[0_0_15px_rgba(0,229,255,0.6)]" />
-                                    )}
-                                </button>
+            {/* ═══ MAIN CONTENT AREA ═══ */}
+            <section style={{ padding: '60px 7% 0', position: 'relative', zIndex: 10 }}>
+
+                {/* ── Info Grid: Poster + Details ── */}
+                <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 48, marginBottom: 64 }}>
+                    {/* Poster */}
+                    {posterUrl && (
+                        <div style={{ borderRadius: 16, overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.08)', aspectRatio: '2/3' }}>
+                            <img src={posterUrl} alt={translation.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                    )}
+
+                    {/* Details Grid */}
+                    <div>
+                        {/* Technical Details */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 20, marginBottom: 36 }}>
+                            {directors.length > 0 && (
+                                <DetailItem icon={<Clapperboard size={16} />} label="Director" value={directors.map((d: any) => d.name).join(', ')} />
+                            )}
+                            {content.originalLanguage && (
+                                <DetailItem icon={<Globe size={16} />} label="Idioma Original" value={content.originalLanguage.toUpperCase()} />
+                            )}
+                            {content.releaseYear && (
+                                <DetailItem icon={<Calendar size={16} />} label="Año" value={String(content.releaseYear)} />
+                            )}
+                            {content.duration && !isSeries && (
+                                <DetailItem icon={<Clock size={16} />} label="Duración" value={`${Math.floor(content.duration / 60)}h ${content.duration % 60}m`} />
+                            )}
+                            {content.country && (
+                                <DetailItem icon={<Globe size={16} />} label="País" value={content.country} />
+                            )}
+                            {content.platform && (
+                                <DetailItem icon={<MonitorPlay size={16} />} label="Plataforma" value={content.platform.name} />
+                            )}
+                            {formatMoney(content.budget) && (
+                                <DetailItem icon={<DollarSign size={16} />} label="Presupuesto" value={formatMoney(content.budget)!} />
+                            )}
+                            {formatMoney(content.revenue) && (
+                                <DetailItem icon={<DollarSign size={16} />} label="Ingresos" value={formatMoney(content.revenue)!} />
+                            )}
+                        </div>
+
+                        {/* Genres */}
+                        {genres.length > 0 && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 28 }}>
+                                {genres.map((g: any) => (
+                                    <Link href={`/explorar?genreId=${g.id}`} key={g.id} style={{ padding: '6px 16px', background: 'rgba(0,229,255,0.06)', border: '1px solid rgba(0,229,255,0.25)', borderRadius: 20, fontSize: 12, fontWeight: 800, color: '#4DEDFF', textDecoration: 'none', letterSpacing: 1.5, textTransform: 'uppercase', transition: 'all 0.3s' }}>
+                                        {g.name}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Tags */}
+                        {content.tags?.length > 0 && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 28 }}>
+                                {content.tags.map((t: any) => (
+                                    <Link href={`/explorar?tagId=${t.tag.id}`} key={t.tag.id} style={{ padding: '4px 12px', background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 6, fontSize: 11, fontWeight: 700, color: '#c084fc', textDecoration: 'none' }}>
+                                        #{t.tag.name}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* ── Cast Section ── */}
+                {cast.length > 0 && (
+                    <div style={{ marginBottom: 64 }}>
+                        <h3 style={{ fontSize: 13, fontWeight: 900, letterSpacing: 4, color: 'rgba(0,229,255,0.8)', textTransform: 'uppercase', marginBottom: 24 }}>
+                            <Users size={16} style={{ display: 'inline', marginRight: 8, verticalAlign: 'middle' }} />
+                            Reparto Principal
+                        </h3>
+                        <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 12 }}>
+                            {cast.map((a: any, i: number) => (
+                                <div key={i} style={{ flexShrink: 0, width: 120, textAlign: 'center' }}>
+                                    <div style={{ width: 90, height: 90, borderRadius: '50%', overflow: 'hidden', margin: '0 auto 10px', border: '2px solid rgba(0,229,255,0.15)', background: 'rgba(255,255,255,0.05)' }}>
+                                        {a.actor.photoUrl ? (
+                                            <img src={a.actor.photoUrl} alt={a.actor.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        ) : (
+                                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.3)', fontSize: 28, fontWeight: 900 }}>
+                                                {a.actor.name?.[0]}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <p style={{ fontSize: 13, fontWeight: 700, color: 'white', marginBottom: 2, lineHeight: 1.3 }}>{a.actor.name}</p>
+                                    {a.character && <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.3 }}>{a.character}</p>}
+                                </div>
                             ))}
                         </div>
-
-                        {/* Animated Content Panels */}
-                        <div className="min-h-[500px] animate-fadeIn">
-                            {activeTab === 'related' && (
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8">
-                                    {(related.length > 0 ? related : MOCK_RELATED).map(item => {
-                                        // Support both mock items and real api content
-                                        const cId = item.id;
-                                        const title = item.translations?.[0]?.title || item.title || 'Relacionado';
-                                        const poster = item.thumbnails?.find((t: any) => t.type === 'POSTER')?.url;
-                                        const backdrop = item.thumbnails?.find((t: any) => t.type === 'BACKDROP')?.url;
-                                        const imageUrl = resolveUrl(poster || backdrop) || item.imageUrl;
-                                        
-                                        return (
-                                        <Link key={cId} href={`/film/${cId}`} className="group block">
-                                            <div className="aspect-video rounded-xl overflow-hidden bg-[#080d24] mb-3 ring-1 ring-[#00E5FF]/10 group-hover:ring-[#00E5FF] transition-all shadow-lg group-hover:shadow-[0_8px_25px_rgba(0,229,255,0.3)]">
-                                                <img src={imageUrl} alt={title} className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110 filter brightness-90 group-hover:brightness-110 contrast-125" />
-                                            </div>
-                                            <span className="text-sm md:text-base font-black text-gray-400 group-hover:text-[#00E5FF] transition line-clamp-1 uppercase tracking-wider drop-shadow-md">
-                                                {title}
-                                            </span>
-                                        </Link>
-                                    )})}
-                                </div>
-                            )}
-
-                            {activeTab === 'details' && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-20 py-6">
-                                    <div className="space-y-12">
-                                        <div className="p-8 bg-white/[0.02] border border-white/5 rounded-3xl">
-                                            <h4 className="text-gray-600 text-[11px] font-black uppercase tracking-[0.4em] mb-4">Director</h4>
-                                            <p className="text-3xl text-white font-black tracking-tight">{director}</p>
-                                        </div>
-                                        <div className="p-8 bg-white/[0.02] border border-white/5 rounded-3xl">
-                                            <h4 className="text-gray-600 text-[11px] font-black uppercase tracking-[0.4em] mb-4">Géneros</h4>
-                                            <p className="text-2xl text-white/90 font-bold">{genres}</p>
-                                        </div>
-                                    </div>
-                                    <div className="p-10 bg-white/[0.02] border border-white/5 rounded-[40px]">
-                                        <h4 className="text-gray-600 text-[11px] font-black uppercase tracking-[0.4em] mb-6">Elenco Principal</h4>
-                                        <p className="text-xl text-gray-400 leading-loose font-medium">{cast}</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === 'episodes' && (
-                                <div className="space-y-4 py-4">
-                                    {content.type === 'Serie' ? (
-                                        [1, 2, 3, 4, 5].map(ep => (
-                                            <div key={ep} className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 p-4 rounded-2xl bg-[#080d24]/40 border border-[#00E5FF]/10 hover:border-[#00E5FF]/40 hover:bg-[#080d24]/80 hover:shadow-[0_0_15px_rgba(0,229,255,0.1)] transition-all cursor-pointer group">
-                                                <div className="relative w-full sm:w-48 aspect-video rounded-xl overflow-hidden flex-shrink-0">
-                                                    <img src={backdropUrl} alt={`Episode ${ep}`} className="w-full h-full object-cover filter brightness-75 group-hover:brightness-100 transition-all duration-700 group-hover:scale-105" />
-                                                    <div className="absolute inset-0 flex items-center justify-center">
-                                                        <Play size={28} className="text-white opacity-0 group-hover:opacity-100 drop-shadow-[0_0_10px_rgba(0,229,255,0.8)] transition-all scale-75 group-hover:scale-100" />
-                                                    </div>
-                                                </div>
-                                                <div className="flex-1">
-                                                    <h5 className="text-lg font-black text-white mb-2 group-hover:text-[#00E5FF] transition-colors">Episodio {ep}</h5>
-                                                    <p className="text-sm text-gray-400 line-clamp-2 md:line-clamp-3">Una breve descripción de lo que ocurre en este emocionante episodio donde los personajes enfrentan nuevos desafíos y descubren secretos ocultos.</p>
-                                                </div>
-                                                <div className="text-[#00E5FF] font-bold text-sm px-2 sm:px-4 shrink-0 hidden sm:block">45 min</div>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="flex flex-col items-center justify-center py-32 text-[#00E5FF]/30 border-2 border-dashed border-[#00E5FF]/10 rounded-[40px] bg-[#080d24]/30">
-                                            <Film size={64} className="mb-6 opacity-40" />
-                                            <p className="text-xl font-black tracking-widest uppercase opacity-80 text-center px-6">Esta no es una serie.<br />No hay episodios disponibles.</p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
                     </div>
+                )}
 
-                    {/* Right: Premium Information Sidebar */}
-                    <div className="lg:col-span-4 relative z-10">
-                        <div className="bg-[#0f1532]/60 border border-[#00E5FF]/20 rounded-[40px] p-12 sticky top-24 backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8),0_0_20px_rgba(0,229,255,0.1)_inset]" style={{ padding: "30px" }}>
-                            <h3 className="text-[11px] font-black tracking-[5px] text-[#00E5FF] uppercase mb-12 drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]">Información</h3>
-
-                            <div className="space-y-10">
-                                <div className="flex flex-col gap-2 group">
-                                    <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest group-hover:text-gray-400 transition">Distribución</span>
-                                    <span className="text-2xl font-black text-white/90">{content.platform?.name || 'PELIPLUS ORIGINALS'}</span>
-                                </div>
-
-                                <div className="flex flex-col gap-2 group">
-                                    <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest group-hover:text-gray-400 transition">Año de Estreno</span>
-                                    <span className="text-2xl font-black text-white/90">{content.releaseYear}</span>
-                                </div>
-
-                                <div className="flex flex-col gap-2 group">
-                                    <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest group-hover:text-gray-400 transition">Tiempo Total</span>
-                                    <span className="text-2xl font-black text-white/90">{content.duration} minutos</span>
-                                </div>
-
-                                <div className="flex flex-col gap-4 pt-6 group">
-                                    <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest group-hover:text-gray-400 transition">Puntuación Global</span>
-                                    <div className="flex items-center gap-4">
-                                        <Star size={32} fill="#f5c518" className="text-yellow-400 filter drop-shadow-[0_0_10px_rgba(245,197,24,0.3)]" />
-                                        <span className="text-5xl font-black text-white">{content.rating || '8.5'}<span className="text-lg text-gray-700 ml-2">/ 10</span></span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="mt-14 pt-10 border-t border-[#00E5FF]/20">
-                                <div className="flex flex-col gap-6">
-                                    <div className="flex flex-wrap gap-3">
-                                        {(content.genres || []).map((g: any) => (
-                                            <Link href={`/explorar?genreId=${g.genre.id}`} key={g.genre.id} className="px-5 py-2 bg-[#00E5FF]/5 hover:bg-[#00E5FF]/15 rounded-full text-[10px] font-black text-[#4DEDFF] hover:text-white border border-[#00E5FF]/30 hover:border-[#00E5FF] hover:shadow-[0_0_10px_rgba(0,229,255,0.3)] uppercase tracking-widest transition-all cursor-pointer">
-                                                {g.genre.name}
-                                            </Link>
+                {/* ── Seasons & Episodes (only for series-type content) ── */}
+                {isSeries && seasons.length > 0 && (
+                    <div style={{ marginBottom: 64 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+                            <h3 style={{ fontSize: 13, fontWeight: 900, letterSpacing: 4, color: 'rgba(0,229,255,0.8)', textTransform: 'uppercase', margin: 0 }}>
+                                Temporadas
+                            </h3>
+                            {seasons.length > 1 && (
+                                <div style={{ position: 'relative' }}>
+                                    <select
+                                        value={selectedSeason}
+                                        onChange={e => setSelectedSeason(Number(e.target.value))}
+                                        style={{ appearance: 'none', background: 'rgba(15,21,50,0.8)', border: '1px solid rgba(0,229,255,0.3)', color: 'white', padding: '8px 36px 8px 16px', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+                                    >
+                                        {seasons.map((s: any, i: number) => (
+                                            <option key={s.id} value={i} style={{ background: '#0f1532' }}>
+                                                Temporada {s.number} {s.translations?.[0]?.title ? `— ${s.translations[0].title}` : ''}
+                                            </option>
                                         ))}
-                                    </div>
-                                    
-                                    {content.tags && content.tags.length > 0 && (
-                                        <div className="flex flex-wrap gap-2">
-                                            {content.tags.map((t: any) => (
-                                                <Link href={`/explorar?tagId=${t.tag.id}`} key={t.tag.id} className="px-3 py-1 bg-purple-500/5 hover:bg-purple-500/20 rounded-md text-[10px] font-bold text-purple-300 hover:text-white border border-purple-500/20 hover:border-purple-400 hover:shadow-[0_0_10px_rgba(168,85,247,0.3)] transition-all cursor-pointer">
-                                                    #{t.tag.name}
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    )}
+                                    </select>
+                                    <ChevronDown size={16} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#00E5FF' }} />
                                 </div>
-                            </div>
+                            )}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            {(currentSeason?.episodes || []).map((ep: any) => {
+                                const epTitle = ep.translations?.[0]?.title || `Episodio ${ep.number}`;
+                                const epDesc = ep.translations?.[0]?.description || '';
+                                const epThumb = ep.thumbnails?.[0]?.url;
+                                const epReady = ep.videoFiles?.some((v: any) => v.status === 'COMPLETED');
+                                return (
+                                <div key={ep.id} className="episode-card" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 16, borderRadius: 16, cursor: epReady ? 'pointer' : 'default' }}>
+                                        <div style={{ position: 'relative', width: 160, aspectRatio: '16/9', borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: 'rgba(255,255,255,0.05)' }}>
+                                            {epThumb ? <img src={resolveUrl(epThumb)} alt={epTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.8)' }} /> : <div style={{ width: '100%', height: '100%', background: 'rgba(255,255,255,0.03)' }} />}
+                                            {epReady && (
+                                                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.7 }}>
+                                                    <Play size={24} fill="white" className="episode-play-btn" style={{ color: 'white', filter: 'drop-shadow(0 0 10px rgba(0,229,255,0.8))', opacity: 0.7 }} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <h5 style={{ fontSize: 16, fontWeight: 800, color: 'white', marginBottom: 4 }}>
+                                                <span style={{ color: 'rgba(0,229,255,0.6)', marginRight: 8 }}>{ep.number}.</span>
+                                                {epTitle}
+                                            </h5>
+                                            {epDesc && <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{epDesc}</p>}
+                                        </div>
+                                        {ep.duration && <span style={{ color: '#00E5FF', fontWeight: 700, fontSize: 14, flexShrink: 0 }}>{ep.duration} min</span>}
+                                    </div>
+                                );
+                            })}
+                            {(!currentSeason?.episodes || currentSeason.episodes.length === 0) && (
+                                <div style={{ textAlign: 'center', padding: 48, color: 'rgba(255,255,255,0.3)', borderRadius: 20, border: '1px dashed rgba(0,229,255,0.15)', background: 'rgba(8,13,36,0.3)' }}>
+                                    No hay episodios disponibles para esta temporada.
+                                </div>
+                            )}
                         </div>
                     </div>
-                </div>
+                )}
             </section>
 
-            {/* Comments Section */}
-            <div className="relative z-10" style={{ paddingLeft: '7%', paddingRight: '7%' }}>
+            {/* ── Comments ── */}
+            <div style={{ padding: '0 7%', position: 'relative', zIndex: 10 }}>
                 <FilmComments contentId={id as string} />
             </div>
 
-            {/* Recommendations Footer — High Spacing */}
-            <div className="pb-48 relative z-10" style={{ paddingLeft: '7%', paddingRight: '7%' }}>
-                <div className="pt-32 border-t border-[#00E5FF]/10">
-                    <ContentRow title="Te puede gustar" items={(related.length > 0 ? related : MOCK_RELATED).map(item => {
-                        const title = item.translations?.[0]?.title || item.title || 'Relacionado';
-                        const poster = item.thumbnails?.find((t: any) => t.type === 'POSTER')?.url;
-                        const backdrop = item.thumbnails?.find((t: any) => t.type === 'BACKDROP')?.url;
-                        const imageUrl = resolveUrl(poster || backdrop) || item.imageUrl;
-                        return {
+            {/* ── Related Content Rows ── */}
+            <div style={{ padding: '48px 7% 120px', position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '48px' }}>
+                {related.length > 0 && (
+                    <div style={{ borderTop: '1px solid rgba(0,229,255,0.1)', paddingTop: 48 }}>
+                        <FilmRow 
+                            title="Contenido Relacionado" 
+                            items={related.map(item => ({
+                                id: item.id,
+                                title: item.translations?.[0]?.title || item.slug,
+                                posterUrl: resolveUrl(item.thumbnails?.find((th: any) => th.type === 'POSTER')?.url),
+                                backdropUrl: resolveUrl(item.thumbnails?.find((th: any) => th.type === 'BACKDROP')?.url),
+                                rating: item.rating,
+                                year: item.releaseYear,
+                                type: item.type
+                            }))} 
+                        />
+                    </div>
+                )}
+                
+                {recommended.length > 0 && (
+                    <FilmRow 
+                        title="Te Puede Gustar" 
+                        subtitle="Recomendaciones basadas en nuestro contenido destacado"
+                        items={recommended.map(item => ({
                             id: item.id,
-                            title,
-                            imageUrl: imageUrl,
-                            rating: item.rating || 8.5,
-                            year: item.releaseYear || item.year,
-                            type: item.type || 'MOVIE'
-                        };
-                    })} />
-                </div>
+                            title: item.translations?.[0]?.title || item.slug,
+                            posterUrl: resolveUrl(item.thumbnails?.find((th: any) => th.type === 'POSTER')?.url),
+                            backdropUrl: resolveUrl(item.thumbnails?.find((th: any) => th.type === 'BACKDROP')?.url),
+                            rating: item.rating,
+                            year: item.releaseYear,
+                            type: item.type
+                        }))} 
+                    />
+                )}
+                
+                {trending.length > 0 && (
+                    <FilmRow 
+                        title="Tendencias Actuales" 
+                        subtitle="Lo más visto en la plataforma"
+                        variant="numbered"
+                        items={trending.map(item => ({
+                            id: item.id,
+                            title: item.translations?.[0]?.title || item.slug,
+                            posterUrl: resolveUrl(item.thumbnails?.find((th: any) => th.type === 'POSTER')?.url),
+                            backdropUrl: resolveUrl(item.thumbnails?.find((th: any) => th.type === 'BACKDROP')?.url),
+                            rating: item.rating,
+                            year: item.releaseYear,
+                            type: item.type
+                        }))} 
+                    />
+                )}
             </div>
         </main>
+    );
+}
+
+// ── Small helper component ──
+function DetailItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+    return (
+        <div style={{ padding: '16px 20px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16, transition: 'all 0.3s' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <span style={{ color: 'rgba(0,229,255,0.6)' }}>{icon}</span>
+                <span style={{ fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.35)', letterSpacing: 2, textTransform: 'uppercase' }}>{label}</span>
+            </div>
+            <p style={{ fontSize: 18, fontWeight: 800, color: 'rgba(255,255,255,0.9)', margin: 0 }}>{value}</p>
+        </div>
     );
 }

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Play, Star, Clock, Info } from 'lucide-react';
 import { API_ROUTES } from '@/lib/api-routes';
+import { getContentTypeLabel } from '@/lib/content-types';
 
 interface ExploreCardProps {
     content: any;
@@ -62,7 +63,7 @@ export default function ExploreCard({ content }: ExploreCardProps) {
                         <span className="dot"></span>
                         <span>{year || '2024'}</span>
                         <span className="dot"></span>
-                        <span className="uppercase text-[10px] font-bold opacity-40">{type === 'MOVIE' ? 'Película' : 'Serie'}</span>
+                        <span className="uppercase text-[10px] font-bold opacity-40">{getContentTypeLabel(type)}</span>
                     </div>
 
                     {genres.length > 0 && (
