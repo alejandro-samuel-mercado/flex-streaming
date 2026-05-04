@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Play, Star, Clock, Info } from 'lucide-react';
-import { API_ROUTES } from '@/lib/api-routes';
+import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
 import { getContentTypeLabel } from '@/lib/content-types';
 
 interface ExploreCardProps {
@@ -18,15 +18,7 @@ export default function ExploreCard({ content }: ExploreCardProps) {
     const genres = content.genres?.map((g: any) => g.genre?.name).filter(Boolean) || [];
     const platform = content.platform;
 
-    const resolveImageUrl = (thumbnails: any[]) => {
-        const poster = thumbnails?.find((t: any) => t.type === 'POSTER') || thumbnails?.[0];
-        if (!poster) return 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=2574&auto=format&fit=crop';
-        if (poster.url.startsWith('http')) return poster.url;
-        const backendUrl = API_ROUTES.CONTENT.BASE.replace('/api/content', '');
-        return `${backendUrl}${poster.url}`;
-    };
-
-    const imageUrl = resolveImageUrl(content.thumbnails);
+    const imageUrl = resolveImageUrl(content.thumbnails?.find((t: any) => t.type === 'POSTER')?.url || content.thumbnails?.[0]?.url);
 
     return (
         <div className="explore-card-group">

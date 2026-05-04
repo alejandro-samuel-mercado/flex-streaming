@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { API_ROUTES, API_ORIGIN } from '@/lib/api-routes';
+import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
 import { Play, Plus, ThumbsUp, Star, ArrowLeft, MonitorPlay, Clock, Globe, Calendar, DollarSign, Users, Clapperboard, ChevronDown } from 'lucide-react';
 import FilmRow from '@/components/catalog/FilmRow';
 import FilmComments from '@/components/film/FilmComments';
@@ -71,16 +71,8 @@ export default function FilmDetailPage() {
     const seasons = content.seasons || [];
     const currentSeason = seasons[selectedSeason];
 
-    const resolveUrl = (url: string) => {
-        if (!url) return '';
-        if (url.startsWith('http')) return url;
-        try {
-            return `${API_ORIGIN}${url}`;
-        } catch { return url; }
-    };
-
-    const backdropUrl = resolveUrl(backdrop);
-    const posterUrl = resolveUrl(poster);
+    const backdropUrl = resolveImageUrl(backdrop);
+    const posterUrl = resolveImageUrl(poster);
     const canPlay = content.status === 'READY' || content.videoFiles?.some((v: any) => v.type === 'MOVIE' && v.status === 'COMPLETED');
     const formatMoney = (n: any) => {
         if (!n || n === '0' || n === 0) return null;
@@ -300,7 +292,7 @@ export default function FilmDetailPage() {
                                 return (
                                 <div key={ep.id} className="episode-card" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 16, borderRadius: 16, cursor: epReady ? 'pointer' : 'default' }}>
                                         <div style={{ position: 'relative', width: 160, aspectRatio: '16/9', borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: 'rgba(255,255,255,0.05)' }}>
-                                            {epThumb ? <img src={resolveUrl(epThumb)} alt={epTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.8)' }} /> : <div style={{ width: '100%', height: '100%', background: 'rgba(255,255,255,0.03)' }} />}
+                                            {epThumb ? <img src={resolveImageUrl(epThumb)} alt={epTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.8)' }} /> : <div style={{ width: '100%', height: '100%', background: 'rgba(255,255,255,0.03)' }} />}
                                             {epReady && (
                                                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.7 }}>
                                                     <Play size={24} fill="white" className="episode-play-btn" style={{ color: 'white', filter: 'drop-shadow(0 0 10px rgba(0,229,255,0.8))', opacity: 0.7 }} />
@@ -342,8 +334,8 @@ export default function FilmDetailPage() {
                             items={related.map(item => ({
                                 id: item.id,
                                 title: item.translations?.[0]?.title || item.slug,
-                                posterUrl: resolveUrl(item.thumbnails?.find((th: any) => th.type === 'POSTER')?.url),
-                                backdropUrl: resolveUrl(item.thumbnails?.find((th: any) => th.type === 'BACKDROP')?.url),
+                                posterUrl: resolveImageUrl(item.thumbnails?.find((th: any) => th.type === 'POSTER')?.url),
+                                backdropUrl: resolveImageUrl(item.thumbnails?.find((th: any) => th.type === 'BACKDROP')?.url),
                                 rating: item.rating,
                                 year: item.releaseYear,
                                 type: item.type
@@ -359,8 +351,8 @@ export default function FilmDetailPage() {
                         items={recommended.map(item => ({
                             id: item.id,
                             title: item.translations?.[0]?.title || item.slug,
-                            posterUrl: resolveUrl(item.thumbnails?.find((th: any) => th.type === 'POSTER')?.url),
-                            backdropUrl: resolveUrl(item.thumbnails?.find((th: any) => th.type === 'BACKDROP')?.url),
+                            posterUrl: resolveImageUrl(item.thumbnails?.find((th: any) => th.type === 'POSTER')?.url),
+                            backdropUrl: resolveImageUrl(item.thumbnails?.find((th: any) => th.type === 'BACKDROP')?.url),
                             rating: item.rating,
                             year: item.releaseYear,
                             type: item.type
@@ -376,8 +368,8 @@ export default function FilmDetailPage() {
                         items={trending.map(item => ({
                             id: item.id,
                             title: item.translations?.[0]?.title || item.slug,
-                            posterUrl: resolveUrl(item.thumbnails?.find((th: any) => th.type === 'POSTER')?.url),
-                            backdropUrl: resolveUrl(item.thumbnails?.find((th: any) => th.type === 'BACKDROP')?.url),
+                            posterUrl: resolveImageUrl(item.thumbnails?.find((th: any) => th.type === 'POSTER')?.url),
+                            backdropUrl: resolveImageUrl(item.thumbnails?.find((th: any) => th.type === 'BACKDROP')?.url),
                             rating: item.rating,
                             year: item.releaseYear,
                             type: item.type

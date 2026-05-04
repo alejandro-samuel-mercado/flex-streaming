@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Search, Heart, ChevronDown, Menu, X, User, LogIn, Film, Tv, Clapperboard, Monitor, Play, Star, Mic, Layout, Sparkles, BookOpen, Baby, Users, MousePointer, FlaskConical, Clock } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { API_ROUTES, API_ORIGIN } from '@/lib/api-routes';
+import { API_ROUTES, API_ORIGIN, resolveImageUrl } from '@/lib/api-routes';
 
 interface NavContentType {
     type: string;
@@ -274,7 +274,7 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [],
                                             >
                                                 <div className="w-16 h-20 rounded-lg overflow-hidden flex-shrink-0 border border-white/10 group-hover:border-[var(--color-primary)] transition-all">
                                                     <img
-                                                        src={item.thumbnails?.[0]?.url.startsWith('http') ? item.thumbnails[0].url : `${API_ORIGIN}${item.thumbnails?.[0]?.url}`}
+                                                        src={resolveImageUrl(item.thumbnails?.[0]?.url)}
                                                         alt=""
                                                         className="w-full h-full object-cover"
                                                     />

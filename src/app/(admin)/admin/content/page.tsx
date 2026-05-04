@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Search, Plus, Edit2, Trash2, Loader2, Film, FolderSearch, AlertTriangle, ChevronLeft, ChevronRight, SortAsc, SortDesc, Calendar, Eye, Star, Hash } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { API_ROUTES } from '@/lib/api-routes';
+import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
 import { getContentTypeLabel } from '@/lib/content-types';
 
 interface ContentItem {
@@ -292,7 +292,7 @@ export default function AdminContentPage() {
                                 <tr key={item.id}>
                                     <td>
                                         <div style={{ width: 40, height: 56, borderRadius: 6, overflow: 'hidden', background: 'var(--adm-bg-alt)' }}>
-                                            {poster ? <img src={poster} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Film size={16} style={{ margin: '20px auto', display: 'block', opacity: 0.2 }} />}
+                                            {poster ? <img src={resolveImageUrl(poster)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Film size={16} style={{ margin: '20px auto', display: 'block', opacity: 0.2 }} />}
                                         </div>
                                     </td>
                                     <td>

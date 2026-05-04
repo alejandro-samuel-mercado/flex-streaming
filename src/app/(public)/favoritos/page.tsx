@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import { Loader2 } from 'lucide-react';
-import { API_ROUTES, API_ORIGIN } from '@/lib/api-routes';
+import { API_ROUTES, API_ORIGIN, resolveImageUrl } from '@/lib/api-routes';
 
 export default function FavoritosPage() {
   const [favorites, setFavorites] = useState<any[]>([]);
@@ -80,16 +80,12 @@ export default function FavoritosPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-10">
               {favorites.map((c) => {
                 const poster = c.thumbnails?.find((t: any) => t.type === 'POSTER')?.url || '';
-                const resolveUrl = (url: string) => {
-                  if (!url) return '';
-                  if (url.startsWith('http')) return url;
-                  return `${API_ORIGIN}${url}`;
-                };
+
                 return (
                   <Link href={`/film/${c.id}`} key={c.id} className="block group origin-center transition-transform hover:scale-105 hover:z-10 duration-300 relative">
                     <div className="relative aspect-[2/3] w-full bg-[#141414] rounded-lg overflow-hidden shadow-xl border border-white/5 group-hover:border-[var(--color-primary)] transition-colors">
                       <img 
-                        src={resolveUrl(poster)} 
+                        src={resolveImageUrl(poster)} 
                         alt={c.translations?.[0]?.title} 
                         className="w-full h-full object-cover group-hover:brightness-110 transition"
                       />

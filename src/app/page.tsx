@@ -10,7 +10,7 @@ import CollageSection from '@/components/catalog/CollageSection';
 import FAQSection from '@/components/catalog/FAQSection';
 import Footer from '@/components/layout/Footer';
 import ParticlesBackground from '@/components/layout/ParticlesBackground';
-import { API_ROUTES, API_ORIGIN } from '@/lib/api-routes';
+import { API_ROUTES, API_ORIGIN, resolveImageUrl } from '@/lib/api-routes';
 
 // ─── Mock data for when DB is empty ──────────────────────────────────────────
 const MOCK_FILMS = [
@@ -90,18 +90,8 @@ function mapContentToFilm(c: any) {
     const title = c.translations?.[0]?.title || c.slug || 'Sin título';
     const desc = c.translations?.[0]?.description || '';
 
-    const resolveUrl = (url: string) => {
-        if (!url) return DEMO_BACKDROP;
-        if (url.startsWith('http')) return url;
-        try {
-            return `${API_ORIGIN}${url}`;
-        } catch (e) {
-            return url;
-        }
-    };
-
-    const poster = resolveUrl(c.thumbnails?.find((t: any) => t.type === 'POSTER')?.url);
-    const backdrop = resolveUrl(c.thumbnails?.find((t: any) => t.type === 'BACKDROP')?.url);
+    const poster = resolveImageUrl(c.thumbnails?.find((t: any) => t.type === 'POSTER')?.url);
+    const backdrop = resolveImageUrl(c.thumbnails?.find((t: any) => t.type === 'BACKDROP')?.url);
     const genreNames = c.genres?.map((g: any) => g.genre?.name).filter(Boolean) || [];
 
     return {

@@ -19,11 +19,11 @@ const NAV = [
     { href: '/admin/upload', label: 'Subidas / HLS', icon: UploadCloud },
     { href: '/admin/processing', label: 'Monitor Proceso', icon: Activity },
     { href: '/admin/taxonomy', label: 'Taxonomía', icon: Tag },
-    { href: '/admin/homepage', label: 'Gestión Contenido', icon: LayoutDashboard },
-    
+    { href: '/admin/homepage', label: 'Gestión Web', icon: LayoutDashboard },
+
     // ── User Management ──────────────────────────────────────────────────
     { href: '/admin/users', label: 'Usuarios', icon: Users },
-    
+
     // ── Billing & Support ────────────────────────────────────────────────
     { href: '/admin/subscription-plans', label: 'Planes', icon: Calendar },
     { href: '/admin/credit-packages', label: 'Paquetes Créditos', icon: Package },
@@ -57,7 +57,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 setNotifs(json.data.activity);
                 setUnreadCount(json.data.activity.length);
             }
-        } catch(e) {}
+        } catch (e) { }
         setLoadingNotifs(false);
     };
 
@@ -142,7 +142,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <div className="adm-header-right">
                         <button className="adm-header-btn" title="Buscar"><Search size={16} /></button>
                         <div className="relative">
-                            <button 
+                            <button
                                 className={`adm-header-btn adm-notif-btn ${notifOpen ? 'text-[var(--color-primary)]' : ''}`}
                                 title="Notificaciones"
                                 onClick={() => {
@@ -159,7 +159,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     <div className="!p-4 !border-b !border-white/10 !flex !justify-between !items-center !bg-[#141414]">
                                         <h3 className="!font-bold !text-white !text-sm !m-0">Notificaciones</h3>
                                         {unreadCount > 0 && (
-                                            <button 
+                                            <button
                                                 className="!text-xs !text-[var(--color-primary)] hover:!underline !bg-transparent !border-none !p-0 !cursor-pointer"
                                                 onClick={() => setUnreadCount(0)}
                                             >

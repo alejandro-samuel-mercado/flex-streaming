@@ -1,5 +1,8 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
-export const API_ORIGIN = API_BASE_URL.replace('/api', '');
+
+// Robust calculation of API_ORIGIN: remove the trailing /api or /api/ safely
+export const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
+
 export const API_ROUTES = {
   AUTH: {
     REGISTER: `${API_BASE_URL}/auth/register`,
@@ -137,4 +140,15 @@ export const API_ROUTES = {
     APPLY_TMDB: `${API_BASE_URL}/admin/media-scanner/apply-tmdb`,
   },
 } as const;
+
+// Robust helper to resolve media URLs (thumbnails, etc.)
+export const resolveImageUrl = (url: string | null | undefined) => {
+  if (!url) return 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=2574&auto=format&fit=crop';
+  if (url.startsWith('http')) return url;
+  
+  // Normalize the URL to start with a slash
+  const normalizedUrl = url.startsWith('/') ? url : `/${url}`;
+  return `${API_ORIGIN}${normalizedUrl}`;
+};
+
 
