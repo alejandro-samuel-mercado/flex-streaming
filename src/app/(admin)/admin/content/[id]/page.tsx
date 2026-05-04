@@ -177,7 +177,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                 platformId: data.platforms[0]?.id || null,
                 trailerUrl: data.trailerUrl,
                 originalLanguage: data.originalLanguage || null,
-                originalTitle: data.originalTitle || null,
+                originalTitle: data.originalTitle?.trim() || null,
                 budget: data.budget ? data.budget : null,
                 revenue: data.revenue ? data.revenue : null,
                 isAdult: data.isAdult || false,
