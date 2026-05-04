@@ -124,7 +124,8 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
 
                 setData({
                     ...item,
-                    translations: mappedTranslations.length > 0 ? mappedTranslations : [{ lang: 'es', title: '', description: '' }],
+                    originalTitle: item.originalTitle || '',
+                    translations: mappedTranslations.length > 0 ? mappedTranslations : [{ lang: 'es', title: '', description: '', tagline: '' }],
                     platforms: item.platform ? [item.platform] : [],
                     categories: (item.genres || []).map((g: any) => g.genre),
                     tags: (item.tags || []).map((t: any) => t.tag),
