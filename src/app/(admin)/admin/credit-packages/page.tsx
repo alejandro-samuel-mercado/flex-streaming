@@ -54,7 +54,7 @@ export default function CreditPackagesPage() {
           <div key={p.id} className="adm-table-card" style={{ padding: '1.25rem', opacity: p.isActive ? 1 : 0.55 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '.75rem' }}>
               <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600 }}>{p.name}</h3>
-              <span className={`adm-badge ${p.isPromo ? 'adm-badge--purple' : 'adm-badge--blue'}`}>{p.isPromo ? 'PROMO' : 'NORMAL'}</span>
+              {p.isPromo && <span className="adm-badge adm-badge--purple">PROMO</span>}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem', marginBottom: '1rem', fontSize: '.85rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '.4rem' }}><Coins size={14} style={{ opacity: .6 }} />{p.baseCredits} base</div>

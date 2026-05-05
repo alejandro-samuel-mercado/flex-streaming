@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Coins, Send, ToggleLeft, ToggleRight, UserPlus } from 'lucide-react';
+import { Coins, Send, ToggleLeft, ToggleRight, UserPlus, Trash2 } from 'lucide-react';
 import { resellerFetch } from '@/lib/reseller-api';
 import { API_ROUTES } from '@/lib/api-routes';
 import type { ResellerVendor } from '@/types/reseller.types';
@@ -39,6 +39,12 @@ export default function SuperVendorVendorsPage() {
     await resellerFetch(API_ROUTES.RESELLER.STATUS(id), { method: 'PATCH', body: JSON.stringify({ isActive: !active }) });
     fetchVendors();
   };
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`¿Estás seguro de eliminar al vendedor "${name}"? No debe tener clientes activos.`)) return;
+    const r = await resellerFetch(`${API_ROUTES.RESELLER.LIST}/${id}`, { method: 'DELETE' });
+    const j = await r.json();
+    if (j.success || r.ok) fetchVendors(); else alert(j.error || 'No se pudo eliminar');
+  };
 
   if (loading) return <div className="adm-page"><p>Cargando...</p></div>;
 
@@ -62,8 +68,9 @@ export default function SuperVendorVendorsPage() {
                 <td><span className={`adm-badge ${v.isActive ? 'adm-badge--green' : 'adm-badge--red'}`}>{v.isActive ? 'Activo' : 'Inactivo'}</span></td>
                 <td>
                   <div style={{ display: 'flex', gap: '.3rem' }}>
-                    <button className="adm-btn adm-btn--ghost" style={{ padding: '.3rem .5rem' }} onClick={() => { setShowCredits(v.id); setCreditsAmt(10); }}><Send size={14} /></button>
-                    <button className="adm-btn adm-btn--ghost" style={{ padding: '.3rem .5rem' }} onClick={() => handleToggle(v.id, v.isActive)}>{v.isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}</button>
+                    <button className="adm-btn adm-btn--ghost" style={{ padding: '.3rem .5rem' }} onClick={() => { setShowCredits(v.id); setCreditsAmt(10); }} title="Asignar Créditos"><Send size={14} /></button>
+                    <button className="adm-btn adm-btn--ghost" style={{ padding: '.3rem .5rem' }} onClick={() => handleToggle(v.id, v.isActive)} title={v.isActive ? 'Desactivar' : 'Activar'}>{v.isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}</button>
+                    <button className="adm-btn adm-btn--ghost" style={{ padding: '.3rem .5rem', color: '#ef4444' }} onClick={() => handleDelete(v.id, v.name)} title="Eliminar"><Trash2 size={14} /></button>
                   </div>
                 </td>
               </tr>

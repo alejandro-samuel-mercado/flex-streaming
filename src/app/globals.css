@@ -1933,7 +1933,7 @@ body {
     padding: 0 20px 0 24px;
     flex-shrink: 0;
     position: relative;
-    overflow: hidden;
+
 }
 
 /* Glint on header — different delay & speed for variety */

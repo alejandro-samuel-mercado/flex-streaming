@@ -376,9 +376,7 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [],
                                     <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="nav-cinema-mobile-auth-btn">
                                         Iniciar Sesión
                                     </Link>
-                                    <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="nav-cinema-mobile-auth-btn nav-cinema-mobile-auth-btn--accent">
-                                        Registrarse
-                                    </Link>
+                                   
                                 </>
                             )}
                         </div>

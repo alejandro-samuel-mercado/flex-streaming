@@ -10,7 +10,7 @@ import { API_ROUTES } from '@/lib/api-routes';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const schema = z.object({
-    email: z.string().email('Email inválido'),
+    username: z.string().min(1, 'Usuario requerido'),
     password: z.string().min(1, 'Contraseña requerida'),
 });
 
@@ -42,12 +42,23 @@ export default function AdminLoginPage() {
             });
             const json = await res.json();
             if (!json.success) throw new Error(json.error ?? 'Credenciales inválidas');
-            // Check if user has ADMIN role
+            // Check if user has correct role
             const user = json.data.user;
-            if (user && user.role !== 'ADMIN') throw new Error('No tienes permisos de administrador');
+            const allowedRoles = ['ADMIN', 'VENDOR', 'SUPER_VENDOR'];
+            if (user && !allowedRoles.includes(user.role)) throw new Error('No tienes permisos de acceso');
+            // Determine redirect path based on role
+            let redirectPath = '/admin';
+            if (user.role === 'VENDOR') redirectPath = '/vendor';
+            if (user.role === 'SUPER_VENDOR') redirectPath = '/super-vendor';
+
             localStorage.setItem('adminToken', json.data.accessToken);
             localStorage.setItem('adminRefreshToken', json.data.refreshToken);
-            router.replace('/admin');
+            
+            // Cookie for Next.js middleware protection
+            document.cookie = `adminToken=${json.data.accessToken}; path=/; max-age=${8 * 3600}; SameSite=Lax`;
+            
+            router.replace(redirectPath);
+
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error inesperado');
         } finally {
@@ -105,16 +116,16 @@ export default function AdminLoginPage() {
                     </AnimatePresence>
 
                     <div className="admin-form-field">
-                        <label className="admin-form-label">Email</label>
+                        <label className="admin-form-label">Usuario</label>
                         <input
-                            {...register('email')}
-                            type="email"
-                            className={`admin-form-input${errors.email ? ' error' : ''}`}
-                            placeholder="admin@peliplus.com"
-                            autoComplete="email"
+                            {...register('username')}
+                            type="text"
+                            className={`admin-form-input${errors.username ? ' error' : ''}`}
+                            placeholder="Usuario"
+                            autoComplete="username"
                             autoFocus
                         />
-                        {errors.email && <span className="admin-form-error">{errors.email.message}</span>}
+                        {errors.username && <span className="admin-form-error">{errors.username.message}</span>}
                     </div>
 
                     <div className="admin-form-field">

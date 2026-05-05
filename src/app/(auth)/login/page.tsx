@@ -6,10 +6,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useState } from 'react';
-import { Eye, EyeOff, LogIn, Play, Mail, Lock, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, LogIn, Play, User, Lock, ArrowLeft } from 'lucide-react';
 
 const loginSchema = z.object({
-    email: z.string().email('Email inválido'),
+    username: z.string().min(1, 'Ingresá tu usuario'),
     password: z.string().min(1, 'Ingresá tu contraseña'),
 });
 
@@ -37,6 +37,9 @@ export default function LoginPage() {
             if (!result.success) throw new Error(result.error ?? 'Error al iniciar sesión');
             localStorage.setItem('accessToken', result.data.accessToken);
             localStorage.setItem('refreshToken', result.data.refreshToken);
+            // Cookie para que el middleware de Next.js pueda proteger rutas de usuario
+            // Distinto del 'adminToken' para separar completamente los dos entornos
+            document.cookie = `accessToken=${result.data.accessToken}; path=/; max-age=${8 * 3600}; SameSite=Lax`;
             window.location.href = '/';
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error inesperado');
@@ -146,17 +149,17 @@ export default function LoginPage() {
                     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col" style={{ gap: '24px' }}>
                         <div className="flex flex-col" style={{ gap: '8px' }}>
                             <div className="relative flex items-center">
-                                <Mail className="absolute text-gray-500 pointer-events-none" style={{ left: '20px' }} size={22} />
+                                <User className="absolute text-gray-500 pointer-events-none" style={{ left: '20px' }} size={22} />
                                 <input
-                                    {...register('email')}
-                                    type="email"
-                                    className={`w-full bg-[#030612]/90 text-white rounded-2xl border border-white/10 outline-none focus:border-[#00E5FF]/60 focus:bg-[#0A0F24] focus:shadow-[0_0_20px_rgba(0,229,255,0.15)_inset] transition-all placeholder-gray-600 font-medium ${errors.email ? 'border-[#FF0055] ring-1 ring-[#FF0055]/50' : ''}`}
+                                    {...register('username')}
+                                    type="text"
+                                    className={`w-full bg-[#030612]/90 text-white rounded-2xl border border-white/10 outline-none focus:border-[#00E5FF]/60 focus:bg-[#0A0F24] focus:shadow-[0_0_20px_rgba(0,229,255,0.15)_inset] transition-all placeholder-gray-600 font-medium ${errors.username ? 'border-[#FF0055] ring-1 ring-[#FF0055]/50' : ''}`}
                                     style={{ padding: '18px 20px 18px 56px', fontSize: '16px' }}
-                                    placeholder="Email o número de teléfono"
-                                    autoComplete="email"
+                                    placeholder="Usuario"
+                                    autoComplete="username"
                                 />
                             </div>
-                            {errors.email && <span className="text-[#FF0055] font-bold drop-shadow-[0_0_5px_rgba(255,0,85,0.5)]" style={{ fontSize: '12px', paddingLeft: '8px' }}>{errors.email.message}</span>}
+                            {errors.username && <span className="text-[#FF0055] font-bold drop-shadow-[0_0_5px_rgba(255,0,85,0.5)]" style={{ fontSize: '12px', paddingLeft: '8px' }}>{errors.username.message}</span>}
                         </div>
 
                         <div className="flex flex-col" style={{ gap: '8px' }}>
@@ -218,15 +221,7 @@ export default function LoginPage() {
                         </div>
                     </form>
 
-                    <div className="text-center" style={{ marginTop: '48px' }}>
-                        <p className="text-gray-400" style={{ marginBottom: '24px', fontSize: '15px' }}>
-                            ¿Primera vez en FlexStreaming?{' '}
-                            <Link href="/register" className="text-white hover:text-[#00E5FF] font-bold transition-all" style={{ textShadow: '0 0 10px rgba(0,229,255,0.4)' }}>
-                                Suscríbete ahora.
-                            </Link>
-                        </p>
 
-                    </div>
                 </div>
             </motion.div>
         </div>

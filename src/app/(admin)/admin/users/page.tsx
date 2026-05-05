@@ -3,16 +3,42 @@
 import { useState, useEffect, useCallback } from 'react';
 import { adminFetch } from '@/lib/admin-api';
 import { API_ROUTES } from '@/lib/api-routes';
-import { Users, Search, Loader2, User, Mail, Calendar, Shield, Crown, UserCheck, Coins, Monitor, Smartphone, Tv } from 'lucide-react';
+import { Users, Search, Loader2, User, Mail, Calendar, Shield, Crown, UserCheck, Coins, Monitor, Smartphone, Tv, Plus, Edit2, Trash2, X, Check, AlertCircle, Package } from 'lucide-react';
 
 export default function AdminUsersPage() {
-    const [activeTab, setActiveTab] = useState<'ADMIN' | 'VENDOR' | 'END_USER'>('ADMIN');
+    const [activeTab, setActiveTab] = useState<'VENDOR' | 'ADMIN' | 'END_USER'>('VENDOR');
 
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Modal State
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+    const [currentUser, setCurrentUser] = useState<any>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [formError, setFormError] = useState('');
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: '',
+        role: 'VENDOR',
+        isActive: true,
+        credits: 0,
+        planId: ''
+    });
+
+    const [packages, setPackages] = useState<any[]>([]);
+    const [plans, setPlans] = useState<any[]>([]);
+    const [showCreditsModal, setShowCreditsModal] = useState<string | null>(null);
+    const [selectedPkgId, setSelectedPkgId] = useState<string>('');
+    const [showPlanModal, setShowPlanModal] = useState<string | null>(null);
+    const [selectedPlanId, setSelectedPlanId] = useState<string>('');
+
+    // Delete Confirmation State
+    const [userToDelete, setUserToDelete] = useState<any>(null);
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
@@ -25,6 +51,18 @@ export default function AdminUsersPage() {
                 const data = await res.json();
                 setUsers(data.data.users || []);
                 setTotalPages(Math.ceil((data.data.total || 0) / 20));
+            }
+
+            // Fetch packages and plans if we are in VENDOR tab or if needed
+            if (activeTab === 'VENDOR') {
+                const [pkgRes, sRes] = await Promise.all([
+                    adminFetch(API_ROUTES.CREDIT_PACKAGES.ALL),
+                    adminFetch(API_ROUTES.SUBSCRIPTION_PLANS.ALL)
+                ]);
+                const pkgJson = await pkgRes.json();
+                const sJson = await sRes.json();
+                if (pkgJson.success) setPackages(pkgJson.data.sort((a: any, b: any) => (a.baseCredits + a.bonusCredits) - (b.baseCredits + b.bonusCredits)));
+                if (sJson.success) setPlans(sJson.data.sort((a: any, b: any) => a.durationDays - b.durationDays));
             }
         } catch (err) {
             console.error('Error fetching users:', err);
@@ -43,6 +81,138 @@ export default function AdminUsersPage() {
         fetchUsers();
     };
 
+    const openCreateModal = () => {
+        setModalMode('create');
+        setCurrentUser(null);
+        setFormData({
+            name: '',
+            email: '',
+            password: '',
+            role: activeTab === 'ADMIN' ? 'ADMIN' : 'SUPER_VENDOR',
+            isActive: true,
+            credits: 0,
+            planId: ''
+        });
+        setFormError('');
+        setIsModalOpen(true);
+    };
+
+    const openEditModal = (user: any) => {
+        setModalMode('edit');
+        setCurrentUser(user);
+        setFormData({
+            name: user.name || '',
+            email: user.email || '',
+            password: '', // Password empty by default on edit
+            role: user.role,
+            isActive: user.isActive,
+            credits: user.credits || 0,
+            planId: user.planId || ''
+        });
+        setFormError('');
+        setIsModalOpen(true);
+    };
+
+    const handleSaveUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setFormError('');
+
+        try {
+            let url = modalMode === 'create'
+                ? `${API_ROUTES.ADMIN.BASE}/users`
+                : `${API_ROUTES.ADMIN.BASE}/users/${currentUser.id}`;
+
+            let method = modalMode === 'create' ? 'POST' : 'PUT';
+
+            // Special handling for reseller creation to use their specific hierarchy endpoints
+            if (modalMode === 'create') {
+                if (formData.role === 'VENDOR') url = API_ROUTES.RESELLER.VENDORS;
+                if (formData.role === 'SUPER_VENDOR') url = API_ROUTES.RESELLER.SUPER_VENDORS;
+            }
+
+            // On edit, only send password if it's not empty
+            const bodyData = { ...formData };
+            if (modalMode === 'edit' && !bodyData.password) {
+                delete (bodyData as any).password;
+            }
+
+            const res = await adminFetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bodyData)
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setIsModalOpen(false);
+                fetchUsers();
+            } else {
+                setFormError(data.error || 'Ocurrió un error al guardar');
+            }
+        } catch (err) {
+            setFormError('Error de conexión con el servidor');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteUser = async () => {
+        if (!userToDelete) return;
+
+        try {
+            const res = await adminFetch(`${API_ROUTES.ADMIN.BASE}/users/${userToDelete.id}`, {
+                method: 'DELETE'
+            });
+
+            if (res.ok) {
+                setUserToDelete(null);
+                fetchUsers();
+            } else {
+                const data = await res.json();
+                alert(data.error || 'No se pudo eliminar al usuario');
+            }
+        } catch (err) {
+            alert('Error de conexión');
+        }
+    };
+
+    const handleApplyPackage = async () => {
+        if (!showCreditsModal || !selectedPkgId) return;
+        try {
+            const r = await adminFetch(API_ROUTES.CREDIT_PACKAGES.APPLY(selectedPkgId), {
+                method: 'POST',
+                body: JSON.stringify({ targetUserId: showCreditsModal })
+            });
+            const j = await r.json();
+            if (j.success) { setShowCreditsModal(null); setSelectedPkgId(''); fetchUsers(); } else alert(j.error);
+        } catch (err) { console.error(err); }
+    };
+
+    const handleAssignPlan = async () => {
+        if (!showPlanModal || !selectedPlanId) return;
+        try {
+            const r = await adminFetch(`${API_ROUTES.RESELLER.BY_ID(showPlanModal)}/plan`, {
+                method: 'POST',
+                body: JSON.stringify({ planId: selectedPlanId })
+            });
+            const j = await r.json();
+            if (j.success) { setShowPlanModal(null); setSelectedPlanId(''); fetchUsers(); } else alert(j.error);
+        } catch (err) { console.error(err); }
+    };
+
+    const getRoleLabel = (role: string) => {
+        const labels: Record<string, string> = {
+            'ADMIN': 'Administrador',
+            'SUPER_VENDOR': 'Super Revendedor',
+            'VENDOR': 'Revendedor',
+            'MEMBER': 'Miembro',
+            'REGISTERED': 'Registrado'
+        };
+        return labels[role] || role;
+    };
+
     const getDeviceIcon = (type: string) => {
         if (type === 'TV') return <Tv size={14} />;
         if (type === 'MOBILE') return <Smartphone size={14} />;
@@ -56,21 +226,27 @@ export default function AdminUsersPage() {
                     <h1 className="adm-page-title">Gestión de Usuarios</h1>
                     <p className="adm-page-subtitle">Administra los roles, clientes y dispositivos de la plataforma</p>
                 </div>
+                {activeTab !== 'END_USER' && (
+                    <button className="adm-btn adm-btn--primary" onClick={openCreateModal}>
+                        <Plus size={18} /> Nuevo {activeTab === 'VENDOR' ? 'Super Revendedor' : 'Administrador'}
+                    </button>
+                )}
             </div>
 
             <div style={{ display: 'flex', gap: 12, marginBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 16 }}>
+                <button
+                    className={`adm-btn ${activeTab === 'VENDOR' ? 'adm-btn--primary' : 'adm-btn--ghost'}`}
+                    onClick={() => { setActiveTab('VENDOR'); setPage(1); }}
+                >
+                    <Crown size={16} /> Super Revendedores
+                </button>
                 <button
                     className={`adm-btn ${activeTab === 'ADMIN' ? 'adm-btn--primary' : 'adm-btn--ghost'}`}
                     onClick={() => { setActiveTab('ADMIN'); setPage(1); }}
                 >
                     <Shield size={16} /> Administradores
                 </button>
-                <button
-                    className={`adm-btn ${activeTab === 'VENDOR' ? 'adm-btn--primary' : 'adm-btn--ghost'}`}
-                    onClick={() => { setActiveTab('VENDOR'); setPage(1); }}
-                >
-                    <Coins size={16} /> Revendedores
-                </button>
+
                 <button
                     className={`adm-btn ${activeTab === 'END_USER' ? 'adm-btn--primary' : 'adm-btn--ghost'}`}
                     onClick={() => { setActiveTab('END_USER'); setPage(1); }}
@@ -93,9 +269,7 @@ export default function AdminUsersPage() {
                                 onChange={e => setSearchQuery(e.target.value)}
                             />
                         </div>
-                        <button type="submit" className="adm-btn adm-btn--primary">
-                            Buscar
-                        </button>
+
                     </form>
                 </div>
 
@@ -110,7 +284,15 @@ export default function AdminUsersPage() {
                             <thead>
                                 <tr>
                                     <th>{activeTab === 'END_USER' ? 'Cuenta / Cliente' : 'Usuario'}</th>
-                                    {activeTab === 'END_USER' ? (
+                                    {activeTab === 'VENDOR' ? (
+                                        <>
+                                            <th>Rol</th>
+                                            <th>Créditos</th>
+                                            <th style={{ textAlign: 'center' }}>Revendedores</th>
+                                            <th style={{ textAlign: 'center' }}>Clientes</th>
+                                            <th>Estado</th>
+                                        </>
+                                    ) : activeTab === 'END_USER' ? (
                                         <>
                                             <th>Estado / Plan</th>
                                             <th>Dispositivos</th>
@@ -134,7 +316,6 @@ export default function AdminUsersPage() {
                                     <tr key={user.id}>
                                         {activeTab === 'END_USER' ? (
                                             <>
-                                                {/* END_USER Render */}
                                                 <td>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                                         <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--adm-bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -161,7 +342,7 @@ export default function AdminUsersPage() {
                                                         </span>
                                                         {user.connectedDevices?.length > 0 && (
                                                             <div style={{ display: 'flex', gap: 4 }}>
-                                                                {user.connectedDevices.slice(0, 3).map((d: any) => (
+                                                                 {user.connectedDevices.slice(0, 3).map((d: any) => (
                                                                     <div key={d.id} title={d.deviceName || d.platform || 'Dispositivo'} style={{ background: 'rgba(255,255,255,0.05)', padding: 4, borderRadius: 4, color: 'var(--adm-muted)' }}>
                                                                         {getDeviceIcon(d.deviceType)}
                                                                     </div>
@@ -177,9 +358,39 @@ export default function AdminUsersPage() {
                                                     </span>
                                                 </td>
                                             </>
+                                        ) : activeTab === 'VENDOR' ? (
+                                            <>
+                                                <td>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--adm-bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                            <User size={20} color="var(--adm-muted)" />
+                                                        </div>
+                                                        <div>
+                                                            <div style={{ fontWeight: 600, color: 'white' }}>{user.name}</div>
+                                                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)' }}>{user.email}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span className="adm-badge adm-badge--purple">
+                                                        {getRoleLabel(user.role).toUpperCase()}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span style={{ fontWeight: 700, color: '#facc15' }}>
+                                                        {user.credits}
+                                                    </span>
+                                                </td>
+                                                <td style={{ textAlign: 'center' }}>{user._count?.children || 0}</td>
+                                                <td style={{ textAlign: 'center' }}>{user._count?.managedEndUsers || 0}</td>
+                                                <td>
+                                                    <span className={`adm-badge ${user.isActive ? 'adm-badge--green' : 'adm-badge--red'}`}>
+                                                        {user.isActive ? 'Activo' : 'Inactivo'}
+                                                    </span>
+                                                </td>
+                                            </>
                                         ) : (
                                             <>
-                                                {/* ADMIN / VENDOR Render */}
                                                 <td>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                                         <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--adm-bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -199,7 +410,7 @@ export default function AdminUsersPage() {
                                                 <td>
                                                     <span className={`adm-badge ${user.role === 'ADMIN' ? 'adm-badge--purple' : 'adm-badge--blue'}`}>
                                                         {user.role === 'ADMIN' && <Shield size={12} style={{ marginRight: 4 }} />}
-                                                        {user.role}
+                                                        {getRoleLabel(user.role)}
                                                     </span>
                                                 </td>
                                                 <td>
@@ -221,11 +432,35 @@ export default function AdminUsersPage() {
                                             </span>
                                         </td>
                                         <td>
-                                            {activeTab === 'END_USER' ? (
-                                                <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => alert('Historial de pagos pronto')}>Ver Historial</button>
-                                            ) : (
-                                                <button className="adm-btn adm-btn--ghost adm-btn--sm" disabled>Editar</button>
-                                            )}
+                                            <div style={{ display: 'flex', gap: 8 }}>
+                                                {activeTab === 'END_USER' ? (
+                                                    <span style={{ fontSize: '.85rem', color: 'var(--adm-muted)' }}>Solo lectura</span>
+                                                ) : activeTab === 'VENDOR' ? (
+                                                    <>
+                                                        <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => setShowCreditsModal(user.id)} title="Cargar Créditos" style={{ color: '#facc15' }}><Package size={14} /></button>
+                                                        <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => setShowPlanModal(user.id)} title="Asignar Plan" style={{ color: '#a78bfa' }}><Calendar size={14} /></button>
+                                                        <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => openEditModal(user)}><Edit2 size={14} /></button>
+                                                        <button className="adm-btn adm-btn--ghost adm-btn--sm adm-btn--red" onClick={() => setUserToDelete(user)}><Trash2 size={14} /></button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            className="adm-btn adm-btn--ghost adm-btn--sm"
+                                                            onClick={() => openEditModal(user)}
+                                                            title="Editar usuario"
+                                                        >
+                                                            <Edit2 size={14} />
+                                                        </button>
+                                                        <button
+                                                            className="adm-btn adm-btn--ghost adm-btn--sm adm-btn--red"
+                                                            onClick={() => setUserToDelete(user)}
+                                                            title="Eliminar usuario"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -254,6 +489,300 @@ export default function AdminUsersPage() {
                     </div>
                 )}
             </div>
+
+            {/* User Create/Edit Modal */}
+            {isModalOpen && (
+                <div className="adm-modal-overlay animate-fadeIn">
+                    <div className="adm-modal animate-slideUp" style={{ maxWidth: 500 }}>
+                        <div className="adm-modal-header">
+                            <h2 className="adm-modal-title">
+                                {modalMode === 'create' ? 'Crear Nuevo Usuario' : 'Editar Usuario'}
+                            </h2>
+                            <button className="adm-modal-close" onClick={() => setIsModalOpen(false)}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSaveUser}>
+                            <div className="adm-modal-body">
+                                {formError && (
+                                    <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: 12, borderRadius: 8, marginBottom: 16, fontSize: '.9rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <AlertCircle size={16} /> {formError}
+                                    </div>
+                                )}
+
+                                <div className="adm-form-group">
+                                    <label className="adm-label">Nombre Completo</label>
+                                    <input
+                                        type="text"
+                                        className="adm-input"
+                                        required
+                                        placeholder="Ej: Juan Perez"
+                                        value={formData.name}
+                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                    />
+                                </div>
+
+                                <div className="adm-form-group">
+                                    <label className="adm-label">Correo Electrónico</label>
+                                    <input
+                                        type="email"
+                                        className="adm-input"
+                                        required
+                                        placeholder="ejemplo@correo.com"
+                                        value={formData.email}
+                                        onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                    />
+                                </div>
+
+                                <div className="adm-form-group">
+                                    <label className="adm-label">
+                                        Contraseña {modalMode === 'edit' && <span style={{ color: 'var(--adm-muted)', fontWeight: 400 }}>(dejar en blanco para no cambiar)</span>}
+                                    </label>
+                                    <input
+                                        type="password"
+                                        className="adm-input"
+                                        required={modalMode === 'create'}
+                                        placeholder={modalMode === 'create' ? 'Mínimo 6 caracteres' : '••••••••'}
+                                        value={formData.password}
+                                        onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                    />
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                                    <div className="adm-form-group">
+                                        <label className="adm-label">Rol de Usuario</label>
+                                        <select
+                                            className="adm-input"
+                                            value={formData.role}
+                                            onChange={e => setFormData({ ...formData, role: e.target.value })}
+                                            disabled={modalMode === 'create' && (activeTab === 'VENDOR' || activeTab === 'ADMIN')}
+                                        >
+                                            <option value="ADMIN">Administrador</option>
+                                            <option value="SUPER_VENDOR">Super Revendedor</option>
+                                        </select>
+                                    </div>
+
+                                    {(formData.role === 'VENDOR' || formData.role === 'SUPER_VENDOR') && modalMode === 'create' ? (
+                                        <div className="adm-form-group">
+                                            <label className="adm-label">Plan Inicial (Opcional)</label>
+                                            <select
+                                                className="adm-input"
+                                                value={formData.planId}
+                                                onChange={e => setFormData({ ...formData, planId: e.target.value })}
+                                            >
+                                                <option value="">Ninguno</option>
+                                                {plans.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                            </select>
+                                        </div>
+                                    ) : (
+                                        <div className="adm-form-group">
+                                            <label className="adm-label">Estado de Cuenta</label>
+                                            <div style={{ display: 'flex', alignItems: 'center', height: 42, gap: 12 }}>
+                                                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={formData.isActive}
+                                                        onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
+                                                        style={{ width: 18, height: 18 }}
+                                                    />
+                                                    <span style={{ fontSize: '.9rem', color: 'white' }}>Activo</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                {(formData.role === 'VENDOR' || formData.role === 'SUPER_VENDOR') && modalMode === 'create' && (
+                                    <div className="adm-form-group">
+                                        <label className="adm-label">Créditos iniciales</label>
+                                        <input
+                                            type="number"
+                                            className="adm-input"
+                                            min={0}
+                                            value={formData.credits}
+                                            onChange={e => setFormData({ ...formData, credits: parseInt(e.target.value) || 0 })}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="adm-modal-footer">
+                                <button type="button" className="adm-btn adm-btn--ghost" onClick={() => setIsModalOpen(false)}>
+                                    Cancelar
+                                </button>
+                                <button type="submit" className="adm-btn adm-btn--primary" disabled={isSubmitting}>
+                                    {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
+                                    {modalMode === 'create' ? 'Crear Usuario' : 'Guardar Cambios'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {userToDelete && (
+                <div className="adm-modal-overlay animate-fadeIn">
+                    <div className="adm-modal animate-slideUp" style={{ maxWidth: 400 }}>
+                        <div className="adm-modal-header" style={{ borderBottom: 'none' }}>
+                            <h2 className="adm-modal-title" style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <AlertCircle size={24} /> ¿Eliminar usuario?
+                            </h2>
+                        </div>
+                        <div className="adm-modal-body" style={{ paddingBottom: 24 }}>
+                            <p style={{ color: 'var(--adm-muted)', lineHeight: 1.5 }}>
+                                Estás a punto de eliminar a <strong>{userToDelete.name}</strong> ({userToDelete.email}).
+                                Esta acción es permanente y no se puede deshacer.
+                            </p>
+                        </div>
+                        <div className="adm-modal-footer" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                            <button className="adm-btn adm-btn--ghost" onClick={() => setUserToDelete(null)}>
+                                Cancelar
+                            </button>
+                            <button className="adm-btn adm-btn--red" onClick={handleDeleteUser}>
+                                <Trash2 size={18} /> Confirmar Eliminación
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <style jsx>{`
+                .adm-modal-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.8);
+                    backdrop-filter: blur(4px);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 1000;
+                    padding: 20px;
+                }
+                .adm-modal {
+                    background: #111;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 16px;
+                    width: 100%;
+                    overflow: hidden;
+                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+                }
+                .adm-modal-header {
+                    padding: 20px;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                }
+                .adm-modal-title {
+                    font-size: 1.2rem;
+                    font-weight: 700;
+                    color: white;
+                    margin: 0;
+                }
+                .adm-modal-close {
+                    background: transparent;
+                    border: none;
+                    color: var(--adm-muted);
+                    cursor: pointer;
+                    padding: 4px;
+                    border-radius: 4px;
+                }
+                .adm-modal-close:hover {
+                    background: rgba(255, 255, 255, 0.05);
+                    color: white;
+                }
+                .adm-modal-body {
+                    padding: 20px;
+                }
+                .adm-modal-footer {
+                    padding: 16px 20px;
+                    background: rgba(255, 255, 255, 0.02);
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 12px;
+                }
+                .adm-form-group {
+                    margin-bottom: 16px;
+                }
+                .adm-label {
+                    display: block;
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    color: var(--adm-muted);
+                    margin-bottom: 8px;
+                }
+                .adm-btn--red {
+                    background: #ef4444;
+                    color: white;
+                }
+                .adm-btn--red:hover {
+                    background: #dc2626;
+                }
+            `}</style>
+            {/* Credits Modal */}
+            {showCreditsModal && (
+                <div className="adm-modal-overlay">
+                    <div className="adm-modal" style={{ maxWidth: 420 }}>
+                        <div className="adm-modal-header">
+                            <h2 className="adm-modal-title" style={{ color: '#facc15', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <Package size={20} /> Cargar Paquete de Créditos
+                            </h2>
+                            <button className="adm-modal-close" onClick={() => setShowCreditsModal(null)}><X size={20} /></button>
+                        </div>
+                        <div className="adm-modal-body">
+                            <p style={{ fontSize: '.85rem', color: 'var(--adm-muted)', marginBottom: 20 }}>Selecciona un paquete para asignar créditos al revendedor.</p>
+                            <div className="adm-form-group">
+                                <label className="adm-label">Paquetes Disponibles</label>
+                                <select className="adm-input" value={selectedPkgId} onChange={e => setSelectedPkgId(e.target.value)}>
+                                    <option value="">Elegir paquete...</option>
+                                    {packages.map(pkg => (
+                                        <option key={pkg.id} value={pkg.id}>{pkg.name} — ({pkg.baseCredits + pkg.bonusCredits} créditos)</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                        <div className="adm-modal-footer">
+                            <button className="adm-btn adm-btn--ghost" onClick={() => setShowCreditsModal(null)}>Cancelar</button>
+                            <button className="adm-btn adm-btn--primary" onClick={handleApplyPackage} disabled={!selectedPkgId}>Aplicar Paquete</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Plan Modal */}
+            {showPlanModal && (
+                <div className="adm-modal-overlay">
+                    <div className="adm-modal" style={{ maxWidth: 420 }}>
+                        <div className="adm-modal-header">
+                            <h2 className="adm-modal-title" style={{ color: '#a78bfa', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <Calendar size={20} /> Asignar Plan de Suscripción
+                            </h2>
+                            <button className="adm-modal-close" onClick={() => setShowPlanModal(null)}><X size={20} /></button>
+                        </div>
+                        <div className="adm-modal-body">
+                            <p style={{ fontSize: '.85rem', color: 'var(--adm-muted)', marginBottom: 20 }}>Esto activará una cuenta de visualización para el revendedor con el plan seleccionado.</p>
+                            <div className="adm-form-group">
+                                <label className="adm-label">Planes de Suscripción</label>
+                                <select className="adm-input" value={selectedPlanId} onChange={e => setSelectedPlanId(e.target.value)}>
+                                    <option value="">Elegir plan...</option>
+                                    {plans.map(p => (
+                                        <option key={p.id} value={p.id}>{p.name} — ({p.durationDays} días)</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                        <div className="adm-modal-footer">
+                            <button className="adm-btn adm-btn--ghost" onClick={() => setShowPlanModal(null)}>Cancelar</button>
+                            <button className="adm-btn adm-btn--primary" onClick={handleAssignPlan} disabled={!selectedPlanId}>Asignar Plan</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
+

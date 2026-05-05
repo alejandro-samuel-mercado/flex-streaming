@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { adminFetch } from '@/lib/admin-api';
 import { API_ROUTES } from '@/lib/api-routes';
+import { useUploadStore } from '@/lib/upload-store';
 
 const NAV = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -38,6 +39,7 @@ function pageTitle(p: string) {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
+    const { files, hasHydrated } = useUploadStore();
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [authed, setAuthed] = useState<boolean | null>(null);
@@ -47,6 +49,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const [notifs, setNotifs] = useState<any[]>([]);
     const [loadingNotifs, setLoadingNotifs] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
+
+    // Prevención de salida/recarga accidental durante subidas
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            const isUploading = files.some(f => f.status === 'uploading' && f.progress < 100);
+            if (isUploading) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [files]);
 
     const fetchNotifs = async () => {
         setLoadingNotifs(true);
@@ -71,6 +87,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const logout = useCallback(() => {
         localStorage.removeItem('adminToken');
         localStorage.removeItem('adminRefreshToken');
+        // Eliminar cookie para que el middleware bloquee /admin de inmediato
+        document.cookie = 'adminToken=; path=/; max-age=0; SameSite=Lax';
         router.replace('/admin/login');
     }, [router]);
 
@@ -78,6 +96,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (authed === null) return null;
 
     const title = pageTitle(pathname);
+    const uploadingFiles = files.filter(f => f.status === 'uploading');
+    const uploadingCount = uploadingFiles.length;
+    const totalProgress = uploadingCount > 0
+        ? Math.round(uploadingFiles.reduce((acc, f) => acc + f.progress, 0) / uploadingCount)
+        : 0;
 
     return (
         <div className={`adm-root${collapsed ? ' adm-root--collapsed' : ''}`}>
@@ -127,7 +150,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             {/* ── CONTENT WRAPPER ── */}
             <div className="adm-content-wrapper">
-                {/* Header — shares same bg as sidebar → creates the visual "L-frame" */}
                 <header className="adm-header">
                     <div className="adm-header-left">
                         <button className="adm-hamburger" onClick={() => setMobileOpen(o => !o)}>
@@ -140,7 +162,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         </div>
                     </div>
                     <div className="adm-header-right">
-                        <button className="adm-header-btn" title="Buscar"><Search size={16} /></button>
+
                         <div className="relative">
                             <button
                                 className={`adm-header-btn adm-notif-btn ${notifOpen ? 'text-[var(--color-primary)]' : ''}`}
@@ -155,7 +177,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             </button>
 
                             {notifOpen && (
-                                <div className="!absolute !top-full !right-0 !mt-3 !w-80 !bg-[#0A0A0F] !border !border-white/10 !shadow-2xl !rounded-xl !z-[99999] !overflow-hidden animate-in fade-in slide-in-from-top-2">
+                                <div className="absolute!  !top-full !right-0 !mt-3 !w-80 !bg-[#0A0A0F] !border !border-white/10 !shadow-2xl !rounded-xl  animate-in fade-in slide-in-from-top-2" style={{ zIndex: "99999 !important" }}>
                                     <div className="!p-4 !border-b !border-white/10 !flex !justify-between !items-center !bg-[#141414]">
                                         <h3 className="!font-bold !text-white !text-sm !m-0">Notificaciones</h3>
                                         {unreadCount > 0 && (

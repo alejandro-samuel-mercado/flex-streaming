@@ -17,8 +17,10 @@ export interface SubscriptionPlan {
   maxDevices: number;
   isActive: boolean;
   sortOrder: number;
+  baseCredits?: number;
   createdAt: string;
 }
+
 
 export interface CreditPackage {
   id: string;

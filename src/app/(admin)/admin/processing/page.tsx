@@ -49,8 +49,10 @@ export default function ProcessingMonitorPage() {
         };
 
         fetchStatus();
+        // Auto-refresco cada 8s para mantener el progreso actualizado al entrar a la página
+        const pollInterval = setInterval(fetchStatus, 8000);
 
-        // 2. Setup Sockets - Robust URL handling
+        // 2. Setup Sockets
         let socketUrl = API_ORIGIN;
         if (process.env.NEXT_PUBLIC_API_URL) {
             try {
@@ -60,7 +62,7 @@ export default function ProcessingMonitorPage() {
                 socketUrl = process.env.NEXT_PUBLIC_API_URL.replace('/api', '');
             }
         }
-        const s = io(socketUrl, { 
+        const s = io(socketUrl, {
             withCredentials: true,
             transports: ['websocket', 'polling']
         });
@@ -74,7 +76,7 @@ export default function ProcessingMonitorPage() {
                 }
                 return v;
             }));
-            
+
             // If we are viewing logs for this job, we should probably auto-refresh them but polling is better
         });
 
@@ -84,7 +86,7 @@ export default function ProcessingMonitorPage() {
         });
 
         setSocket(s);
-        return () => { s.disconnect(); };
+        return () => { s.disconnect(); clearInterval(pollInterval); };
     }, []);
 
     // Poll logs every 2 seconds if modal is open
@@ -114,7 +116,7 @@ export default function ProcessingMonitorPage() {
         setLogsLoading(true);
         fetchLogs();
         const interval = setInterval(fetchLogs, 2000);
-        
+
         return () => {
             isMounted = false;
             clearInterval(interval);
@@ -210,17 +212,31 @@ export default function ProcessingMonitorPage() {
                                             </span>
                                         </td>
                                         <td style={{ width: 200 }}>
-                                            {v.status === 'PROCESSING' || v.status === 'COMPLETED' ? (
+                                            {v.status === 'COMPLETED' ? (
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                                                     <div className="adm-progress-bar">
-                                                        <div
-                                                            className={`adm-progress-fill ${v.status === 'COMPLETED' ? 'success' : ''}`}
-                                                            style={{ width: `${v.status === 'COMPLETED' ? 100 : (v.progress || 0)}%` }}
-                                                        />
+                                                        <div className="adm-progress-fill success" style={{ width: '100%' }} />
                                                     </div>
-                                                    <div style={{ fontSize: '.7rem', textAlign: 'right', fontWeight: 700 }}>
-                                                        {v.status === 'COMPLETED' ? '100%' : `${v.progress || 0}%`}
+                                                    <div style={{ fontSize: '.7rem', textAlign: 'right', fontWeight: 700 }}>100%</div>
+                                                </div>
+                                            ) : v.status === 'PROCESSING' ? (
+                                                (v.progress && v.progress > 0) ? (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                                        <div className="adm-progress-bar">
+                                                            <div className="adm-progress-fill" style={{ width: `${v.progress}%` }} />
+                                                        </div>
+                                                        <div style={{ fontSize: '.7rem', textAlign: 'right', fontWeight: 700 }}>{v.progress}%</div>
                                                     </div>
+                                                ) : (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#a78bfa', fontSize: '.75rem' }}>
+                                                        <Loader2 size={12} className="animate-spin" />
+                                                        Cargando...
+                                                    </div>
+                                                )
+                                            ) : v.status === 'QUEUED' ? (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--adm-muted)', fontSize: '.75rem' }}>
+                                                    <Loader2 size={12} className="animate-spin" />
+                                                    En cola...
                                                 </div>
                                             ) : (
                                                 <span style={{ color: 'var(--adm-muted)', fontSize: '.75rem' }}>En espera...</span>
@@ -233,8 +249,8 @@ export default function ProcessingMonitorPage() {
                                         <td>
                                             <div style={{ display: 'flex', gap: 8 }}>
                                                 {v.processingJobId ? (
-                                                    <button 
-                                                        className="adm-btn adm-btn--gray" 
+                                                    <button
+                                                        className="adm-btn adm-btn--gray"
                                                         style={{ padding: '6px 12px' }}
                                                         onClick={() => setViewingLogs(v.processingJobId)}
                                                     >
@@ -291,7 +307,7 @@ export default function ProcessingMonitorPage() {
                             <CheckCircle2 size={20} />
                         </div>
                         <div>
-                            <div style={{ fontSize: '.75rem', color: 'var(--adm-muted)', fontWeight: 600 }}>COMPLETADOS HOY</div>
+                            <div style={{ fontSize: '.75rem', color: 'var(--adm-muted)', fontWeight: 600 }}>COMPLETADOS</div>
                             <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>{videos.filter(v => v.status === 'COMPLETED').length}</div>
                         </div>
                     </div>
@@ -312,7 +328,7 @@ export default function ProcessingMonitorPage() {
             {/* Terminal Modal for Job Logs */}
             {viewingLogs && (
                 <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                     background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)',
                     zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
                 }}>
@@ -322,7 +338,7 @@ export default function ProcessingMonitorPage() {
                         boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
                     }}>
                         <div style={{
-                            padding: '16px 20px', borderBottom: '1px solid #333', display: 'flex', 
+                            padding: '16px 20px', borderBottom: '1px solid #333', display: 'flex',
                             justifyContent: 'space-between', alignItems: 'center', background: '#1a1a1a',
                             borderTopLeftRadius: 12, borderTopRightRadius: 12
                         }}>
@@ -331,7 +347,7 @@ export default function ProcessingMonitorPage() {
                                 <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Logs del Proceso (Job #{viewingLogs})</h3>
                                 {logsLoading && <Loader2 size={14} className="animate-spin" color="var(--adm-muted)" />}
                             </div>
-                            <button 
+                            <button
                                 onClick={() => { setViewingLogs(null); setLogs([]); }}
                                 style={{ background: 'transparent', border: 'none', color: '#888', cursor: 'pointer' }}
                             >
@@ -347,7 +363,7 @@ export default function ProcessingMonitorPage() {
                             ) : (
                                 logs.map((log, i) => (
                                     <div key={i} style={{ display: 'flex', gap: 12 }}>
-                                        <span style={{ color: '#666', userSelect: 'none' }}>[{i+1}]</span>
+                                        <span style={{ color: '#666', userSelect: 'none' }}>[{i + 1}]</span>
                                         <span>{log}</span>
                                     </div>
                                 ))
