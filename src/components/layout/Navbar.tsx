@@ -29,6 +29,7 @@ interface NavbarProps {
     contentTypes?: NavContentType[];
     platforms?: NavPlatform[];
     genres?: NavGenre[];
+    isLoggedIn?: boolean;
 }
 
 import { CONTENT_TYPES_LIST, getContentTypeLabel, getContentTypeIcon } from '@/lib/content-types';
