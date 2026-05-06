@@ -57,7 +57,7 @@ export default function AdminLoginPage() {
             // Cookie for Next.js middleware protection
             document.cookie = `adminToken=${json.data.accessToken}; path=/; max-age=${8 * 3600}; SameSite=Lax`;
             
-            router.replace(redirectPath);
+            window.location.href = redirectPath;
 
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error inesperado');

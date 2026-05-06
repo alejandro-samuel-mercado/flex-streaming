@@ -92,6 +92,7 @@ export const API_ROUTES = {
             CHUNK: `${API_BASE_URL}/upload/chunk`,
             COMPLETE: `${API_BASE_URL}/upload/complete`,
             DELETE_VIDEO: (id: string) => `${API_BASE_URL}/upload/video/${id}`,
+            RETRY_VIDEO: (id: string) => `${API_BASE_URL}/upload/video/${id}/retry`,
             SUBTITLE: `${API_BASE_URL}/upload/subtitle`,
             DELETE_SUBTITLE: (id: string) => `${API_BASE_URL}/upload/subtitle/${id}`,
         },

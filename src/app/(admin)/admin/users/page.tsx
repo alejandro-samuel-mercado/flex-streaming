@@ -427,7 +427,6 @@ export default function AdminUsersPage() {
                                                 {activeTab === 'VENDOR' ? (
                                                     <>
                                                         <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => setShowCreditsModal(user.id)} title="Cargar Créditos" style={{ color: '#facc15' }}><Package size={14} /></button>
-                                                        <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => setShowPlanModal(user.id)} title="Asignar Plan" style={{ color: '#a78bfa' }}><Calendar size={14} /></button>
                                                         <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => openEditModal(user)}><Edit2 size={14} /></button>
                                                         <button className="adm-btn adm-btn--ghost adm-btn--sm adm-btn--red" onClick={() => setUserToDelete(user)}><Trash2 size={14} /></button>
                                                     </>
@@ -553,34 +552,20 @@ export default function AdminUsersPage() {
                                         </select>
                                     </div>
 
-                                    {(formData.role === 'VENDOR' || formData.role === 'SUPER_VENDOR') && modalMode === 'create' ? (
-                                        <div className="adm-form-group">
-                                            <label className="adm-label">Plan Inicial (Opcional)</label>
-                                            <select
-                                                className="adm-input"
-                                                value={formData.planId}
-                                                onChange={e => setFormData({ ...formData, planId: e.target.value })}
-                                            >
-                                                <option value="">Ninguno</option>
-                                                {plans.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                                            </select>
+                                    <div className="adm-form-group">
+                                        <label className="adm-label">Estado de Cuenta</label>
+                                        <div style={{ display: 'flex', alignItems: 'center', height: 42, gap: 12 }}>
+                                            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={formData.isActive}
+                                                    onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
+                                                    style={{ width: 18, height: 18 }}
+                                                />
+                                                <span style={{ fontSize: '.9rem', color: 'white' }}>Activo</span>
+                                            </label>
                                         </div>
-                                    ) : (
-                                        <div className="adm-form-group">
-                                            <label className="adm-label">Estado de Cuenta</label>
-                                            <div style={{ display: 'flex', alignItems: 'center', height: 42, gap: 12 }}>
-                                                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={formData.isActive}
-                                                        onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
-                                                        style={{ width: 18, height: 18 }}
-                                                    />
-                                                    <span style={{ fontSize: '.9rem', color: 'white' }}>Activo</span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    )}
+                                    </div>
                                 </div>
                                 {(formData.role === 'VENDOR' || formData.role === 'SUPER_VENDOR') && modalMode === 'create' && (
                                     <div className="adm-form-group">
@@ -743,35 +728,6 @@ export default function AdminUsersPage() {
                 </div>
             )}
 
-            {/* Plan Modal */}
-            {showPlanModal && (
-                <div className="adm-modal-overlay">
-                    <div className="adm-modal" style={{ maxWidth: 420 }}>
-                        <div className="adm-modal-header">
-                            <h2 className="adm-modal-title" style={{ color: '#a78bfa', display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <Calendar size={20} /> Asignar Plan de Suscripción
-                            </h2>
-                            <button className="adm-modal-close" onClick={() => setShowPlanModal(null)}><X size={20} /></button>
-                        </div>
-                        <div className="adm-modal-body">
-                            <p style={{ fontSize: '.85rem', color: 'var(--adm-muted)', marginBottom: 20 }}>Esto activará una cuenta de visualización para el revendedor con el plan seleccionado.</p>
-                            <div className="adm-form-group">
-                                <label className="adm-label">Planes de Suscripción</label>
-                                <select className="adm-input" value={selectedPlanId} onChange={e => setSelectedPlanId(e.target.value)}>
-                                    <option value="">Elegir plan...</option>
-                                    {plans.map(p => (
-                                        <option key={p.id} value={p.id}>{p.name} — ({p.durationDays} días)</option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-                        <div className="adm-modal-footer">
-                            <button className="adm-btn adm-btn--ghost" onClick={() => setShowPlanModal(null)}>Cancelar</button>
-                            <button className="adm-btn adm-btn--primary" onClick={handleAssignPlan} disabled={!selectedPlanId}>Asignar Plan</button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* End User Create Modal */}
             {showEndUserCreate && (() => {
@@ -784,7 +740,9 @@ export default function AdminUsersPage() {
 
                 const handleCreateEndUser = async (e: React.FormEvent) => {
                     e.preventDefault();
-                    if (!endUserForm.planId) { alert('Debes seleccionar un plan'); return; }
+                    if (!endUserForm.username || endUserForm.username.length < 3) { alert('El usuario debe tener al menos 3 caracteres'); return; }
+                    if (!endUserForm.password || endUserForm.password.length < 4) { alert('La contraseña debe tener al menos 4 caracteres'); return; }
+                    if (!endUserForm.planId) { alert('Debes seleccionar un plan en la lista'); return; }
                     setEndUserCreating(true);
                     try {
                         const r = await adminFetch(API_ROUTES.END_USERS.BASE, {
@@ -799,8 +757,11 @@ export default function AdminUsersPage() {
                         } else {
                             alert(j.error || 'Error al crear cuenta');
                         }
-                    } catch (err) { console.error(err); }
-                    finally { setEndUserCreating(false); }
+                    } catch (err) {
+                        alert('Error de conexión');
+                    } finally {
+                        setEndUserCreating(false);
+                    }
                 };
 
                 return (
@@ -890,7 +851,7 @@ export default function AdminUsersPage() {
 
                                 <div className="adm-modal-footer">
                                     <button type="button" className="adm-btn adm-btn--ghost" onClick={() => setShowEndUserCreate(false)}>Cancelar</button>
-                                    <button type="submit" className="adm-btn adm-btn--primary" disabled={endUserCreating || !endUserForm.planId}>
+                                    <button type="submit" className="adm-btn adm-btn--primary" disabled={endUserCreating}>
                                         {endUserCreating ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
                                         Crear Cuenta
                                     </button>

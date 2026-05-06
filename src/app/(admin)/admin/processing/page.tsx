@@ -147,6 +147,28 @@ export default function ProcessingMonitorPage() {
         }
     };
 
+    const handleRetry = async (id: string, slug: string) => {
+        try {
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
+            const res = await fetch(API_ROUTES.ADMIN.UPLOAD.RETRY_VIDEO(id), {
+                method: 'POST',
+                headers: {
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                }
+            });
+
+            if (res.ok) {
+                setVideos(prev => prev.map(v => v.id === id ? { ...v, status: 'QUEUED', progress: 0 } : v));
+            } else {
+                const err = await res.json();
+                alert(`Error al reintentar: ${err.error || 'No se pudo reintentar'}`);
+            }
+        } catch (err) {
+            console.error('Retry error:', err);
+            alert('Error de conexión al intentar reintentar');
+        }
+    };
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'COMPLETED': return 'var(--adm-success)';
@@ -258,6 +280,15 @@ export default function ProcessingMonitorPage() {
                                                     </button>
                                                 ) : (
                                                     <Link href={`/admin/content/${v.contentId}`} className="adm-btn adm-btn--gray" style={{ padding: '6px 12px', textDecoration: 'none' }}>Editar</Link>
+                                                )}
+                                                {v.status === 'FAILED' && (
+                                                    <button
+                                                        className="adm-btn"
+                                                        style={{ padding: '6px 12px', background: 'var(--adm-primary)', color: 'white', border: 'none' }}
+                                                        onClick={() => handleRetry(v.id, v.content.slug)}
+                                                    >
+                                                        Reintentar
+                                                    </button>
                                                 )}
                                                 {v.status !== 'COMPLETED' && (
                                                     <button

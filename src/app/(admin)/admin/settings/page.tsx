@@ -38,7 +38,15 @@ export default function AdminSettingsPage() {
                 const statusJson = await statusRes.json();
 
                 if (dirsJson.success) setSuggestedDirs(dirsJson.data?.directories || []);
-                if (statusJson.success) setScanStatus(statusJson.data);
+                if (statusJson.success) {
+                    setScanStatus(statusJson.data);
+                    // Pre-fill from status; fallback legacy AUTO_SCAN_PATH → moviePath
+                    setSettings(prev => ({
+                        ...prev,
+                        AUTO_SCAN_MOVIE_PATH:  statusJson.data.moviePath  || statusJson.data.path || prev['AUTO_SCAN_MOVIE_PATH']  || '',
+                        AUTO_SCAN_SERIES_PATH: statusJson.data.seriesPath || prev['AUTO_SCAN_SERIES_PATH'] || ''
+                    }));
+                }
             } catch (err) {
                 console.error('Error fetching scan data:', err);
             }
@@ -196,41 +204,57 @@ export default function AdminSettingsPage() {
                             </div>
                         </div>
 
-                        {/* Directory path */}
-                        <div className="adm-form-row" style={{ marginTop: 16 }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <FolderOpen size={14} />
-                                Carpeta de origen
-                            </label>
-                            <input
-                                type="text"
-                                className="adm-input"
-                                placeholder="/ruta/a/tus/peliculas"
-                                value={settings['AUTO_SCAN_PATH'] || ''}
-                                onChange={e => setSettings({ ...settings, AUTO_SCAN_PATH: e.target.value })}
-                            />
-
-                            {suggestedDirs.length > 0 && (
-                                <div style={{ marginTop: 8 }}>
-                                    <label style={{ fontSize: '0.75rem', color: 'var(--adm-muted)', marginBottom: 4, display: 'block' }}>
-                                        Carpetas sugeridas (desde variable de entorno):
-                                    </label>
+                        {/* Two directory inputs: Movies + Series */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
+                            <div className="adm-form-row">
+                                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <FolderOpen size={14} />
+                                    🎬 Carpeta de Películas
+                                </label>
+                                <input
+                                    type="text"
+                                    className="adm-input"
+                                    placeholder="/home/media/peliculas"
+                                    value={settings['AUTO_SCAN_MOVIE_PATH'] || ''}
+                                    onChange={e => setSettings({ ...settings, AUTO_SCAN_MOVIE_PATH: e.target.value })}
+                                />
+                                {suggestedDirs.length > 0 && (
                                     <select
                                         className="adm-select"
+                                        style={{ marginTop: 6 }}
                                         value=""
-                                        onChange={e => {
-                                            if (e.target.value) {
-                                                setSettings({ ...settings, AUTO_SCAN_PATH: e.target.value });
-                                            }
-                                        }}
+                                        onChange={e => { if (e.target.value) setSettings({ ...settings, AUTO_SCAN_MOVIE_PATH: e.target.value }); }}
                                     >
-                                        <option value="">Seleccionar una carpeta sugerida...</option>
-                                        {suggestedDirs.map((dir, idx) => (
-                                            <option key={idx} value={dir}>{dir}</option>
-                                        ))}
+                                        <option value="">Sugeridas...</option>
+                                        {suggestedDirs.map((dir, idx) => <option key={idx} value={dir}>{dir}</option>)}
                                     </select>
-                                </div>
-                            )}
+                                )}
+                            </div>
+
+                            <div className="adm-form-row">
+                                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <FolderOpen size={14} />
+                                    📺 Carpeta de Series
+                                </label>
+                                <input
+                                    type="text"
+                                    className="adm-input"
+                                    placeholder="/home/media/series"
+                                    value={settings['AUTO_SCAN_SERIES_PATH'] || ''}
+                                    onChange={e => setSettings({ ...settings, AUTO_SCAN_SERIES_PATH: e.target.value })}
+                                />
+                                {suggestedDirs.length > 0 && (
+                                    <select
+                                        className="adm-select"
+                                        style={{ marginTop: 6 }}
+                                        value=""
+                                        onChange={e => { if (e.target.value) setSettings({ ...settings, AUTO_SCAN_SERIES_PATH: e.target.value }); }}
+                                    >
+                                        <option value="">Sugeridas...</option>
+                                        {suggestedDirs.map((dir, idx) => <option key={idx} value={dir}>{dir}</option>)}
+                                    </select>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

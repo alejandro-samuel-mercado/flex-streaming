@@ -164,7 +164,7 @@ export default function AdminContentPage() {
                 </div>
                 <div style={{ display: 'flex', gap: 10 }}>
                     <Link href="/admin/content/files" className="adm-btn adm-btn--ghost" style={{ gap: 6 }}>
-                        <FolderSearch size={16} /> Archivos Crudos
+                        <FolderSearch size={16} /> Importar archivos
                     </Link>
                     <Link href="/admin/content/new" className="adm-btn adm-btn--primary">
                         <Plus size={16} /> Nuevo Contenido
