@@ -255,8 +255,8 @@ export default function HomePage() {
                 contentTypes={contentTypes}
                 platforms={platforms.map((p: any) => ({ id: p.id, name: p.name, slug: p.slug, logoUrl: p.logoUrl }))}
                 genres={genres}
-                isLoggedIn={isLoggedIn}
             />
+
 
             <main className="homepage-main">
                 <ParticlesBackground />
