@@ -744,8 +744,13 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                                     if (resJson.success) {
                                                                         const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
                                                                         const backendOrigin = new URL(apiUrl).origin;
+                                                                        
+                                                                        // Reconstruct URL to be resilient to old/incorrect paths in DB
+                                                                        const filename = video.masterPlaylist?.split('/').pop() || 'master.m3u8';
+                                                                        const streamUrl = `${backendOrigin}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}`;
+                                                                        
                                                                         setActiveVideo({
-                                                                            url: `${backendOrigin}${video.masterPlaylist}?token=${resJson.data.token}`,
+                                                                            url: streamUrl,
                                                                             title: data?.translations.find(t => t.lang === 'es')?.title || 'Video'
                                                                         });
                                                                     } else {
