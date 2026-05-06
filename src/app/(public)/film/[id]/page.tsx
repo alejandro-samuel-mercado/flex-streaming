@@ -41,7 +41,7 @@ export default function FilmDetailPage() {
                     fetch(`${API_ROUTES.CONTENT.TRENDING}`),
                     fetch(`${API_ROUTES.CONTENT.FEATURED}`)
                 ]);
-                
+
                 const [relatedJson, trendingJson, recommendedJson] = await Promise.all([
                     relatedRes.json(),
                     trendingRes.json(),
@@ -87,7 +87,7 @@ export default function FilmDetailPage() {
             <TrailerModal url={content.trailerUrl || ''} isOpen={isTrailerOpen} onClose={() => setIsTrailerOpen(false)} />
 
             {/* ═══ HERO BANNER ═══ */}
-            <section style={{ position: 'relative', height: '85vh', width: '100%', overflow: 'hidden' }}>
+            <section style={{ position: 'relative', height: '85vh', width: '100%', overflow: 'hidden', paddingTop: 20 }}>
                 {backdropUrl && <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${backdropUrl})`, backgroundSize: 'cover', backgroundPosition: 'center 15%', transform: 'scale(1.05)' }} />}
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, #030612 0%, rgba(3,6,18,0.7) 50%, transparent 100%)' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #030612 0%, rgba(3,6,18,0.3) 50%, transparent 100%)' }} />
@@ -290,7 +290,7 @@ export default function FilmDetailPage() {
                                 const epThumb = ep.thumbnails?.[0]?.url;
                                 const epReady = ep.videoFiles?.some((v: any) => v.status === 'COMPLETED');
                                 return (
-                                <div key={ep.id} className="episode-card" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 16, borderRadius: 16, cursor: epReady ? 'pointer' : 'default' }}>
+                                    <div key={ep.id} className="episode-card" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 16, borderRadius: 16, cursor: epReady ? 'pointer' : 'default' }}>
                                         <div style={{ position: 'relative', width: 160, aspectRatio: '16/9', borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: 'rgba(255,255,255,0.05)' }}>
                                             {epThumb ? <img src={resolveImageUrl(epThumb)} alt={epTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.8)' }} /> : <div style={{ width: '100%', height: '100%', background: 'rgba(255,255,255,0.03)' }} />}
                                             {epReady && (
@@ -329,8 +329,8 @@ export default function FilmDetailPage() {
             <div style={{ padding: '48px 7% 120px', position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '48px' }}>
                 {related.length > 0 && (
                     <div style={{ borderTop: '1px solid rgba(0,229,255,0.1)', paddingTop: 48 }}>
-                        <FilmRow 
-                            title="Contenido Relacionado" 
+                        <FilmRow
+                            title="Contenido Relacionado"
                             items={related.map(item => ({
                                 id: item.id,
                                 title: item.translations?.[0]?.title || item.slug,
@@ -339,14 +339,14 @@ export default function FilmDetailPage() {
                                 rating: item.rating,
                                 year: item.releaseYear,
                                 type: item.type
-                            }))} 
+                            }))}
                         />
                     </div>
                 )}
-                
+
                 {recommended.length > 0 && (
-                    <FilmRow 
-                        title="Te Puede Gustar" 
+                    <FilmRow
+                        title="Te Puede Gustar"
                         subtitle="Recomendaciones basadas en nuestro contenido destacado"
                         items={recommended.map(item => ({
                             id: item.id,
@@ -356,13 +356,13 @@ export default function FilmDetailPage() {
                             rating: item.rating,
                             year: item.releaseYear,
                             type: item.type
-                        }))} 
+                        }))}
                     />
                 )}
-                
+
                 {trending.length > 0 && (
-                    <FilmRow 
-                        title="Tendencias Actuales" 
+                    <FilmRow
+                        title="Tendencias Actuales"
                         subtitle="Lo más visto en la plataforma"
                         variant="numbered"
                         items={trending.map(item => ({
@@ -373,7 +373,7 @@ export default function FilmDetailPage() {
                             rating: item.rating,
                             year: item.releaseYear,
                             type: item.type
-                        }))} 
+                        }))}
                     />
                 )}
             </div>

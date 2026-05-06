@@ -107,8 +107,8 @@ export default function AdminContentPage() {
             const d = await res.json();
 
             setContents(d.data ?? []);
-            setTotalItems(d.pagination?.total || 0);
-            setTotalPages(d.pagination?.totalPages || 1);
+            setTotalItems(d.meta?.total || d.pagination?.total || 0);
+            setTotalPages(d.meta?.totalPages || d.pagination?.totalPages || 1);
         } catch (err) {
             console.error('Fetch error:', err);
         } finally {

@@ -92,7 +92,7 @@ function ExploreContent() {
             try {
                 const queryParams = new URLSearchParams({
                     page: page.toString(),
-                    limit: '50',
+                    limit: '30',
                     sort,
                     ...(search && { search }),
                     ...(type && { type }),
@@ -117,7 +117,7 @@ function ExploreContent() {
 
                 if (result.success) {
                     setContent(result.data);
-                    setTotal(result.pagination?.total || 0);
+                    setTotal(result.meta?.total || result.pagination?.total || 0);
                 }
             } catch (err) {
                 console.error('Error fetching content:', err);
@@ -130,7 +130,7 @@ function ExploreContent() {
         return () => clearTimeout(timeoutId);
     }, [page, search, type, genreId, platformId, tagId, quick, sort]);
 
-    const totalPages = Math.ceil(total / 50);
+    const totalPages = Math.ceil(total / 30);
 
     return (
         <div className="min-h-screen bg-[#030612] text-white">

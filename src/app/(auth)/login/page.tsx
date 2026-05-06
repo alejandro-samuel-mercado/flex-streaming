@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { useState, useEffect } from 'react';
 import { Eye, EyeOff, LogIn, Play, User, Lock, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const loginSchema = z.object({
     username: z.string().min(1, 'Ingresá tu usuario'),
@@ -20,15 +20,17 @@ type LoginForm = z.infer<typeof loginSchema>;
 export default function LoginPage() {
     const { login, user } = useAuth();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirectUrl = searchParams.get('redirect') || '/';
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (user) {
-            router.push('/');
+            router.push(redirectUrl);
         }
-    }, [user, router]);
+    }, [user, router, redirectUrl]);
 
     const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
         resolver: zodResolver(loginSchema),
@@ -47,7 +49,7 @@ export default function LoginPage() {
             if (!result.success) throw new Error(result.error ?? 'Error al iniciar sesión');
             
             login(result.data.accessToken, result.data.refreshToken);
-            router.push('/');
+            router.push(redirectUrl);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error inesperado');
         } finally {

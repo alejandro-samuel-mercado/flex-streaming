@@ -729,13 +729,32 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                 <div style={{ display: 'flex', gap: 8 }}>
                                                     {video.status === 'COMPLETED' && video.masterPlaylist && (
                                                         <button
-                                                            onClick={() => {
-                                                                const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-                                                                const backendOrigin = new URL(apiUrl).origin;
-                                                                setActiveVideo({
-                                                                    url: `${backendOrigin}${video.masterPlaylist}`,
-                                                                    title: data?.translations.find(t => t.lang === 'es')?.title || 'Video'
-                                                                });
+                                                            onClick={async () => {
+                                                                try {
+                                                                    const token = localStorage.getItem('adminToken');
+                                                                    const res = await fetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
+                                                                        method: 'POST',
+                                                                        headers: {
+                                                                            'Content-Type': 'application/json',
+                                                                            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                                                                        },
+                                                                        body: JSON.stringify({ contentId: id })
+                                                                    });
+                                                                    const resJson = await res.json();
+                                                                    if (resJson.success) {
+                                                                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+                                                                        const backendOrigin = new URL(apiUrl).origin;
+                                                                        setActiveVideo({
+                                                                            url: `${backendOrigin}${video.masterPlaylist}?token=${resJson.data.token}`,
+                                                                            title: data?.translations.find(t => t.lang === 'es')?.title || 'Video'
+                                                                        });
+                                                                    } else {
+                                                                        alert('Error al acceder al video: ' + (resJson.error || 'Token denegado'));
+                                                                    }
+                                                                } catch (e) {
+                                                                    console.error(e);
+                                                                    alert('Error de conexión al obtener acceso al video.');
+                                                                }
                                                             }}
                                                             className="adm-btn adm-btn--primary adm-btn--sm"
                                                             style={{ fontSize: '.75rem', padding: '6px 12px' }}

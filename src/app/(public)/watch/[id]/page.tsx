@@ -9,6 +9,7 @@ import { API_ROUTES, API_ORIGIN } from '@/lib/api-routes';
 interface ContentData {
   id: string;
   type: 'MOVIE' | 'SERIES';
+  status?: string;
   translations: { title: string; description: string }[];
   videoFiles: {
     id: string;
@@ -53,6 +54,11 @@ export default function WatchPage() {
         const data = resJson.data;
 
         if (!data.videoFiles || data.videoFiles.length === 0) {
+          if (data.status === 'PENDING' || data.status === 'PROCESSING' || data.status === 'QUEUED') {
+             setContent(data);
+             setLoading(false);
+             return;
+          }
           throw new Error('Este contenido no tiene videos disponibles para reproducir.');
         }
 
@@ -71,12 +77,12 @@ export default function WatchPage() {
   // This MUST happen before loading the HLS manifest — otherwise the
   // streaming endpoint returns 401 and the player gets no video at all.
   useEffect(() => {
-    if (!content) return;
+    if (!content || !content.videoFiles || content.videoFiles.length === 0) return;
 
     const requestAccess = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const profileId = localStorage.getItem('currentProfileId');
+        const token = localStorage.getItem('accessToken');
+        const profileId = localStorage.getItem('profileId');
 
         if (!token) {
           setError('Debes iniciar sesión para ver este contenido.');
@@ -122,8 +128,8 @@ export default function WatchPage() {
           setInitialTime(parseInt(localProgress));
         }
 
-        const token = localStorage.getItem('token');
-        const profileId = localStorage.getItem('currentProfileId');
+        const token = localStorage.getItem('accessToken');
+        const profileId = localStorage.getItem('profileId');
         if (!token || !profileId) return;
 
         // API fetch for cross-device sync
@@ -159,8 +165,8 @@ export default function WatchPage() {
     localStorage.setItem(`watch_progress_${content.id}`, Math.floor(currentTime).toString());
 
     try {
-      const token = localStorage.getItem('token');
-      const profileId = localStorage.getItem('currentProfileId');
+      const token = localStorage.getItem('accessToken');
+      const profileId = localStorage.getItem('profileId');
       if (!token || !profileId) return;
 
       await fetch(API_ROUTES.HISTORY.PROGRESS, {
@@ -187,6 +193,22 @@ export default function WatchPage() {
       <div className="h-screen w-full bg-black flex flex-col items-center justify-center text-white">
         <Loader2 className="animate-spin mb-4" size={48} color="var(--color-primary)" />
         <p className="text-xl font-medium">Preparando tu función...</p>
+      </div>
+    );
+  }
+
+  if (content && (!content.videoFiles || content.videoFiles.length === 0)) {
+    return (
+      <div className="h-screen w-full bg-[#030612] flex flex-col items-center justify-center text-white p-6 text-center">
+        <AlertCircle size={64} className="text-[var(--color-primary)] mb-6" />
+        <h1 className="text-4xl font-black mb-4 uppercase italic">¡Próximamente!</h1>
+        <p className="text-gray-400 mb-8 max-w-md text-lg">Este contenido aún se está preparando o estará disponible muy pronto en la plataforma.</p>
+        <button
+          onClick={() => router.back()}
+          className="px-8 py-3 bg-[var(--color-primary)] text-black font-black rounded-xl hover:scale-105 transition uppercase"
+        >
+          Volver al catálogo
+        </button>
       </div>
     );
   }
