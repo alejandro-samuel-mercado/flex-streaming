@@ -137,6 +137,20 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
                 // Low-latency is not needed for VOD
                 lowLatencyMode: false,
                 backBufferLength: 30,            // Keep 30s of back-buffer for rewind
+                // Token propagation for signed URLs
+                xhrSetup: (xhr, url) => {
+                    try {
+                        const masterUrl = new URL(src, window.location.origin);
+                        const token = masterUrl.searchParams.get('token');
+                        if (token && !url.includes('token=')) {
+                            const newUrl = new URL(url, masterUrl.origin);
+                            newUrl.searchParams.set('token', token);
+                            xhr.open('GET', newUrl.toString(), true);
+                        }
+                    } catch (e) {
+                        console.error('[VideoPlayer] Token propagation error:', e);
+                    }
+                }
             });
             hlsRef.current = hls;
             hls.loadSource(src);
