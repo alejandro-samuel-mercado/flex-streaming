@@ -3,7 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { adminFetch } from '@/lib/admin-api';
 import { API_ROUTES } from '@/lib/api-routes';
-import { Users, Search, Loader2, User, Mail, Calendar, Shield, Crown, UserCheck, Coins, Monitor, Smartphone, Tv, Plus, Edit2, Trash2, X, Check, AlertCircle, Package } from 'lucide-react';
+import { Users, Search, Loader2, User, Mail, Calendar, Shield, Crown, UserCheck, Coins, Monitor, Smartphone, Tv, Plus, Edit2, Trash2, X, Check, AlertCircle, Package, Zap } from 'lucide-react';
+import type { SubscriptionPlan } from '@/types/reseller.types';
+import EndUsersTable from '@/components/reseller/EndUsersTable';
 
 export default function AdminUsersPage() {
     const [activeTab, setActiveTab] = useState<'VENDOR' | 'ADMIN' | 'END_USER'>('VENDOR');
@@ -37,6 +39,13 @@ export default function AdminUsersPage() {
     const [showPlanModal, setShowPlanModal] = useState<string | null>(null);
     const [selectedPlanId, setSelectedPlanId] = useState<string>('');
 
+    // End-User Create Modal State
+    const [showEndUserCreate, setShowEndUserCreate] = useState(false);
+    const [endUserForm, setEndUserForm] = useState({ username: '', password: '', planId: '' });
+    const [endUserPlanFilter, setEndUserPlanFilter] = useState<'normal' | 'promo' | 'demo'>('normal');
+    const [endUserCreating, setEndUserCreating] = useState(false);
+    const [activePlans, setActivePlans] = useState<SubscriptionPlan[]>([]);
+
     // Delete Confirmation State
     const [userToDelete, setUserToDelete] = useState<any>(null);
 
@@ -63,6 +72,13 @@ export default function AdminUsersPage() {
                 const sJson = await sRes.json();
                 if (pkgJson.success) setPackages(pkgJson.data.sort((a: any, b: any) => (a.baseCredits + a.bonusCredits) - (b.baseCredits + b.bonusCredits)));
                 if (sJson.success) setPlans(sJson.data.sort((a: any, b: any) => a.durationDays - b.durationDays));
+            }
+
+            // Fetch active plans for END_USER tab
+            if (activeTab === 'END_USER') {
+                const sRes = await adminFetch(API_ROUTES.SUBSCRIPTION_PLANS.ALL);
+                const sJson = await sRes.json();
+                if (sJson.success) setActivePlans(sJson.data.filter((p: any) => p.isActive).sort((a: any, b: any) => a.durationDays - b.durationDays));
             }
         } catch (err) {
             console.error('Error fetching users:', err);
@@ -171,7 +187,11 @@ export default function AdminUsersPage() {
                 fetchUsers();
             } else {
                 const data = await res.json();
-                alert(data.error || 'No se pudo eliminar al usuario');
+                if (data.code === 'HAS_ACTIVE_CLIENTS') {
+                    alert('⚠️ Advertencia: No puedes eliminar a este revendedor porque tiene clientes activos. Debes eliminar o pausar sus clientes primero.');
+                } else {
+                    alert(data.error || 'No se pudo eliminar al usuario');
+                }
             }
         } catch (err) {
             alert('Error de conexión');
@@ -226,7 +246,15 @@ export default function AdminUsersPage() {
                     <h1 className="adm-page-title">Gestión de Usuarios</h1>
                     <p className="adm-page-subtitle">Administra los roles, clientes y dispositivos de la plataforma</p>
                 </div>
-                {activeTab !== 'END_USER' && (
+                {activeTab === 'END_USER' ? (
+                    <button className="adm-btn adm-btn--primary" onClick={() => {
+                        setEndUserForm({ username: '', password: '', planId: '' });
+                        setEndUserPlanFilter('normal');
+                        setShowEndUserCreate(true);
+                    }}>
+                        <Plus size={18} /> Nueva Cuenta Final
+                    </button>
+                ) : (
                     <button className="adm-btn adm-btn--primary" onClick={openCreateModal}>
                         <Plus size={18} /> Nuevo {activeTab === 'VENDOR' ? 'Super Revendedor' : 'Administrador'}
                     </button>
@@ -255,6 +283,19 @@ export default function AdminUsersPage() {
                 </button>
             </div>
 
+            {activeTab === 'END_USER' ? (
+                <EndUsersTable
+                    users={users}
+                    loading={loading}
+                    search={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    page={page}
+                    totalPages={totalPages}
+                    onPageChange={setPage}
+                    onRefresh={fetchUsers}
+                    fetchFn={adminFetch}
+                />
+            ) : (
             <div className="adm-table-card animate-fadeIn">
                 <div className="adm-table-filters" style={{ padding: '16px 20px', borderBottom: '1px solid var(--adm-border)' }}>
                     <form onSubmit={handleSearch} style={{ display: 'flex', gap: 12 }}>
@@ -283,7 +324,7 @@ export default function AdminUsersPage() {
                         <table className="adm-table">
                             <thead>
                                 <tr>
-                                    <th>{activeTab === 'END_USER' ? 'Cuenta / Cliente' : 'Usuario'}</th>
+                                    <th>Usuario</th>
                                     {activeTab === 'VENDOR' ? (
                                         <>
                                             <th>Rol</th>
@@ -291,12 +332,6 @@ export default function AdminUsersPage() {
                                             <th style={{ textAlign: 'center' }}>Revendedores</th>
                                             <th style={{ textAlign: 'center' }}>Clientes</th>
                                             <th>Estado</th>
-                                        </>
-                                    ) : activeTab === 'END_USER' ? (
-                                        <>
-                                            <th>Estado / Plan</th>
-                                            <th>Dispositivos</th>
-                                            <th>Gestionado por</th>
                                         </>
                                     ) : (
                                         <>
@@ -314,51 +349,7 @@ export default function AdminUsersPage() {
                                     <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px' }}>No se encontraron registros.</td></tr>
                                 ) : users.map(user => (
                                     <tr key={user.id}>
-                                        {activeTab === 'END_USER' ? (
-                                            <>
-                                                <td>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--adm-bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                            <User size={20} color="var(--adm-muted)" />
-                                                        </div>
-                                                        <div>
-                                                            <div style={{ fontWeight: 600, color: 'white' }}>{user.username}</div>
-                                                            {user.country && <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)' }}>País: {user.country}</div>}
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                                        <span className={`adm-badge ${user.status === 'ACTIVE' ? 'adm-badge--green' : 'adm-badge--red'}`} style={{ alignSelf: 'flex-start' }}>
-                                                            {user.status}
-                                                        </span>
-                                                        <span style={{ fontSize: '.8rem', color: 'var(--adm-muted)' }}>{user.plan?.name || 'Sin plan'}</span>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                                        <span style={{ fontSize: '.9rem', color: 'white', fontWeight: 600 }}>
-                                                            {user._count?.connectedDevices || 0} / {user.maxDevices}
-                                                        </span>
-                                                        {user.connectedDevices?.length > 0 && (
-                                                            <div style={{ display: 'flex', gap: 4 }}>
-                                                                 {user.connectedDevices.slice(0, 3).map((d: any) => (
-                                                                    <div key={d.id} title={d.deviceName || d.platform || 'Dispositivo'} style={{ background: 'rgba(255,255,255,0.05)', padding: 4, borderRadius: 4, color: 'var(--adm-muted)' }}>
-                                                                        {getDeviceIcon(d.deviceType)}
-                                                                    </div>
-                                                                ))}
-                                                                {user.connectedDevices.length > 3 && <span style={{ fontSize: '.7rem', color: 'var(--adm-muted)' }}>+{user.connectedDevices.length - 3}</span>}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <span style={{ fontSize: '.85rem', color: 'var(--adm-muted)' }}>
-                                                        {user.managedBy?.name || 'Sistema'}
-                                                    </span>
-                                                </td>
-                                            </>
-                                        ) : activeTab === 'VENDOR' ? (
+                                        {activeTab === 'VENDOR' ? (
                                             <>
                                                 <td>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -433,9 +424,7 @@ export default function AdminUsersPage() {
                                         </td>
                                         <td>
                                             <div style={{ display: 'flex', gap: 8 }}>
-                                                {activeTab === 'END_USER' ? (
-                                                    <span style={{ fontSize: '.85rem', color: 'var(--adm-muted)' }}>Solo lectura</span>
-                                                ) : activeTab === 'VENDOR' ? (
+                                                {activeTab === 'VENDOR' ? (
                                                     <>
                                                         <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => setShowCreditsModal(user.id)} title="Cargar Créditos" style={{ color: '#facc15' }}><Package size={14} /></button>
                                                         <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => setShowPlanModal(user.id)} title="Asignar Plan" style={{ color: '#a78bfa' }}><Calendar size={14} /></button>
@@ -489,6 +478,7 @@ export default function AdminUsersPage() {
                     </div>
                 )}
             </div>
+            )}
 
             {/* User Create/Edit Modal */}
             {isModalOpen && (
@@ -782,6 +772,134 @@ export default function AdminUsersPage() {
                     </div>
                 </div>
             )}
+
+            {/* End User Create Modal */}
+            {showEndUserCreate && (() => {
+                const euFilteredPlans = activePlans.filter(p => {
+                    if (endUserPlanFilter === 'demo') return p.isDemo;
+                    if (endUserPlanFilter === 'promo') return p.isPromo && !p.isDemo;
+                    return !p.isDemo && !p.isPromo;
+                });
+                const euSelectedPlan = activePlans.find(p => p.id === endUserForm.planId);
+
+                const handleCreateEndUser = async (e: React.FormEvent) => {
+                    e.preventDefault();
+                    if (!endUserForm.planId) { alert('Debes seleccionar un plan'); return; }
+                    setEndUserCreating(true);
+                    try {
+                        const r = await adminFetch(API_ROUTES.END_USERS.BASE, {
+                            method: 'POST',
+                            body: JSON.stringify(endUserForm),
+                        });
+                        const j = await r.json();
+                        if (j.success) {
+                            setShowEndUserCreate(false);
+                            setEndUserForm({ username: '', password: '', planId: '' });
+                            fetchUsers();
+                        } else {
+                            alert(j.error || 'Error al crear cuenta');
+                        }
+                    } catch (err) { console.error(err); }
+                    finally { setEndUserCreating(false); }
+                };
+
+                return (
+                    <div className="adm-modal-overlay" onClick={() => setShowEndUserCreate(false)}>
+                        <div className="adm-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 520, maxHeight: '85vh', overflow: 'auto' }}>
+                            <div className="adm-modal-header">
+                                <h2 className="adm-modal-title">
+                                    <UserCheck size={20} style={{ marginRight: 8 }} /> Nueva Cuenta Final
+                                </h2>
+                                <button className="adm-modal-close" onClick={() => setShowEndUserCreate(false)}><X size={20} /></button>
+                            </div>
+                            <form onSubmit={handleCreateEndUser}>
+                                <div className="adm-modal-body">
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '.4rem', marginBottom: '1rem', padding: '.5rem .75rem', background: 'rgba(139,92,246,0.08)', borderRadius: '8px', fontSize: '.82rem', color: '#a78bfa' }}>
+                                        <Shield size={14} />
+                                        Como administrador, no se te descuentan créditos.
+                                    </div>
+
+                                    <div className="adm-form-group">
+                                        <label className="adm-label">Usuario</label>
+                                        <input className="adm-input" value={endUserForm.username} onChange={e => setEndUserForm(f => ({ ...f, username: e.target.value }))} required minLength={3} placeholder="Nombre de usuario" />
+                                    </div>
+                                    <div className="adm-form-group">
+                                        <label className="adm-label">Contraseña</label>
+                                        <input className="adm-input" value={endUserForm.password} onChange={e => setEndUserForm(f => ({ ...f, password: e.target.value }))} required minLength={4} placeholder="Contraseña" />
+                                    </div>
+
+                                    {/* Plan Type Selector */}
+                                    <div className="adm-form-group">
+                                        <label className="adm-label">Tipo de Plan</label>
+                                        <div style={{ display: 'flex', gap: '.5rem' }}>
+                                            <button type="button" className={`adm-btn ${endUserPlanFilter === 'normal' ? 'adm-btn--primary' : 'adm-btn--ghost'}`} style={{ flex: 1, padding: '.4rem', fontSize: '.8rem' }} onClick={() => { setEndUserPlanFilter('normal'); setEndUserForm(f => ({ ...f, planId: '' })); }}>
+                                                📦 Normal
+                                            </button>
+                                            {activePlans.some(p => p.isPromo && !p.isDemo) && (
+                                                <button type="button" className={`adm-btn ${endUserPlanFilter === 'promo' ? 'adm-btn--primary' : 'adm-btn--ghost'}`} style={{ flex: 1, padding: '.4rem', fontSize: '.8rem' }} onClick={() => { setEndUserPlanFilter('promo'); setEndUserForm(f => ({ ...f, planId: '' })); }}>
+                                                    🎉 Promo
+                                                </button>
+                                            )}
+                                            {activePlans.some(p => p.isDemo) && (
+                                                <button type="button" className={`adm-btn ${endUserPlanFilter === 'demo' ? 'adm-btn--primary' : 'adm-btn--ghost'}`} style={{ flex: 1, padding: '.4rem', fontSize: '.8rem' }} onClick={() => { setEndUserPlanFilter('demo'); setEndUserForm(f => ({ ...f, planId: '' })); }}>
+                                                    🎁 Demo
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Plan Cards */}
+                                    <div className="adm-form-group">
+                                        <label className="adm-label">Seleccionar Plan</label>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
+                                            {euFilteredPlans.length === 0 && <p style={{ fontSize: '.82rem', textAlign: 'center', padding: '.5rem', color: 'var(--adm-muted)' }}>No hay planes disponibles</p>}
+                                            {euFilteredPlans.map(p => (
+                                                <button key={p.id} type="button" onClick={() => setEndUserForm(f => ({ ...f, planId: p.id }))}
+                                                    style={{
+                                                        padding: '.6rem .8rem', cursor: 'pointer', textAlign: 'left',
+                                                        border: endUserForm.planId === p.id ? '2px solid #a78bfa' : '1px solid rgba(255,255,255,.08)',
+                                                        borderRadius: '10px', background: endUserForm.planId === p.id ? 'rgba(167,139,250,0.08)' : 'rgba(255,255,255,0.02)',
+                                                        transition: 'all .2s', color: 'white',
+                                                    }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <strong style={{ fontSize: '.88rem' }}>{p.name}</strong>
+                                                        <span style={{ fontSize: '.8rem', fontWeight: 600, color: p.isDemo ? '#4ade80' : '#60a5fa' }}>
+                                                            {p.isDemo ? 'GRATIS' : `${p.creditCost} crédito${p.creditCost !== 1 ? 's' : ''}`}
+                                                        </span>
+                                                    </div>
+                                                    <div style={{ fontSize: '.78rem', color: 'rgba(255,255,255,.5)', marginTop: '.15rem' }}>
+                                                        {p.isDemo ? `${p.demoHours}h de acceso` : `${p.durationDays} días`}
+                                                        {p.bonusDays && p.bonusDays > 0 ? ` (+${p.bonusDays} bonus)` : ''}
+                                                        {' · '}{p.maxDevices} disp.
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Summary */}
+                                    {euSelectedPlan && (
+                                        <div style={{ padding: '.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '.85rem', border: '1px solid rgba(255,255,255,.06)' }}>
+                                            <div style={{ fontWeight: 600, marginBottom: '.3rem' }}>Resumen</div>
+                                            <div>Plan: <strong>{euSelectedPlan.name}</strong></div>
+                                            <div>Duración: <strong>{euSelectedPlan.isDemo ? `${euSelectedPlan.demoHours}h` : `${euSelectedPlan.durationDays} días`}{euSelectedPlan.bonusDays ? ` (+${euSelectedPlan.bonusDays} bonus)` : ''}</strong></div>
+                                            <div>Costo: <strong style={{ color: '#4ade80' }}>Sin costo (Admin)</strong></div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="adm-modal-footer">
+                                    <button type="button" className="adm-btn adm-btn--ghost" onClick={() => setShowEndUserCreate(false)}>Cancelar</button>
+                                    <button type="submit" className="adm-btn adm-btn--primary" disabled={endUserCreating || !endUserForm.planId}>
+                                        {endUserCreating ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
+                                        Crear Cuenta
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                );
+            })()}
         </div>
     );
 }

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Search, Heart, ChevronDown, Menu, X, User, LogIn, Film, Tv, Clapperboard, Monitor, Play, Star, Mic, Layout, Sparkles, BookOpen, Baby, Users, MousePointer, FlaskConical, Clock } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { API_ROUTES, API_ORIGIN, resolveImageUrl } from '@/lib/api-routes';
 
 interface NavContentType {
@@ -28,13 +29,12 @@ interface NavbarProps {
     contentTypes?: NavContentType[];
     platforms?: NavPlatform[];
     genres?: NavGenre[];
-    isLoggedIn?: boolean;
-    userName?: string;
 }
 
 import { CONTENT_TYPES_LIST, getContentTypeLabel, getContentTypeIcon } from '@/lib/content-types';
 
-export default function Navbar({ contentTypes = [], platforms = [], genres = [], isLoggedIn = false, userName }: NavbarProps) {
+export default function Navbar({ contentTypes = [], platforms = [], genres = [] }: NavbarProps) {
+    const { user, logout } = useAuth();
     const pathname = usePathname();
     const isExplorePage = pathname === '/explorar';
 
@@ -313,11 +313,35 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [],
                     </Link>
 
                     {/* Auth / Profile */}
-                    {isLoggedIn ? (
-                        <div className="nav-cinema-profile" id="nav-profile">
-                            <div className="nav-cinema-avatar">
-                                {userName ? userName.charAt(0).toUpperCase() : <User size={16} />}
-                            </div>
+                    {user ? (
+                        <div className="nav-cinema-dropdown" onMouseEnter={() => openDropdown('profile')} onMouseLeave={closeDropdown}>
+                            <button className="nav-cinema-profile" id="nav-profile">
+                                <div className="nav-cinema-avatar">
+                                    {user.name ? user.name.charAt(0).toUpperCase() : <User size={16} />}
+                                </div>
+                            </button>
+                            {activeDropdown === 'profile' && (
+                                <div className="nav-cinema-popup nav-cinema-popup--profile" onMouseEnter={keepDropdown} onMouseLeave={closeDropdown}>
+                                    <div className="nav-cinema-popup-user">
+                                        <p className="nav-cinema-popup-user-name">{user.name}</p>
+                                        <p className="nav-cinema-popup-user-email">{user.email}</p>
+                                    </div>
+                                    <div className="nav-cinema-popup-divider" />
+                                    <Link href="/perfil" className="nav-cinema-popup-link" onClick={() => setActiveDropdown(null)}>
+                                        <User size={14} /> Mi Perfil
+                                    </Link>
+                                    <Link href="/favoritos" className="nav-cinema-popup-link" onClick={() => setActiveDropdown(null)}>
+                                        <Heart size={14} /> Favoritos
+                                    </Link>
+                                    <Link href="/historial" className="nav-cinema-popup-link" onClick={() => setActiveDropdown(null)}>
+                                        <Clock size={14} /> Historial
+                                    </Link>
+                                    <div className="nav-cinema-popup-divider" />
+                                    <button onClick={logout} className="nav-cinema-popup-link text-red-500">
+                                        <LogIn size={14} className="rotate-180" /> Cerrar Sesión
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <Link href="/login" className="nav-cinema-login-btn" id="nav-login-btn">
@@ -371,13 +395,19 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [],
                             <Link href="/favoritos" onClick={() => setMobileMenuOpen(false)} className="nav-cinema-mobile-link">
                                 <Heart size={16} /> Favoritos
                             </Link>
-                            {!isLoggedIn && (
+                            {user ? (
                                 <>
-                                    <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="nav-cinema-mobile-auth-btn">
-                                        Iniciar Sesión
+                                    <Link href="/perfil" onClick={() => setMobileMenuOpen(false)} className="nav-cinema-mobile-link">
+                                        <User size={16} /> Mi Perfil
                                     </Link>
-                                   
+                                    <button onClick={logout} className="nav-cinema-mobile-auth-btn mt-4">
+                                        Cerrar Sesión
+                                    </button>
                                 </>
+                            ) : (
+                                <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="nav-cinema-mobile-auth-btn">
+                                    Iniciar Sesión
+                                </Link>
                             )}
                         </div>
                     </div>

@@ -2185,7 +2185,7 @@ input[type="range"].player-progress::-webkit-slider-thumb {
     background: rgba(255, 255, 255, .025);
     border: 1px solid var(--adm-border);
     border-radius: 16px;
-    overflow: hidden;
+
 }
 
 .adm-table-card-header {

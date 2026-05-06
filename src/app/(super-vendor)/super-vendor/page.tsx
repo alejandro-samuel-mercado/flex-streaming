@@ -1,40 +1,45 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, UserCheck, Coins, Activity, TrendingUp, Clock, RefreshCw, Loader2, AlertTriangle, Send } from 'lucide-react';
+import { Users, UserCheck, Coins, Activity, TrendingUp, RefreshCw, Loader2, AlertTriangle, AlertCircle } from 'lucide-react';
 import { resellerFetch } from '@/lib/reseller-api';
 import { API_ROUTES } from '@/lib/api-routes';
 import Link from 'next/link';
+import { CreditHistoryModal } from '@/components/reseller/CreditHistoryModal';
 
 const COLOR: Record<string, string> = {
   blue: '#60a5fa', green: '#4ade80', yellow: '#facc15', purple: '#a78bfa',
 };
 
 export default function SuperVendorDashboard() {
-  const [stats, setStats] = useState({ vendors: 0, endUsers: 0, credits: 0 });
+  const [stats, setStats] = useState({ vendors: 0, endUsers: 0, credits: 0, expiringUsers: 0 });
   const [recentVendors, setRecentVendors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
     setError(null);
     try {
-      const [vRes, euRes, meRes] = await Promise.all([
+      const [vRes, euRes, meRes, expiringRes] = await Promise.all([
         resellerFetch(API_ROUTES.RESELLER.LIST),
         resellerFetch(`${API_ROUTES.END_USERS.BASE}?limit=1`),
         resellerFetch(API_ROUTES.AUTH.ME),
+        resellerFetch(`${API_ROUTES.END_USERS.BASE}?limit=1&expiringInDays=5`),
       ]);
 
       const vJson = await vRes.json();
       const euJson = await euRes.json();
       const meJson = await meRes.json();
+      const expiringJson = await expiringRes.json();
 
       if (vJson.success && euJson.success && meJson.success) {
         setStats({
           vendors: vJson.data.length,
           endUsers: euJson.data.total,
           credits: meJson.data.credits ?? 0,
+          expiringUsers: expiringJson.success ? expiringJson.data.total : 0,
         });
         setRecentVendors(vJson.data.slice(0, 5));
       } else {
@@ -55,8 +60,8 @@ export default function SuperVendorDashboard() {
   const kpis = [
     { label: 'Mis Vendedores', value: stats.vendors, icon: Users, color: 'blue', desc: 'Vendedores directos' },
     { label: 'Mis Clientes', value: stats.endUsers, icon: UserCheck, color: 'green', desc: 'Cuentas creadas' },
-    { label: 'Mis Créditos', value: stats.credits, icon: Coins, color: 'yellow', desc: 'Saldo disponible' },
-    { label: 'Actividad', value: 'Live', icon: Activity, color: 'purple', desc: 'Estado del sistema' },
+    { label: 'Por Vencer', value: stats.expiringUsers, icon: AlertCircle, color: 'yellow', desc: 'En próximos 5 días' },
+    { label: 'Mis Créditos', value: stats.credits, icon: Coins, color: 'purple', desc: 'Saldo disponible' },
   ];
 
   if (loading && !stats.vendors && !stats.credits) {
@@ -98,7 +103,18 @@ export default function SuperVendorDashboard() {
                 <k.icon size={18} />
               </div>
             </div>
-            <div className="adm-kpi-value">{k.value}</div>
+            <div className="adm-kpi-value">
+              {k.value}
+              {i === 3 && (
+                <button 
+                  className="adm-btn adm-btn--ghost" 
+                  style={{ fontSize: '0.8rem', padding: '4px 8px', marginLeft: 12, height: 'auto', display: 'inline-block' }}
+                  onClick={() => setShowHistoryModal(true)}
+                >
+                  Ver Historial
+                </button>
+              )}
+            </div>
             <div className="adm-kpi-change neutral">
               • {k.desc}
             </div>
@@ -200,6 +216,11 @@ export default function SuperVendorDashboard() {
           </div>
         </div>
       </div>
+
+      <CreditHistoryModal 
+        isOpen={showHistoryModal} 
+        onClose={() => setShowHistoryModal(false)} 
+      />
     </div>
   );
 }

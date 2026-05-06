@@ -117,6 +117,7 @@ export const API_ROUTES = {
         STATUS: (id: string) => `${API_BASE_URL}/reseller/vendors/${id}/status`,
         ASSIGN_CREDITS: (id: string) => `${API_BASE_URL}/reseller/vendors/${id}/credits`,
         CREDIT_HISTORY: (id: string) => `${API_BASE_URL}/reseller/vendors/${id}/credits/history`,
+        TRANSACTIONS: `${API_BASE_URL}/reseller/transactions`,
     },
     END_USERS: {
         BASE: `${API_BASE_URL}/end-users`,

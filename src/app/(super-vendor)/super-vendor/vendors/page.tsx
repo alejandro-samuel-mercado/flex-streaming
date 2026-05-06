@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Coins, Send, ToggleLeft, ToggleRight, UserPlus, Trash2 } from 'lucide-react';
+import { Coins, Send, ToggleLeft, ToggleRight, UserPlus, Trash2, Key } from 'lucide-react';
 import { resellerFetch } from '@/lib/reseller-api';
 import { API_ROUTES } from '@/lib/api-routes';
 import type { ResellerVendor } from '@/types/reseller.types';
@@ -11,28 +11,59 @@ export default function SuperVendorVendorsPage() {
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [showCredits, setShowCredits] = useState<string | null>(null);
-  const [creditsAmt, setCreditsAmt] = useState(10);
-  const [form, setForm] = useState({ email: '', name: '', password: '', credits: 0 });
+  const [showResetPwd, setShowResetPwd] = useState<{ id: string, name: string } | null>(null);
+  const [newPwd, setNewPwd] = useState('');
+  
+  const [packages, setPackages] = useState<any[]>([]);
+  const [selectedPackageId, setSelectedPackageId] = useState<string>('');
+  const [form, setForm] = useState({ email: '', name: '', password: '', packageId: '' });
 
   const fetchVendors = useCallback(async () => {
     try { const r = await resellerFetch(API_ROUTES.RESELLER.LIST); const j = await r.json(); if (j.success) setVendors(j.data); }
     catch (e) { console.error(e); } finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { fetchVendors(); }, [fetchVendors]);
+  const fetchPackages = useCallback(async () => {
+    try { const r = await resellerFetch(API_ROUTES.CREDIT_PACKAGES.BASE); const j = await r.json(); if (j.success) setPackages(j.data); }
+    catch (e) { console.error(e); }
+  }, []);
+
+  useEffect(() => { fetchVendors(); fetchPackages(); }, [fetchVendors, fetchPackages]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const r = await resellerFetch(API_ROUTES.RESELLER.VENDORS, { method: 'POST', body: JSON.stringify(form) });
+    if (!form.packageId) { alert('Debes seleccionar un paquete'); return; }
+    
+    // Create vendor with 0 credits
+    const r = await resellerFetch(API_ROUTES.RESELLER.VENDORS, { method: 'POST', body: JSON.stringify({ email: form.email, name: form.name, password: form.password, credits: 0 }) });
     const j = await r.json();
-    if (j.success) { setShowCreate(false); setForm({ email: '', name: '', password: '', credits: 0 }); fetchVendors(); } else alert(j.error);
+    if (j.success) { 
+      const vendorId = j.data.id;
+      // Apply package
+      const pRes = await resellerFetch(API_ROUTES.CREDIT_PACKAGES.APPLY(form.packageId), { method: 'POST', body: JSON.stringify({ targetUserId: vendorId }) });
+      const pJson = await pRes.json();
+      if (!pJson.success) alert('Vendedor creado pero hubo un error al asignar el paquete: ' + pJson.error);
+      
+      setShowCreate(false); setForm({ email: '', name: '', password: '', packageId: '' }); fetchVendors(); 
+    } else alert(j.error);
   };
 
   const handleCredits = async () => {
-    if (!showCredits) return;
-    const r = await resellerFetch(API_ROUTES.RESELLER.ASSIGN_CREDITS(showCredits), { method: 'POST', body: JSON.stringify({ amount: creditsAmt }) });
+    if (!showCredits || !selectedPackageId) return;
+    const r = await resellerFetch(API_ROUTES.CREDIT_PACKAGES.APPLY(selectedPackageId), { method: 'POST', body: JSON.stringify({ targetUserId: showCredits }) });
     const j = await r.json();
-    if (j.success) { setShowCredits(null); fetchVendors(); } else alert(j.error);
+    if (j.success) { setShowCredits(null); setSelectedPackageId(''); fetchVendors(); } else alert(j.error);
+  };
+
+  const handleResetPwd = async () => {
+    if (!showResetPwd || !newPwd) return;
+    const r = await resellerFetch(`${API_ROUTES.RESELLER.LIST}/${showResetPwd.id}/password`, { 
+      method: 'PATCH', 
+      body: JSON.stringify({ password: newPwd }) 
+    });
+    const j = await r.json();
+    if (j.success) { setShowResetPwd(null); setNewPwd(''); alert('Contraseña actualizada correctamente'); } 
+    else alert(j.error || 'Error al actualizar contraseña');
   };
 
   const handleToggle = async (id: string, active: boolean) => {
@@ -68,7 +99,8 @@ export default function SuperVendorVendorsPage() {
                 <td><span className={`adm-badge ${v.isActive ? 'adm-badge--green' : 'adm-badge--red'}`}>{v.isActive ? 'Activo' : 'Inactivo'}</span></td>
                 <td>
                   <div style={{ display: 'flex', gap: '.3rem' }}>
-                    <button className="adm-btn adm-btn--ghost" style={{ padding: '.3rem .5rem' }} onClick={() => { setShowCredits(v.id); setCreditsAmt(10); }} title="Asignar Créditos"><Send size={14} /></button>
+                    <button className="adm-btn adm-btn--ghost" style={{ padding: '.3rem .5rem' }} onClick={() => { setShowCredits(v.id); setSelectedPackageId(packages[0]?.id || ''); }} title="Asignar Paquete"><Send size={14} /></button>
+                    <button className="adm-btn adm-btn--ghost" style={{ padding: '.3rem .5rem' }} onClick={() => { setShowResetPwd({ id: v.id, name: v.name }); setNewPwd(''); }} title="Cambiar Contraseña"><Key size={14} /></button>
                     <button className="adm-btn adm-btn--ghost" style={{ padding: '.3rem .5rem' }} onClick={() => handleToggle(v.id, v.isActive)} title={v.isActive ? 'Desactivar' : 'Activar'}>{v.isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}</button>
                     <button className="adm-btn adm-btn--ghost" style={{ padding: '.3rem .5rem', color: '#ef4444' }} onClick={() => handleDelete(v.id, v.name)} title="Eliminar"><Trash2 size={14} /></button>
                   </div>
@@ -88,7 +120,15 @@ export default function SuperVendorVendorsPage() {
               <div className="adm-field"><label className="adm-label">Nombre</label><input className="adm-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required /></div>
               <div className="adm-field"><label className="adm-label">Email</label><input className="adm-input" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required /></div>
               <div className="adm-field"><label className="adm-label">Contraseña</label><input className="adm-input" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required minLength={6} /></div>
-              <div className="adm-field"><label className="adm-label">Créditos iniciales</label><input className="adm-input" type="number" min={0} value={form.credits} onChange={e => setForm(f => ({ ...f, credits: parseInt(e.target.value) || 0 }))} /></div>
+              <div className="adm-field">
+                <label className="adm-label">Paquete Inicial</label>
+                <select className="adm-input" value={form.packageId} onChange={e => setForm(f => ({ ...f, packageId: e.target.value }))} required>
+                  <option value="">-- Seleccionar paquete --</option>
+                  {packages.map(pkg => (
+                    <option key={pkg.id} value={pkg.id}>{pkg.name} (Cuesta {pkg.baseCredits} cr.)</option>
+                  ))}
+                </select>
+              </div>
               <div style={{ display: 'flex', gap: '.5rem', justifyContent: 'flex-end' }}>
                 <button type="button" className="adm-btn adm-btn--ghost" onClick={() => setShowCreate(false)}>Cancelar</button>
                 <button type="submit" className="adm-btn adm-btn--primary">Crear</button>
@@ -101,11 +141,35 @@ export default function SuperVendorVendorsPage() {
       {showCredits && (
         <div className="adm-modal-overlay" onClick={() => setShowCredits(null)}>
           <div className="adm-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 340 }}>
-            <h2 style={{ margin: '0 0 1rem', fontSize: '1.05rem' }}>Asignar Créditos</h2>
-            <div className="adm-field"><label className="adm-label">Cantidad</label><input className="adm-input" type="number" min={1} value={creditsAmt} onChange={e => setCreditsAmt(parseInt(e.target.value) || 1)} /></div>
+            <h2 style={{ margin: '0 0 1rem', fontSize: '1.05rem' }}>Asignar Paquete</h2>
+            <div className="adm-field">
+              <label className="adm-label">Seleccionar Paquete</label>
+              <select className="adm-input" value={selectedPackageId} onChange={e => setSelectedPackageId(e.target.value)} required>
+                <option value="">-- Seleccionar paquete --</option>
+                {packages.map(pkg => (
+                  <option key={pkg.id} value={pkg.id}>{pkg.name} (Cuesta {pkg.baseCredits} cr.)</option>
+                ))}
+              </select>
+            </div>
             <div style={{ display: 'flex', gap: '.5rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
               <button className="adm-btn adm-btn--ghost" onClick={() => setShowCredits(null)}>Cancelar</button>
-              <button className="adm-btn adm-btn--primary" onClick={handleCredits}>Asignar</button>
+              <button className="adm-btn adm-btn--primary" onClick={handleCredits} disabled={!selectedPackageId}>Asignar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showResetPwd && (
+        <div className="adm-modal-overlay" onClick={() => setShowResetPwd(null)}>
+          <div className="adm-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 340 }}>
+            <h2 style={{ margin: '0 0 1rem', fontSize: '1.05rem' }}>Cambiar Clave: {showResetPwd.name}</h2>
+            <div className="adm-field">
+              <label className="adm-label">Nueva Contraseña</label>
+              <input className="adm-input" type="text" value={newPwd} onChange={e => setNewPwd(e.target.value)} required minLength={6} placeholder="Mínimo 6 caracteres" />
+            </div>
+            <div style={{ display: 'flex', gap: '.5rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+              <button className="adm-btn adm-btn--ghost" onClick={() => setShowResetPwd(null)}>Cancelar</button>
+              <button className="adm-btn adm-btn--primary" onClick={handleResetPwd} disabled={newPwd.length < 6}>Guardar</button>
             </div>
           </div>
         </div>

@@ -5,8 +5,10 @@ import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff, LogIn, Play, User, Lock, ArrowLeft } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 const loginSchema = z.object({
     username: z.string().min(1, 'Ingresá tu usuario'),
@@ -16,9 +18,17 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
+    const { login, user } = useAuth();
+    const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (user) {
+            router.push('/');
+        }
+    }, [user, router]);
 
     const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
         resolver: zodResolver(loginSchema),
@@ -35,12 +45,9 @@ export default function LoginPage() {
             });
             const result = await response.json();
             if (!result.success) throw new Error(result.error ?? 'Error al iniciar sesión');
-            localStorage.setItem('accessToken', result.data.accessToken);
-            localStorage.setItem('refreshToken', result.data.refreshToken);
-            // Cookie para que el middleware de Next.js pueda proteger rutas de usuario
-            // Distinto del 'adminToken' para separar completamente los dos entornos
-            document.cookie = `accessToken=${result.data.accessToken}; path=/; max-age=${8 * 3600}; SameSite=Lax`;
-            window.location.href = '/';
+            
+            login(result.data.accessToken, result.data.refreshToken);
+            router.push('/');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error inesperado');
         } finally {

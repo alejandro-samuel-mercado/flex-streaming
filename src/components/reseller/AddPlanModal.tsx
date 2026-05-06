@@ -44,7 +44,8 @@ export default function AddPlanModal({ account, onClose, onSuccess, fetchFn }: P
     }
     const current = account.endDate ? new Date(account.endDate) : null;
     const base = current && current > new Date() ? current : new Date();
-    return new Date(base.getTime() + selected.durationDays * 24 * 60 * 60 * 1000);
+    const totalDays = selected.durationDays + (selected.bonusDays ?? 0);
+    return new Date(base.getTime() + totalDays * 24 * 60 * 60 * 1000);
   };
 
   const handleConfirm = async () => {
@@ -115,7 +116,7 @@ export default function AddPlanModal({ account, onClose, onSuccess, fetchFn }: P
             <div className="adm-table-card" style={{ padding: '1rem', marginBottom: '1rem' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '.5rem', fontSize: '.88rem' }}>
                 <div><strong>Plan:</strong> {selected.name}</div>
-                <div><strong>Duración:</strong> {selected.isDemo ? `${selected.demoHours}h` : `${selected.durationDays} días`}</div>
+                <div><strong>Duración:</strong> {selected.isDemo ? `${selected.demoHours}h` : `${selected.durationDays} días`}{selected.bonusDays && selected.bonusDays > 0 ? ` (+${selected.bonusDays} bonus)` : ''}</div>
                 <div><strong>Costo:</strong> {selected.isDemo ? 'Gratis' : `${selected.creditCost} crédito(s)`}</div>
                 <div><strong>Nueva expiración:</strong> {calculateNewEndDate()?.toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' }) ?? '—'}</div>
               </div>
