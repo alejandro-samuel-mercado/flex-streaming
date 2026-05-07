@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Copy, Eye, EyeOff, MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Copy, Eye, EyeOff, MoreVertical, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
 import { API_ROUTES } from '@/lib/api-routes';
 import type { EndUserAccount } from '@/types/reseller.types';
 import AddPlanModal from './AddPlanModal';
@@ -70,70 +70,112 @@ export default function EndUsersTable({ users, loading, search, onSearchChange, 
 
     return (
         <>
-            <div className="adm-table-card" style={{ overflow: 'visible' }}>
-                <div style={{ padding: '1rem', display: 'flex', gap: '.75rem', alignItems: 'center' }} >
-                    <div style={{ position: 'relative', flex: 1, maxWidth: 320 }}>
-                        <Search size={15} style={{ position: 'absolute', left: '.6rem', top: '50%', transform: 'translateY(-50%)', opacity: .4 }} />
-                        <input className="adm-input" style={{ paddingLeft: '2rem' }} placeholder="Buscar por usuario..." value={search} onChange={e => onSearchChange(e.target.value)} />
+            <div className="adm-table-card">
+            <div className="adm-table-card-header">
+                <div className="adm-toolbar" style={{ width: '100%' }}>
+                    <div className="adm-search-wrap" style={{ maxWidth: 360 }}>
+                        <Search className="adm-search-icon" size={15} />
+                        <input className="adm-search-input" placeholder="Buscar por usuario o email..." value={search} onChange={e => onSearchChange(e.target.value)} />
                     </div>
                 </div>
+            </div>
 
+            <div className="adm-table-wrapper">
                 <table className="adm-table">
-                    <thead><tr><th>Usuario</th><th>Contraseña</th><th>Revendedor</th><th>Inicio</th><th>Fin</th><th>Estado</th><th>Tipo</th><th>Disp.</th><th></th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Contraseña</th>
+                            <th>Revendedor</th>
+                            <th>Vencimiento</th>
+                            <th>Estado</th>
+                            <th>Tipo / Plan</th>
+                            <th>Disp.</th>
+                            <th></th>
+                        </tr>
+                    </thead>
                     <tbody>
-                        {loading ? <tr><td colSpan={9} style={{ textAlign: 'center', padding: '2rem' }}>Cargando...</td></tr> :
-                            users.length === 0 ? <tr><td colSpan={9} style={{ textAlign: 'center', padding: '2rem' }} className="adm-table-muted">Sin resultados</td></tr> :
-                                users.map(u => (
-                                    <tr key={u.id}>
-                                        <td><div style={{ display: 'flex', alignItems: 'center', gap: '.3rem' }}><span style={{ fontWeight: 500 }}>{u.username}</span><button className="adm-btn adm-btn--ghost" style={{ padding: '2px' }} onClick={() => copyText(u.username)} title="Copiar"><Copy size={12} /></button></div></td>
-                                        <td><div style={{ display: 'flex', alignItems: 'center', gap: '.3rem' }}><span style={{ fontFamily: 'monospace', fontSize: '.8rem' }}>{visiblePw.has(u.id) ? u.password : '••••••'}</span><button className="adm-btn adm-btn--ghost" style={{ padding: '2px' }} onClick={() => togglePw(u.id)}>{visiblePw.has(u.id) ? <EyeOff size={12} /> : <Eye size={12} />}</button><button className="adm-btn adm-btn--ghost" style={{ padding: '2px' }} onClick={() => copyText(u.password)} title="Copiar"><Copy size={12} /></button></div></td>
-                                        <td className="adm-table-muted" style={{ fontSize: '.82rem' }}>{u.managedBy?.name || u.managedBy?.email || '—'}</td>
-                                        <td className="adm-table-muted" style={{ fontSize: '.82rem' }}>{formatDate(u.startDate)}</td>
-                                        <td>{expiryBadge(u)}</td>
-                                        <td><span className={`adm-badge adm-badge--${STATUS_COLORS[u.status] || 'gray'}`}>{u.status}</span></td>
-                                        <td>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'flex-start' }}>
-                                                <span className={`adm-badge adm-badge--${TYPE_COLORS[u.type] || 'gray'}`}>{u.type}</span>
-                                                {u.plan && <span style={{ fontSize: '.75rem', color: 'rgba(255,255,255,0.5)' }}>{u.plan.name}</span>}
+                        {loading ? (
+                            <tr><td colSpan={8} className="adm-table-empty"><div className="animate-spin mb-4"><Zap size={24} /></div><p>Cargando clientes...</p></td></tr>
+                        ) : users.length === 0 ? (
+                            <tr><td colSpan={8} className="adm-table-empty"><Search size={32} /><p>No se encontraron clientes</p></td></tr>
+                        ) : (
+                            users.map(u => (
+                                <tr key={u.id}>
+                                    <td>
+                                        <div className="adm-table-user">
+                                            <div className="adm-table-avatar" style={{ background: u.type === 'DEMO' ? 'linear-gradient(135deg, #facc1522, #f59e0b44)' : undefined, color: u.type === 'DEMO' ? '#facc15' : undefined }}>
+                                                {u.username.charAt(0).toUpperCase()}
                                             </div>
-                                        </td>
-                                        <td><button className="adm-btn adm-btn--ghost" style={{ padding: '2px 4px', fontSize: '.8rem' }} onClick={() => setDevicesModal(u)}><DeviceIcons count={u.connectedDevicesCount} max={u.maxDevices} /></button></td>
-                                        <td>
-                                            <div style={{ position: 'relative' }}>
-                                                <button className="adm-btn adm-btn--ghost" style={{ padding: '.3rem' }} onClick={() => setOpenMenu(openMenu === u.id ? null : u.id)}><MoreVertical size={15} /></button>
-                                                {openMenu === u.id && (
-                                                    <div className="adm-dropdown" style={{ position: 'absolute', right: 0, top: '100%', zIndex: 50, minWidth: 180, background: 'var(--adm-surface, #1a1a2e)', borderRadius: 8, boxShadow: '0 4px 20px rgba(0,0,0,.4)', padding: '.3rem', border: '1px solid rgba(255,255,255,.08)' }}>
-                                                        <button className="adm-dropdown-item" onClick={() => { setPwModal(u); setOpenMenu(null); }}>Cambiar contraseña</button>
-                                                        <button className="adm-dropdown-item" onClick={() => { setPlanModal(u); setOpenMenu(null); }}>Agregar plan</button>
-                                                        <button className="adm-dropdown-item" onClick={() => { handlePause(u); setOpenMenu(null); }}>{u.status === 'ACTIVE' ? 'Pausar' : 'Reanudar'}</button>
-                                                        <button className="adm-dropdown-item" onClick={() => { setDevicesModal(u); setOpenMenu(null); }}>Dispositivos</button>
-                                                        {u.status === 'INACTIVE' ? (
-                                                            <button className="adm-dropdown-item" style={{ color: '#f87171' }} onClick={() => { handleDelete(u); setOpenMenu(null); }}>Eliminar</button>
-                                                        ) : (
-                                                            <button className="adm-dropdown-item" style={{ color: 'rgba(248,113,113,0.3)', cursor: 'not-allowed' }} title="Solo se puede eliminar si está inactiva" onClick={() => { alert('Para eliminar la cuenta, primero debe estar INACTIVA.'); setOpenMenu(null); }}>🗑️ Eliminar</button>
-                                                        )}
-                                                    </div>
-                                                )}
+                                            <div className="adm-table-user-info">
+                                                <span className="adm-table-user-name">{u.username}</span>
+                                                <button className="adm-link text-[10px] opacity-40 hover:opacity-100 flex items-center gap-1" onClick={() => copyText(u.username)}><Copy size={10} /> Copiar</button>
                                             </div>
-                                        </td>
-                                    </tr>
-                                ))
-                        }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-mono text-[13px] bg-white/5 px-2 py-0.5 rounded border border-white/5">
+                                                {visiblePw.has(u.id) ? u.password : '••••••••'}
+                                            </span>
+                                            <button className="adm-icon-btn" onClick={() => togglePw(u.id)}>{visiblePw.has(u.id) ? <EyeOff size={14} /> : <Eye size={14} />}</button>
+                                        </div>
+                                    </td>
+                                    <td className="adm-table-muted">{u.managedBy?.name || u.managedBy?.email || '—'}</td>
+                                    <td>{expiryBadge(u)}</td>
+                                    <td><span className={`adm-badge adm-badge--${STATUS_COLORS[u.status] || 'gray'}`}>{u.status}</span></td>
+                                    <td>
+                                        <div className="flex flex-col">
+                                            <span className={`adm-badge adm-badge--${TYPE_COLORS[u.type] || 'gray'} mb-1`}>{u.type}</span>
+                                            {u.plan && <span className="text-[10px] text-purple-400/70 font-bold">{u.plan.name}</span>}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button className="adm-badge adm-badge--gray cursor-pointer hover:bg-white/10 transition-colors" onClick={() => setDevicesModal(u)}>
+                                            <DeviceIcons count={u.connectedDevicesCount} max={u.maxDevices} />
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <div className="adm-table-actions">
+                                            <button className="adm-icon-btn" onClick={() => setOpenMenu(openMenu === u.id ? null : u.id)}><MoreVertical size={16} /></button>
+                                            {openMenu === u.id && (
+                                                <div className="adm-dropdown" style={{ position: 'absolute', right: 20, zIndex: 100, minWidth: 180, background: '#0a0f25', border: '1px solid var(--adm-border)', borderRadius: 12, padding: 6, boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+                                                    <button className="adm-dropdown-item" onClick={() => { setPwModal(u); setOpenMenu(null); }}>Cambiar contraseña</button>
+                                                    <button className="adm-dropdown-item" onClick={() => { setPlanModal(u); setOpenMenu(null); }}>Agregar plan</button>
+                                                    <button className="adm-dropdown-item" onClick={() => { handlePause(u); setOpenMenu(null); }}>{u.status === 'ACTIVE' ? 'Pausar' : 'Reanudar'}</button>
+                                                    <button className="adm-dropdown-item" onClick={() => { setDevicesModal(u); setOpenMenu(null); }}>Dispositivos</button>
+                                                    <div style={{ height: 1, background: 'var(--adm-border)', margin: '4px 0' }} />
+                                                    {u.status === 'INACTIVE' ? (
+                                                        <button className="adm-dropdown-item text-red-400" onClick={() => { handleDelete(u); setOpenMenu(null); }}>Eliminar cuenta</button>
+                                                    ) : (
+                                                        <button className="adm-dropdown-item opacity-30 cursor-not-allowed text-xs" title="Solo inactivos" onClick={() => setOpenMenu(null)}>Eliminar (Solo Inactivos)</button>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
+            </div>
 
+            <div className="adm-table-footer">
+                <span>Mostrando clientes ({users.length})</span>
                 {totalPages > 1 && (
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', padding: '1rem' }}>
-                        <button className="adm-btn adm-btn--ghost" disabled={page <= 1} onClick={() => onPageChange(page - 1)}><ChevronLeft size={16} /></button>
-                        <span style={{ fontSize: '.85rem' }}>{page} / {totalPages}</span>
-                        <button className="adm-btn adm-btn--ghost" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)}><ChevronRight size={16} /></button>
+                    <div className="adm-pagination">
+                        <button className="adm-page-btn" disabled={page <= 1} onClick={() => onPageChange(page - 1)}><ChevronLeft size={14} /></button>
+                        <div className="adm-page-btn adm-page-btn--active">{page}</div>
+                        <button className="adm-page-btn" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)}><ChevronRight size={14} /></button>
                     </div>
                 )}
             </div>
+        </div>
 
-            {planModal && <AddPlanModal account={planModal} onClose={() => setPlanModal(null)} onSuccess={() => { setPlanModal(null); onRefresh(); }} fetchFn={fetchFn} />}
-            {devicesModal && <DevicesModal account={devicesModal} onClose={() => setDevicesModal(null)} onRefresh={onRefresh} fetchFn={fetchFn} />}
-            {pwModal && <ChangePasswordModal account={pwModal} onClose={() => setPwModal(null)} onSuccess={() => { setPwModal(null); onRefresh(); }} fetchFn={fetchFn} />}
+            { planModal && <AddPlanModal account={planModal} onClose={() => setPlanModal(null)} onSuccess={() => { setPlanModal(null); onRefresh(); }} fetchFn={fetchFn} /> }
+    { devicesModal && <DevicesModal account={devicesModal} onClose={() => setDevicesModal(null)} onRefresh={onRefresh} fetchFn={fetchFn} /> }
+    { pwModal && <ChangePasswordModal account={pwModal} onClose={() => setPwModal(null)} onSuccess={() => { setPwModal(null); onRefresh(); }} fetchFn={fetchFn} /> }
         </>
     );
 }
