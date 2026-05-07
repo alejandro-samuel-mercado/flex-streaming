@@ -676,6 +676,26 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                             <h2>Archivos de Video</h2>
                         </div>
                         <div className="adm-settings-body">
+                            {data?.type === 'SERIES' && data.videoFiles && data.videoFiles.length > 0 && (
+                                <div style={{ 
+                                    background: 'rgba(251, 113, 133, 0.1)', 
+                                    border: '1px solid rgba(251, 113, 133, 0.2)', 
+                                    padding: '12px 16px', 
+                                    borderRadius: 12, 
+                                    marginBottom: 16,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 12,
+                                    color: '#fda4af',
+                                    fontSize: '0.8rem'
+                                }}>
+                                    <AlertTriangle size={18} />
+                                    <div>
+                                        <strong>Atención:</strong> Esta serie tiene archivos de video vinculados directamente. 
+                                        Para que aparezcan como episodios, debes ejecutar el script de reparación o moverlos manualmente.
+                                    </div>
+                                </div>
+                            )}
                             {/* Embedded Player Overlay */}
                             {activeVideo && typeof window !== 'undefined' && createPortal(
                                 <div style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'black' }}>
