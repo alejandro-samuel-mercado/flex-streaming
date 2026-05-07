@@ -854,19 +854,19 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                 <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
                                     <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 20 }}>
                                         <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--adm-primary)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                                            <Layout size={18} /> ESTRUCTURA DE TEMPORADAS ({data.seasons.length})
+                                            <Layout size={18} /> ESTRUCTURA DE TEMPORADAS ({data?.seasons?.length || 0})
                                         </h3>
                                     </div>
-                                    {data.seasons.map(season => (
-                                        <div key={season.id} style={{ background: 'rgba(255,255,255,0.02)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+                                    {data?.seasons?.map(season => (
+                                        <div key={season?.id} style={{ background: 'rgba(255,255,255,0.02)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
                                             <div style={{ padding: '12px 20px', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'white' }}>Temporada {season.number}</h4>
-                                                <span style={{ fontSize: '0.75rem', color: 'var(--adm-muted)' }}>{season.episodes.length} episodios</span>
+                                                <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'white' }}>Temporada {season?.number}</h4>
+                                                <span style={{ fontSize: '0.75rem', color: 'var(--adm-muted)' }}>{season?.episodes?.length} episodios</span>
                                             </div>
                                             <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                                {season.episodes.map(episode => {
-                                                    const video = episode.videoFiles?.[0];
-                                                    const epTitle = episode.translations?.[0]?.title || `Episodio ${episode.number}`;
+                                                {season?.episodes?.map(episode => {
+                                                    const video = episode?.videoFiles?.[0];
+                                                    const epTitle = episode?.translations?.[0]?.title || `Episodio ${episode?.number}`;
                                                     return (
                                                         <div key={episode.id} style={{ background: 'rgba(255,255,255,0.02)', padding: '10px 16px', borderRadius: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid rgba(255,255,255,0.03)' }}>
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -907,7 +907,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                                                 const streamUrl = `${backendOrigin}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}`;
                                                                                 setActiveVideo({
                                                                                     url: streamUrl,
-                                                                                    title: `${data?.translations.find(t => t.lang === 'es')?.title} - T${season.number}E${episode.number}`
+                                                                                    title: `${data?.translations?.find(t => t.lang === 'es')?.title || data?.originalTitle || 'Serie'} - T${season?.number}E${episode?.number}`
                                                                                 });
                                                                             }
                                                                         } catch (e) { console.error(e); }

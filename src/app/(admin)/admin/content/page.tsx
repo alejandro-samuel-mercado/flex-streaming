@@ -297,8 +297,8 @@ export default function AdminContentPage() {
                                     </td>
                                     <td>
                                         <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span style={{ fontWeight: 600, color: 'white', fontSize: '0.95rem' }}>{title}</span>
-                                            <code style={{ fontSize: '0.7rem', color: 'var(--adm-muted)', marginTop: 2 }}>{item.slug}</code>
+                                            <span style={{ fontWeight: 600, color: 'white', fontSize: '0.95rem' }}>{item?.translations?.[0]?.title || item?.originalTitle || 'Sin título'}</span>
+                                            <code style={{ fontSize: '0.7rem', color: 'var(--adm-muted)', marginTop: 2 }}>{item?.slug || 'sin-slug'}</code>
                                         </div>
                                     </td>
                                     <td>
