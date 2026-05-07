@@ -22,7 +22,6 @@ export default function ExploreSidebar({ onFilterChange, activeFilters, genres, 
         { id: 'recommended', name: 'Recomendados', icon: <Star size={18} /> },
         { id: 'latest', name: 'Últimos subidos', icon: <Clock size={18} /> },
         { id: 'premieres', name: 'Estrenos', icon: <Calendar size={18} /> },
-        { id: 'free', name: 'Gratis', icon: <Gift size={18} /> },
     ];
 
     const updateFilter = (key: string, value: any) => {

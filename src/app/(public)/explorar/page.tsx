@@ -99,7 +99,6 @@ function ExploreContent() {
                     ...(genreId && { genreId }),
                     ...(platformId && { platformId }),
                     ...(tagId && { tagId }),
-                    ...(quick === 'free' && { isFree: 'true' }),
                     ...(quick === 'recommended' && { featured: 'true' }),
                     ...(quick === 'premieres' && { minYear: new Date().getFullYear().toString() }),
                     ...(quick === 'latest' && { sort: 'recent' }),

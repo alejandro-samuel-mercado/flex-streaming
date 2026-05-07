@@ -196,7 +196,6 @@ export default function HomePage() {
     const featured = useMock ? MOCK_FILMS.slice(0, 5) : (data?.featured || []).map(mapContentToFilm);
     const trending = useMock ? MOCK_FILMS : (data?.trending || []).map(mapContentToFilm);
     const recent = useMock ? [...MOCK_FILMS].reverse() : (data?.recent || []).map(mapContentToFilm);
-    const freeContent = useMock ? MOCK_FILMS.slice(2, 7) : (data?.freeContent || []).map(mapContentToFilm);
     const platforms = useMock ? MOCK_PLATFORMS : (data?.platforms || []);
     const genres = useMock ? MOCK_GENRES : (data?.genres || []);
     const contentTypes = useMock ? MOCK_CONTENT_TYPES : (data?.contentTypes || []);
@@ -304,17 +303,7 @@ export default function HomePage() {
                     exploreUrl="/explorar?sort=recent"
                 />
 
-                {/* 5. Free Content (if user has no plan) */}
-                {!hasPlan && freeContent.length > 0 && (
-                    <FilmRow
-                        title="Contenido Gratis"
-                        subtitle="Disfruta sin necesidad de suscripción"
-                        items={freeContent}
-                        variant="large"
-                        accentColor="#46d369"
-                        exploreUrl="/explorar?quick=free"
-                    />
-                )}
+
 
                 {/* 6. Plans */}
                 {!hasPlan && plans.length > 0 && (

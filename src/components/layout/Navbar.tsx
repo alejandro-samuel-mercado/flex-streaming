@@ -155,10 +155,6 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [] 
                                                         </Link>
                                                     );
                                                 })}
-                                                <Link href="/explorar/gratis" className="nav-cinema-popup-link nav-cinema-popup-link--free" onClick={() => setActiveDropdown(null)}>
-
-                                                    <span className="nav-cinema-popup-label">Gratis</span>
-                                                </Link>
                                             </div>
                                         </div>
                                     )}
@@ -379,9 +375,6 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [] 
                                 {getContentTypeLabel(type)}
                             </Link>
                         ))}
-                        <Link href="/explorar/gratis" onClick={() => setMobileMenuOpen(false)} className="nav-cinema-mobile-link nav-cinema-mobile-link--free">
-                            Gratis
-                        </Link>
 
                         <div className="nav-cinema-mobile-divider" />
                         <p className="nav-cinema-mobile-label">Plataformas</p>
