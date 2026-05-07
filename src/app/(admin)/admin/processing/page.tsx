@@ -218,7 +218,27 @@ export default function ProcessingMonitorPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {videos.map(v => (
+                                {[...videos].sort((a, b) => {
+                                    const priority: Record<string, number> = {
+                                        'PROCESSING': 0,
+                                        'QUEUED': 1,
+                                        'PENDING': 2,
+                                        'FAILED': 3,
+                                        'COMPLETED': 4
+                                    };
+
+                                    if (priority[a.status] !== priority[b.status]) {
+                                        return priority[a.status] - priority[b.status];
+                                    }
+
+                                    // If both are PROCESSING, sort by progress (highest first)
+                                    if (a.status === 'PROCESSING') {
+                                        return (b.progress || 0) - (a.progress || 0);
+                                    }
+
+                                    // Fallback to createdAt
+                                    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                                }).map(v => (
                                     <tr key={v.id}>
                                         <td>
                                             <div style={{ fontWeight: 600, color: 'white' }}>{v?.content?.slug || 'Sin título'}</div>
