@@ -153,11 +153,17 @@ export default function HomePage() {
                 .then(res => res.json())
                 .then(resJson => {
                     if (resJson.success && resJson.data) {
-                        setContinueWatching(resJson.data.map((h: any) => ({
-                            ...mapContentToFilm(h.content),
-                            progress: h.progress,
-                            duration: h.duration
-                        })));
+                        setContinueWatching(resJson.data.map((h: any) => {
+                            const film = mapContentToFilm(h.content);
+                            return {
+                                ...film,
+                                episodeId: h.episodeId,
+                                progress: h.progress,
+                                duration: h.duration,
+                                // Enlace directo al reproductor para "Continuar viendo"
+                                customLink: `/watch/${film.id}${h.episodeId ? `?episodeId=${h.episodeId}` : ''}`
+                            };
+                        }));
                     }
                 })
                 .catch(console.error);

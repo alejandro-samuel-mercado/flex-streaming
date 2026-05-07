@@ -164,6 +164,68 @@ export default function FilmDetailPage() {
                     </div>
                 </div>
             </section>
+            
+            {/* ═══ SEASONS & EPISODES (Moved Higher) ═══ */}
+            {isSeries && seasons.length > 0 && (
+                <section style={{ padding: '40px 7% 0', position: 'relative', zIndex: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+                        <h3 style={{ fontSize: 13, fontWeight: 900, letterSpacing: 4, color: 'rgba(0,229,255,0.8)', textTransform: 'uppercase', margin: 0 }}>
+                            Temporadas
+                        </h3>
+                        {seasons.length > 1 && (
+                            <div style={{ position: 'relative' }}>
+                                <select
+                                    value={selectedSeason}
+                                    onChange={e => setSelectedSeason(Number(e.target.value))}
+                                    style={{ appearance: 'none', background: 'rgba(15,21,50,0.8)', border: '1px solid rgba(0,229,255,0.3)', color: 'white', padding: '8px 36px 8px 16px', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+                                >
+                                    {seasons.map((s: any, i: number) => (
+                                        <option key={s.id} value={i} style={{ background: '#0f1532' }}>
+                                            Temporada {s.number} {s.translations?.[0]?.title ? `— ${s.translations[0].title}` : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown size={16} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#00E5FF' }} />
+                            </div>
+                        )}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 12 }}>
+                        {(currentSeason?.episodes || []).map((ep: any) => {
+                            const epTitle = ep.translations?.[0]?.title || `Episodio ${ep.number}`;
+                            const epDesc = ep.translations?.[0]?.description || '';
+                            const epThumb = ep.thumbnails?.[0]?.url;
+                            const epReady = ep.videoFiles?.some((v: any) => v.status === 'COMPLETED');
+                            return (
+                                <Link 
+                                    href={epReady ? `/watch/${id}?episodeId=${ep.id}` : '#'} 
+                                    key={ep.id} 
+                                    className="episode-card" 
+                                    style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 12, borderRadius: 16, textDecoration: 'none', transition: 'all 0.3s', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.03)' }}
+                                >
+                                    <div style={{ position: 'relative', width: 120, aspectRatio: '16/9', borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: 'rgba(255,255,255,0.05)' }}>
+                                        {epThumb ? <img src={resolveImageUrl(epThumb)} alt={epTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.7)' }} /> : <div style={{ width: '100%', height: '100%', background: 'rgba(255,255,255,0.03)' }} />}
+                                        {epReady && (
+                                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(0,229,255,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <Play size={16} fill="black" style={{ color: 'black', marginLeft: 2 }} />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <h5 style={{ fontSize: 14, fontWeight: 800, color: 'white', marginBottom: 2 }}>
+                                            <span style={{ color: '#00E5FF', marginRight: 6 }}>{ep.number}.</span>
+                                            {epTitle}
+                                        </h5>
+                                        {epDesc && <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{epDesc}</p>}
+                                    </div>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </section>
+            )}
 
             {/* ═══ MAIN CONTENT AREA ═══ */}
             <section style={{ padding: '60px 7% 0', position: 'relative', zIndex: 10 }}>
@@ -258,66 +320,6 @@ export default function FilmDetailPage() {
                     </div>
                 )}
 
-                {/* ── Seasons & Episodes (only for series-type content) ── */}
-                {isSeries && seasons.length > 0 && (
-                    <div style={{ marginBottom: 64 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
-                            <h3 style={{ fontSize: 13, fontWeight: 900, letterSpacing: 4, color: 'rgba(0,229,255,0.8)', textTransform: 'uppercase', margin: 0 }}>
-                                Temporadas
-                            </h3>
-                            {seasons.length > 1 && (
-                                <div style={{ position: 'relative' }}>
-                                    <select
-                                        value={selectedSeason}
-                                        onChange={e => setSelectedSeason(Number(e.target.value))}
-                                        style={{ appearance: 'none', background: 'rgba(15,21,50,0.8)', border: '1px solid rgba(0,229,255,0.3)', color: 'white', padding: '8px 36px 8px 16px', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
-                                    >
-                                        {seasons.map((s: any, i: number) => (
-                                            <option key={s.id} value={i} style={{ background: '#0f1532' }}>
-                                                Temporada {s.number} {s.translations?.[0]?.title ? `— ${s.translations[0].title}` : ''}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown size={16} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#00E5FF' }} />
-                                </div>
-                            )}
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            {(currentSeason?.episodes || []).map((ep: any) => {
-                                const epTitle = ep.translations?.[0]?.title || `Episodio ${ep.number}`;
-                                const epDesc = ep.translations?.[0]?.description || '';
-                                const epThumb = ep.thumbnails?.[0]?.url;
-                                const epReady = ep.videoFiles?.some((v: any) => v.status === 'COMPLETED');
-                                return (
-                                    <div key={ep.id} className="episode-card" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 16, borderRadius: 16, cursor: epReady ? 'pointer' : 'default' }}>
-                                        <div style={{ position: 'relative', width: 160, aspectRatio: '16/9', borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: 'rgba(255,255,255,0.05)' }}>
-                                            {epThumb ? <img src={resolveImageUrl(epThumb)} alt={epTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.8)' }} /> : <div style={{ width: '100%', height: '100%', background: 'rgba(255,255,255,0.03)' }} />}
-                                            {epReady && (
-                                                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.7 }}>
-                                                    <Play size={24} fill="white" className="episode-play-btn" style={{ color: 'white', filter: 'drop-shadow(0 0 10px rgba(0,229,255,0.8))', opacity: 0.7 }} />
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <h5 style={{ fontSize: 16, fontWeight: 800, color: 'white', marginBottom: 4 }}>
-                                                <span style={{ color: 'rgba(0,229,255,0.6)', marginRight: 8 }}>{ep.number}.</span>
-                                                {epTitle}
-                                            </h5>
-                                            {epDesc && <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{epDesc}</p>}
-                                        </div>
-                                        {ep.duration && <span style={{ color: '#00E5FF', fontWeight: 700, fontSize: 14, flexShrink: 0 }}>{ep.duration} min</span>}
-                                    </div>
-                                );
-                            })}
-                            {(!currentSeason?.episodes || currentSeason.episodes.length === 0) && (
-                                <div style={{ textAlign: 'center', padding: 48, color: 'rgba(255,255,255,0.3)', borderRadius: 20, border: '1px dashed rgba(0,229,255,0.15)', background: 'rgba(8,13,36,0.3)' }}>
-                                    No hay episodios disponibles para esta temporada.
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
             </section>
 
             {/* ── Comments ── */}

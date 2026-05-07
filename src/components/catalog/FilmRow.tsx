@@ -15,6 +15,8 @@ interface FilmItem {
     type?: string;
     duration?: number | null;
     genres?: string[];
+    customLink?: string;
+    progress?: number;
 }
 
 interface FilmRowProps {
@@ -81,7 +83,7 @@ export default function FilmRow({ title, subtitle, items, variant = 'default', a
                 {/* Scrollable row */}
                 <div ref={scrollRef} className={`film-row-track film-row-track--${variant}`} onScroll={handleScroll}>
                     {items.map((item, index) => (
-                        <Link key={item.id} href={`/film/${item.id}`} className={`film-card film-card--${variant}`}>
+                        <Link key={item.id} href={item.customLink || `/film/${item.id}`} className={`film-card film-card--${variant}`}>
                             {/* Number for numbered variant */}
                             {variant === 'numbered' && (
                                 <span className="film-card-number">{index + 1}</span>
@@ -106,6 +108,13 @@ export default function FilmRow({ title, subtitle, items, variant = 'default', a
                                         <Plus size={16} />
                                     </button>
                                 </div>
+
+                                {/* Progress bar for "Continue Watching" */}
+                                {item.progress !== undefined && item.duration && (
+                                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 4, background: 'rgba(255,255,255,0.2)', zIndex: 5 }}>
+                                        <div style={{ width: `${Math.min(100, (item.progress / item.duration) * 100)}%`, height: '100%', background: 'var(--color-primary)', boxShadow: '0 0 10px var(--color-primary)' }} />
+                                    </div>
+                                )}
                             </div>
 
                             {/* Info */}
