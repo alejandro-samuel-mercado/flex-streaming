@@ -67,6 +67,21 @@ interface ContentData {
             url: string;
         }[];
     }[];
+    seasons?: {
+        id: string;
+        number: number;
+        episodes: {
+            id: string;
+            number: number;
+            translations: { title: string; description: string }[];
+            videoFiles: {
+                id: string;
+                status: string;
+                masterPlaylist?: string;
+                resolution?: string;
+            }[];
+        }[];
+    }[];
     thumbnails?: {
         id?: string;
         type: string;
@@ -138,6 +153,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                     revenue: item.revenue ? Number(item.revenue) : undefined,
                     isAdult: item.isAdult || false,
                     isFreeWithMembership: item.isFreeWithMembership ?? true,
+                    seasons: item.seasons || [],
                 });
 
             }
@@ -663,18 +679,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                             {/* Embedded Player Overlay */}
                             {activeVideo && typeof window !== 'undefined' && createPortal(
                                 <div style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'black' }}>
-                                    <button
-                                        onClick={() => setActiveVideo(null)}
-                                        style={{
-                                            position: 'absolute', top: 20, right: 20, zIndex: 9999999,
-                                            background: 'rgba(229, 9, 20, 0.8)', color: 'white',
-                                            border: 'none', borderRadius: '8px', padding: '8px 16px',
-                                            fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer',
-                                            display: 'flex', alignItems: 'center', gap: '8px'
-                                        }}
-                                    >
-                                        <X size={20} /> CERRAR VISTA PREVIA
-                                    </button>
+
                                     <VideoPlayer
                                         src={activeVideo.url}
                                         title={activeVideo.title}
@@ -744,11 +749,11 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                                     if (resJson.success) {
                                                                         const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
                                                                         const backendOrigin = new URL(apiUrl).origin;
-                                                                        
+
                                                                         // Reconstruct URL to be resilient to old/incorrect paths in DB
                                                                         const filename = video.masterPlaylist?.split('/').pop() || 'master.m3u8';
                                                                         const streamUrl = `${backendOrigin}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}`;
-                                                                        
+
                                                                         setActiveVideo({
                                                                             url: streamUrl,
                                                                             title: data?.translations.find(t => t.lang === 'es')?.title || 'Video'
@@ -818,6 +823,84 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                 ) : (
                                                     <div style={{ fontSize: '.7rem', color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>No hay subtítulos externos.</div>
                                                 )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Seasons & Episodes Section (Only for Series) */}
+                            {data?.type === 'SERIES' && data.seasons && data.seasons.length > 0 && (
+                                <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+                                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 20 }}>
+                                        <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--adm-primary)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            <Layout size={18} /> ESTRUCTURA DE TEMPORADAS ({data.seasons.length})
+                                        </h3>
+                                    </div>
+                                    {data.seasons.map(season => (
+                                        <div key={season.id} style={{ background: 'rgba(255,255,255,0.02)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+                                            <div style={{ padding: '12px 20px', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'white' }}>Temporada {season.number}</h4>
+                                                <span style={{ fontSize: '0.75rem', color: 'var(--adm-muted)' }}>{season.episodes.length} episodios</span>
+                                            </div>
+                                            <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                                {season.episodes.map(episode => {
+                                                    const video = episode.videoFiles?.[0];
+                                                    const epTitle = episode.translations?.[0]?.title || `Episodio ${episode.number}`;
+                                                    return (
+                                                        <div key={episode.id} style={{ background: 'rgba(255,255,255,0.02)', padding: '10px 16px', borderRadius: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid rgba(255,255,255,0.03)' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                                                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(99,102,241,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#818cf8', fontSize: '0.75rem', fontWeight: 800 }}>
+                                                                    {episode.number}
+                                                                </div>
+                                                                <div>
+                                                                    <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'white' }}>{epTitle}</p>
+                                                                    {video ? (
+                                                                        <span style={{ fontSize: '0.7rem', color: '#4ade80', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                                            <CheckCircle2 size={10} /> {video.resolution || 'HLS READY'}
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span style={{ fontSize: '0.7rem', color: '#fb7185', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                                            <AlertTriangle size={10} /> Sin video
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            {video?.status === 'COMPLETED' && (
+                                                                <button 
+                                                                    onClick={async () => {
+                                                                        try {
+                                                                            const token = localStorage.getItem('adminToken');
+                                                                            const res = await fetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
+                                                                                method: 'POST',
+                                                                                headers: {
+                                                                                    'Content-Type': 'application/json',
+                                                                                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                                                                                },
+                                                                                body: JSON.stringify({ contentId: id })
+                                                                            });
+                                                                            const resJson = await res.json();
+                                                                            if (resJson.success) {
+                                                                                const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+                                                                                const backendOrigin = new URL(apiUrl).origin;
+                                                                                const filename = video.masterPlaylist?.split('/').pop() || 'master.m3u8';
+                                                                                const streamUrl = `${backendOrigin}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}`;
+                                                                                setActiveVideo({
+                                                                                    url: streamUrl,
+                                                                                    title: `${data?.translations.find(t => t.lang === 'es')?.title} - T${season.number}E${episode.number}`
+                                                                                });
+                                                                            }
+                                                                        } catch (e) { console.error(e); }
+                                                                    }}
+                                                                    className="adm-btn adm-btn--ghost adm-btn--sm" 
+                                                                    style={{ fontSize: '0.7rem', padding: '4px 10px' }}
+                                                                >
+                                                                    Ver Episodio
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     ))}

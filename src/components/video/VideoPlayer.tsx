@@ -535,12 +535,7 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-6">
-                        <div className="flex flex-col items-end mr-4">
-                            <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Calidad</span>
-                            <span className="text-xs font-bold text-[var(--color-primary)]">ULTRA HD 4K</span>
-                        </div>
-                    </div>
+
                 </div>
             )}
 
