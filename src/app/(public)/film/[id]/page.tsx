@@ -73,7 +73,12 @@ export default function FilmDetailPage() {
 
     const backdropUrl = resolveImageUrl(backdrop);
     const posterUrl = resolveImageUrl(poster);
-    const canPlay = content.status === 'READY' || content.videoFiles?.some((v: any) => v.type === 'MOVIE' && v.status === 'COMPLETED');
+    const hasCompletedEpisodes = seasons.some((s: any) => 
+        s.episodes?.some((e: any) => 
+            e.videoFiles?.some((v: any) => v.status === 'COMPLETED')
+        )
+    );
+    const canPlay = content.status === 'READY' || hasCompletedEpisodes || content.videoFiles?.some((v: any) => v.type === 'MOVIE' && v.status === 'COMPLETED');
     const formatMoney = (n: any) => {
         if (!n || n === '0' || n === 0) return null;
         const num = Number(n);
