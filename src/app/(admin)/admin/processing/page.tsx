@@ -221,8 +221,8 @@ export default function ProcessingMonitorPage() {
                                 {videos.map(v => (
                                     <tr key={v.id}>
                                         <td>
-                                            <div style={{ fontWeight: 600, color: 'white' }}>{v.content.slug}</div>
-                                            <div style={{ fontSize: '.7rem', color: 'var(--adm-muted)' }}>ID: {v.id.slice(-8)}</div>
+                                            <div style={{ fontWeight: 600, color: 'white' }}>{v?.content?.slug || 'Sin título'}</div>
+                                            <div style={{ fontSize: '.7rem', color: 'var(--adm-muted)' }}>ID: {v?.id?.slice(-8)}</div>
                                         </td>
                                         <td>
                                             <span className="adm-badge" style={{
@@ -285,7 +285,7 @@ export default function ProcessingMonitorPage() {
                                                     <button
                                                         className="adm-btn"
                                                         style={{ padding: '6px 12px', background: 'var(--adm-primary)', color: 'white', border: 'none' }}
-                                                        onClick={() => handleRetry(v.id, v.content.slug)}
+                                                        onClick={() => handleRetry(v.id, v?.content?.slug || 'video')}
                                                     >
                                                         Reintentar
                                                     </button>
@@ -294,7 +294,7 @@ export default function ProcessingMonitorPage() {
                                                     <button
                                                         className="adm-btn"
                                                         style={{ padding: '6px 12px', background: 'var(--adm-danger)', color: 'white', border: 'none' }}
-                                                        onClick={() => handleCancel(v.id, v.content.slug)}
+                                                        onClick={() => handleCancel(v.id, v?.content?.slug || 'video')}
                                                     >
                                                         Cancelar
                                                     </button>
