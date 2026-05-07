@@ -1,4 +1,14 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
+const getApiBaseUrl = () => {
+    if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+    if (typeof window !== 'undefined') {
+        if (window.location.hostname.includes('unixxtech.online')) {
+            return 'https://api-streamflex.unixxtech.online/api';
+        }
+    }
+    return 'http://localhost:4000/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Robust calculation of API_ORIGIN: remove the trailing /api or /api/ safely
 export const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');

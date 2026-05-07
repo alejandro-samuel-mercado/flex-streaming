@@ -119,8 +119,8 @@ export default function HomePage() {
     const [continueWatching, setContinueWatching] = useState<any[]>([]);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        const profileId = localStorage.getItem('currentProfileId');
+        const token = localStorage.getItem('accessToken');
+        const profileId = localStorage.getItem('profileId');
 
         if (token && profileId) {
             setIsLoggedIn(true);
