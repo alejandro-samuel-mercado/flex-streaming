@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Star, MessageSquare, Send, Reply, User } from 'lucide-react';
 import { API_ROUTES } from '@/lib/api-routes';
+import { useAuth } from '@/context/AuthContext';
 
 export default function FilmComments({ contentId }: { contentId: string }) {
-    const [user, setUser] = useState<{ id: string } | null>(null);
+    const { user: authUser } = useAuth();
     const [reviews, setReviews] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -18,13 +19,7 @@ export default function FilmComments({ contentId }: { contentId: string }) {
     const [replyBody, setReplyBody] = useState('');
     const [submittingReply, setSubmittingReply] = useState(false);
 
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        const profileId = localStorage.getItem('profileId');
-        if (token && profileId) {
-            setUser({ id: profileId });
-        }
-    }, []);
+    const profileId = typeof window !== 'undefined' ? localStorage.getItem('profileId') : null;
 
     const fetchReviews = useCallback(async () => {
         try {
@@ -51,7 +46,7 @@ export default function FilmComments({ contentId }: { contentId: string }) {
 
         setSubmitting(true);
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('accessToken');
             const profileId = localStorage.getItem('profileId');
             if (!token || !profileId) return;
 
@@ -89,7 +84,7 @@ export default function FilmComments({ contentId }: { contentId: string }) {
 
         setSubmittingReply(true);
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('accessToken');
             const profileId = localStorage.getItem('profileId');
             if (!token || !profileId) return;
 
@@ -132,7 +127,7 @@ export default function FilmComments({ contentId }: { contentId: string }) {
             </h3>
 
             {/* Comment Form */}
-            {user ? (
+            {authUser && profileId ? (
                 <div className="bg-white/5 rounded-2xl p-6! mb-10 border border-white/10">
                     <h4 className="font-bold text-lg mb-4">Deja tu valoración</h4>
                     <form onSubmit={handleSubmit}>
@@ -207,7 +202,7 @@ export default function FilmComments({ contentId }: { contentId: string }) {
                                     </div>
                                     <p className="text-white/80 leading-relaxed mb-3">{review.body}</p>
 
-                                    {user && (
+                                    {authUser && profileId && (
                                         <button
                                             onClick={() => setReplyingTo(replyingTo === review.id ? null : review.id)}
                                             className="text-xs font-bold text-white/40 hover:text-[#00E5FF] transition-colors flex items-center gap-1"

@@ -9,6 +9,8 @@ import FilmComments from '@/components/film/FilmComments';
 import TrailerModal from '@/components/film/TrailerModal';
 import Link from 'next/link';
 import { getContentTypeLabel } from '@/lib/content-types';
+import { useAuth } from '@/context/AuthContext';
+import { Check } from 'lucide-react';
 
 // Types that have seasons/episodes
 const SERIES_TYPES = ['SERIES', 'ANIME', 'NOVELA', 'REALITY_SHOW', 'TALK_SHOW', 'VARIETY_SHOW', 'EDUCATIONAL', 'KIDS', 'FAMILY', 'DOCUDRAMA'];
@@ -28,6 +30,9 @@ export default function FilmDetailPage() {
     const [loading, setLoading] = useState(true);
     const [isTrailerOpen, setIsTrailerOpen] = useState(false);
     const [selectedSeason, setSelectedSeason] = useState(0);
+    const { user: authUser } = useAuth();
+    const [isFavorited, setIsFavorited] = useState(false);
+    const [isLiked, setIsLiked] = useState(false); // Visual feedback only
 
     useEffect(() => {
         const fetchContent = async () => {
@@ -57,6 +62,49 @@ export default function FilmDetailPage() {
         fetchContent();
     }, [id]);
 
+    useEffect(() => {
+        const checkFav = async () => {
+            const token = localStorage.getItem('accessToken');
+            const profileId = localStorage.getItem('profileId');
+            if (!token || !profileId) return;
+
+            try {
+                const res = await fetch(`${API_ROUTES.FAVORITES.BASE}/check/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'x-profile-id': profileId
+                    }
+                });
+                const json = await res.json();
+                if (json.success) setIsFavorited(json.data.isFavorited);
+            } catch (err) { console.error(err); }
+        };
+        if (authUser) checkFav();
+    }, [id, authUser]);
+
+    const handleToggleFavorite = async () => {
+        const token = localStorage.getItem('accessToken');
+        const profileId = localStorage.getItem('profileId');
+        if (!token || !profileId) {
+            alert('Inicia sesión para guardar en tu lista');
+            return;
+        }
+
+        try {
+            const res = await fetch(API_ROUTES.FAVORITES.TOGGLE, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'x-profile-id': profileId
+                },
+                body: JSON.stringify({ contentId: id })
+            });
+            const json = await res.json();
+            if (json.success) setIsFavorited(json.data.favorited);
+        } catch (err) { console.error(err); }
+    };
+
     if (loading) return <div style={{ minHeight: '100vh', background: '#030612', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>Cargando...</div>;
     if (!content) return <div style={{ minHeight: '100vh', background: '#030612', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>No encontrado</div>;
 
@@ -73,8 +121,8 @@ export default function FilmDetailPage() {
 
     const backdropUrl = resolveImageUrl(backdrop);
     const posterUrl = resolveImageUrl(poster);
-    const hasCompletedEpisodes = seasons.some((s: any) => 
-        s.episodes?.some((e: any) => 
+    const hasCompletedEpisodes = seasons.some((s: any) =>
+        s.episodes?.some((e: any) =>
             e.videoFiles?.some((v: any) => v.status === 'COMPLETED')
         )
     );
@@ -92,20 +140,21 @@ export default function FilmDetailPage() {
             <TrailerModal url={content.trailerUrl || ''} isOpen={isTrailerOpen} onClose={() => setIsTrailerOpen(false)} />
 
             {/* ═══ HERO BANNER ═══ */}
-            <section style={{ position: 'relative', height: '85vh', width: '100%', overflow: 'hidden', paddingTop: 20 }}>
+            <section style={{ position: 'relative', height: '85vh', width: '100%', overflow: 'hidden' }}>
                 {backdropUrl && <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${backdropUrl})`, backgroundSize: 'cover', backgroundPosition: 'center 15%', transform: 'scale(1.05)' }} />}
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, #030612 0%, rgba(3,6,18,0.7) 50%, transparent 100%)' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #030612 0%, rgba(3,6,18,0.3) 50%, transparent 100%)' }} />
 
                 {/* Back */}
-                <div style={{ position: 'absolute', top: 64, left: '7%', zIndex: 50 }}>
+                <div style={{ position: 'absolute', top: 74, left: '7%', zIndex: 50 }}>
                     <Link href="/" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 48, height: 48, borderRadius: '50%', background: 'rgba(3,6,18,0.5)', backdropFilter: 'blur(12px)', border: '1px solid rgba(0,229,255,0.2)', color: 'white', textDecoration: 'none', transition: 'all 0.3s' }}>
                         <ArrowLeft size={24} />
                     </Link>
                 </div>
 
                 {/* Hero Content */}
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingLeft: '7%', paddingRight: '7%', paddingBottom: 120 }}>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', paddingLeft: '7%', paddingRight: '7%', paddingBottom: 120, paddingTop: 140 }}>
+                    <div style={{ flex: 1 }} />
                     <div style={{ maxWidth: '900px' }}>
                         {/* Badges */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 24 }}>
@@ -159,17 +208,25 @@ export default function FilmDetailPage() {
                                     <MonitorPlay size={22} /> TRÁILER
                                 </button>
                             )}
-                            <button style={{ width: 56, height: 56, borderRadius: '50%', border: '1px solid rgba(0,229,255,0.3)', background: 'rgba(8,13,36,0.6)', backdropFilter: 'blur(20px)', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Plus size={26} />
+                            <button
+                                onClick={handleToggleFavorite}
+                                style={{ width: 56, height: 56, borderRadius: '50%', border: isFavorited ? '1px solid #00E5FF' : '1px solid rgba(0,229,255,0.3)', background: isFavorited ? 'rgba(0,229,255,0.1)' : 'rgba(8,13,36,0.6)', backdropFilter: 'blur(20px)', color: isFavorited ? '#00E5FF' : 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}
+                                title={isFavorited ? "Quitar de mi lista" : "Añadir a mi lista"}
+                            >
+                                {isFavorited ? <Check size={26} /> : <Plus size={26} />}
                             </button>
-                            <button style={{ width: 56, height: 56, borderRadius: '50%', border: '1px solid rgba(0,229,255,0.3)', background: 'rgba(8,13,36,0.6)', backdropFilter: 'blur(20px)', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <ThumbsUp size={22} />
+                            <button
+                                onClick={() => setIsLiked(!isLiked)}
+                                style={{ width: 56, height: 56, borderRadius: '50%', border: isLiked ? '1px solid #00E5FF' : '1px solid rgba(0,229,255,0.3)', background: isLiked ? 'rgba(0,229,255,0.1)' : 'rgba(8,13,36,0.6)', backdropFilter: 'blur(20px)', color: isLiked ? '#00E5FF' : 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}
+                                title="Me gusta"
+                            >
+                                <ThumbsUp size={22} fill={isLiked ? "currentColor" : "none"} />
                             </button>
                         </div>
                     </div>
                 </div>
             </section>
-            
+
             {/* ═══ SEASONS & EPISODES (Moved Higher) ═══ */}
             {isSeries && seasons.length > 0 && (
                 <section style={{ padding: '40px 7% 0', position: 'relative', zIndex: 10 }}>
@@ -202,10 +259,10 @@ export default function FilmDetailPage() {
                             const epThumb = ep.thumbnails?.[0]?.url;
                             const epReady = ep.videoFiles?.some((v: any) => v.status === 'COMPLETED');
                             return (
-                                <Link 
-                                    href={epReady ? `/watch/${id}?episodeId=${ep.id}` : '#'} 
-                                    key={ep.id} 
-                                    className="episode-card" 
+                                <Link
+                                    href={epReady ? `/watch/${id}?episodeId=${ep.id}` : '#'}
+                                    key={ep.id}
+                                    className="episode-card"
                                     style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 12, borderRadius: 16, textDecoration: 'none', transition: 'all 0.3s', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.03)' }}
                                 >
                                     <div style={{ position: 'relative', width: 120, aspectRatio: '16/9', borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: 'rgba(255,255,255,0.05)' }}>
