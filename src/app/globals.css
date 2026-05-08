@@ -726,7 +726,7 @@ body {
 .poster-card {
     position: relative;
     flex: 0 0 calc(16.666% - 8px);
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 2 / 3;
     border-radius: var(--radius-lg);
     background-color: var(--color-surface);
     cursor: pointer;
@@ -4225,6 +4225,7 @@ body {
     overflow: hidden;
     aspect-ratio: 2/3 !important;
     width: 100%;
+    height: 270px;
     background: var(--color-surface);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
     transition: all 0.4s ease;
@@ -4232,7 +4233,7 @@ body {
 
 /* Forzamos el tamaño en la variante grande */
 .film-card--large .film-card-img-wrap {
-    /* No height needed, aspect-ratio handles it */
+    height: 330px;
 }
 
 .film-card:hover .film-card-img-wrap {

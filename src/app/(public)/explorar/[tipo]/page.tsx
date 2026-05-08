@@ -105,7 +105,7 @@ export default function ExplorePage() {
           : 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8'
       }`}>
         {ITEMS_WITH_IMAGES.map((item) => (
-          <div key={item.id} className="aspect-[16/9] relative">
+          <div key={item.id} className="aspect-[2/3] relative">
             <ContentCard {...item} />
           </div>
         ))}
