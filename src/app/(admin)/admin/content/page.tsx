@@ -342,23 +342,36 @@ export default function AdminContentPage() {
                                                     ▶ Tráiler
                                                 </span>
                                             )}
-                                            {(item.videoFiles || []).map((v, i) => (
-                                                <div key={i} title={`Video ${i + 1}: ${v.status}`} className="adm-badge" style={{
-                                                    background: v.status === 'READY' || v.status === 'COMPLETED' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(167, 139, 250, 0.1)',
-                                                    color: v.status === 'READY' || v.status === 'COMPLETED' ? '#4ade80' : '#a78bfa',
-                                                    width: 'fit-content'
-                                                }}>
-                                                    <Film size={11} className={v.status === 'PROCESSING' ? 'animate-spin' : ''} style={{ marginRight: 4 }} />
-                                                    {v.qualities && v.qualities.length > 0 ? v.qualities[v.qualities.length - 1].resolution : 'Auto'}
-                                                </div>
-                                            ))}
+                                            {(item.videoFiles || []).map((v, i) => {
+                                                const isFailed = v.status === 'FAILED' || v.status === 'ERROR';
+                                                const isProcessing = v.status === 'PROCESSING' || v.status === 'QUEUED';
+                                                const isCompleted = v.status === 'READY' || v.status === 'COMPLETED';
+                                                
+                                                return (
+                                                    <div key={i} title={`Video ${i + 1}: ${v.status}`} className="adm-badge" style={{
+                                                        background: isFailed ? 'rgba(244, 63, 94, 0.1)' : isCompleted ? 'rgba(74, 222, 128, 0.1)' : 'rgba(167, 139, 250, 0.1)',
+                                                        color: isFailed ? '#f43f5e' : isCompleted ? '#4ade80' : '#a78bfa',
+                                                        width: 'fit-content',
+                                                        border: isFailed ? '1px solid rgba(244, 63, 94, 0.2)' : 'none'
+                                                    }}>
+                                                        {isFailed ? <AlertTriangle size={11} style={{ marginRight: 4 }} /> : <Film size={11} className={isProcessing ? 'animate-spin' : ''} style={{ marginRight: 4 }} />}
+                                                        {isFailed ? 'FALLIDO' : (v.qualities && v.qualities.length > 0 ? v.qualities[v.qualities.length - 1].resolution : 'Auto')}
+                                                    </div>
+                                                );
+                                            })}
                                             {(!item.videoFiles || item.videoFiles.length === 0) && !item.trailerUrl && <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)' }}>Sin contenido multimedia</span>}
                                         </div>
                                     </td>
                                     <td>
-                                        <span className={STATUS_CLASS[item.status] ?? 'adm-badge adm-badge--gray'}>
-                                            {item.status}
-                                        </span>
+                                        {item.status === 'READY' && item.videoFiles?.some(v => v.status === 'FAILED' || v.status === 'ERROR') ? (
+                                            <span className="adm-badge adm-badge--red" title="El contenido dice estar LISTO pero tiene archivos fallidos">
+                                                ERROR (SYNC)
+                                            </span>
+                                        ) : (
+                                            <span className={STATUS_CLASS[item.status] ?? 'adm-badge adm-badge--gray'}>
+                                                {item.status}
+                                            </span>
+                                        )}
                                     </td>
                                     <td>
                                         <div className="adm-table-actions" style={{ justifyContent: 'flex-end' }}>
