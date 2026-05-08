@@ -358,13 +358,16 @@ export default function AdminUsersPage() {
                                                         </div>
                                                         <div>
                                                             <div style={{ fontWeight: 600, color: 'white' }}>{user.name}</div>
-                                                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)' }}>{user.email}</div>
+                                                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', display: 'flex', gap: '8px' }}>
+                                                                {user.username && <span style={{ color: '#a78bfa', fontWeight: 600 }}>@{user.username}</span>}
+                                                                <span>{user.email}</span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <span className="adm-badge adm-badge--purple">
-                                                        {getRoleLabel(user.role).toUpperCase()}
+                                                        {(getRoleLabel(user.role) || '').toUpperCase()}
                                                     </span>
                                                 </td>
                                                 <td>
@@ -392,7 +395,8 @@ export default function AdminUsersPage() {
                                                                 {user.name}
                                                                 {user._count?.memberships > 0 && <Crown size={14} color="#fbbf24" />}
                                                             </div>
-                                                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                                {user.username && <span style={{ color: '#60a5fa', fontWeight: 600 }}>@{user.username}</span>}
                                                                 <Mail size={12} /> {user.email}
                                                             </div>
                                                         </div>
@@ -512,16 +516,29 @@ export default function AdminUsersPage() {
                                     />
                                 </div>
 
-                                <div className="adm-form-group">
-                                    <label className="adm-label">Correo Electrónico</label>
-                                    <input
-                                        type="email"
-                                        className="adm-input"
-                                        required
-                                        placeholder="ejemplo@correo.com"
-                                        value={formData.email}
-                                        onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                    />
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                                    <div className="adm-form-group">
+                                        <label className="adm-label">Correo Electrónico</label>
+                                        <input
+                                            type="email"
+                                            className="adm-input"
+                                            required
+                                            placeholder="ejemplo@correo.com"
+                                            value={formData.email}
+                                            onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="adm-form-group">
+                                        <label className="adm-label">Nombre de Usuario</label>
+                                        <input
+                                            type="text"
+                                            className="adm-input"
+                                            required
+                                            placeholder="Ej: juan.perez"
+                                            value={formData.username}
+                                            onChange={e => setFormData({ ...formData, username: e.target.value })}
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="adm-form-group">
@@ -840,11 +857,13 @@ export default function AdminUsersPage() {
 
                                     {/* Summary */}
                                     {euSelectedPlan && (
-                                        <div style={{ padding: '.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '.85rem', border: '1px solid rgba(255,255,255,.06)' }}>
-                                            <div style={{ fontWeight: 600, marginBottom: '.3rem' }}>Resumen</div>
-                                            <div>Plan: <strong>{euSelectedPlan.name}</strong></div>
-                                            <div>Duración: <strong>{euSelectedPlan.isDemo ? `${euSelectedPlan.demoHours}h` : `${euSelectedPlan.durationDays} días`}{euSelectedPlan.bonusDays ? ` (+${euSelectedPlan.bonusDays} bonus)` : ''}</strong></div>
-                                            <div>Dispositivos: <strong>{euSelectedPlan.maxDevices} {euSelectedPlan.maxDevices === 1 ? 'dispositivo' : 'dispositivos'}</strong></div>
+                                        <div style={{ padding: '.75rem', background: 'rgba(139,92,246,0.05)', borderRadius: '10px', fontSize: '.85rem', border: '1px solid rgba(139,92,246,0.2)', marginTop: '1rem' }}>
+                                            <div style={{ fontWeight: 700, marginBottom: '.4rem', color: '#a78bfa', textTransform: 'uppercase', fontSize: '.75rem', letterSpacing: '0.05em' }}>Resumen de Suscripción</div>
+                                            <div style={{ marginBottom: '.2rem' }}>Plan: <strong style={{ color: 'white' }}>{euSelectedPlan.name}</strong></div>
+                                            <div style={{ marginBottom: '.2rem' }}>Duración: <strong style={{ color: 'white' }}>{euSelectedPlan.isDemo ? `${euSelectedPlan.demoHours}h` : `${euSelectedPlan.durationDays} días`}{euSelectedPlan.bonusDays ? ` (+${euSelectedPlan.bonusDays} bonus)` : ''}</strong></div>
+                                            <div style={{ marginBottom: '.2rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                Dispositivos: <strong style={{ color: '#fbbf24', fontSize: '.9rem' }}>{euSelectedPlan.maxDevices} {euSelectedPlan.maxDevices === 1 ? 'dispositivo' : 'dispositivos'}</strong>
+                                            </div>
                                             <div>Costo: <strong style={{ color: '#4ade80' }}>Sin costo (Admin)</strong></div>
                                         </div>
                                     )}

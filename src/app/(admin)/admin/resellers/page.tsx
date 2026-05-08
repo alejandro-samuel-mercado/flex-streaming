@@ -178,11 +178,13 @@ export default function ResellersPage() {
                 (() => {
                   const p = plans.find(p => p.id === form.planId)!;
                   return (
-                    <div style={{ padding: '.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '.82rem', border: '1px solid rgba(255,255,255,.06)' }}>
-                      <div style={{ fontWeight: 600, marginBottom: '.3rem' }}>Resumen del Plan</div>
-                      <div>Plan: <strong>{p.name}</strong></div>
-                      <div>Duración: <strong>{p.durationDays} días</strong></div>
-                      <div>Dispositivos: <strong>{p.maxDevices} {p.maxDevices === 1 ? 'dispositivo' : 'dispositivos'}</strong></div>
+                    <div style={{ padding: '.75rem', background: 'rgba(167,139,250,0.05)', borderRadius: '10px', fontSize: '.82rem', border: '1px solid rgba(167,139,250,0.2)' }}>
+                      <div style={{ fontWeight: 700, marginBottom: '.4rem', color: '#a78bfa', textTransform: 'uppercase', fontSize: '.75rem', letterSpacing: '0.05em' }}>Resumen del Plan</div>
+                      <div style={{ marginBottom: '.2rem' }}>Plan: <strong style={{ color: 'white' }}>{p.name}</strong></div>
+                      <div style={{ marginBottom: '.2rem' }}>Duración: <strong style={{ color: 'white' }}>{p.durationDays} días</strong></div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        Dispositivos: <strong style={{ color: '#fbbf24', fontSize: '.88rem' }}>{p.maxDevices} {p.maxDevices === 1 ? 'dispositivo' : 'dispositivos'}</strong>
+                      </div>
                     </div>
                   );
                 })()
@@ -250,11 +252,13 @@ export default function ResellersPage() {
               (() => {
                 const p = plans.find(p => p.id === selectedPlanId)!;
                 return (
-                  <div style={{ padding: '.75rem', marginTop: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '.82rem', border: '1px solid rgba(255,255,255,.06)' }}>
-                    <div style={{ fontWeight: 600, marginBottom: '.3rem' }}>Resumen</div>
-                    <div>Plan: <strong>{p.name}</strong></div>
-                    <div>Duración: <strong>{p.durationDays} días</strong></div>
-                    <div>Dispositivos: <strong>{p.maxDevices} {p.maxDevices === 1 ? 'dispositivo' : 'dispositivos'}</strong></div>
+                  <div style={{ padding: '.75rem', marginTop: '1rem', background: 'rgba(167,139,250,0.05)', borderRadius: '10px', fontSize: '.82rem', border: '1px solid rgba(167,139,250,0.2)' }}>
+                    <div style={{ fontWeight: 700, marginBottom: '.4rem', color: '#a78bfa', textTransform: 'uppercase', fontSize: '.75rem', letterSpacing: '0.05em' }}>Resumen</div>
+                    <div style={{ marginBottom: '.2rem' }}>Plan: <strong style={{ color: 'white' }}>{p.name}</strong></div>
+                    <div style={{ marginBottom: '.2rem' }}>Duración: <strong style={{ color: 'white' }}>{p.durationDays} días</strong></div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      Dispositivos: <strong style={{ color: '#fbbf24', fontSize: '.88rem' }}>{p.maxDevices} {p.maxDevices === 1 ? 'dispositivo' : 'dispositivos'}</strong>
+                    </div>
                   </div>
                 );
               })()
