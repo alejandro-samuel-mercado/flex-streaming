@@ -677,7 +677,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                 <h2>{data?.type === 'MOVIE' ? 'Archivos de Video' : 'Archivos de Video (Directos / Modo Película)'}</h2>
                             </div>
                             <div className="adm-settings-body">
-                                {data?.type !== 'MOVIE' && data.videoFiles && data.videoFiles.length > 0 && (
+                                {data?.type !== 'MOVIE' && data.videoFiles && data.videoFiles.some(v => !v.episodeId) && (
                                     <div style={{ 
                                         background: 'rgba(251, 113, 133, 0.1)', 
                                         border: '1px solid rgba(251, 113, 133, 0.2)', 
@@ -692,8 +692,8 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                     }}>
                                         <AlertTriangle size={18} />
                                         <div>
-                                            <strong>Atención:</strong> Esta serie tiene archivos de video vinculados directamente. 
-                                            Para que aparezcan como episodios, debes ejecutar el script de reparación o moverlos manualmente.
+                                            <strong>Atención:</strong> Tienes archivos de video que no están asignados a ningún episodio. 
+                                            Debes moverlos manualmente o usar una herramienta de reparación para que aparezcan en la estructura de la serie.
                                         </div>
                                     </div>
                                 )}
@@ -731,17 +731,17 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                     document.body
                                 )}
 
-                                {!data?.videoFiles || data.videoFiles.length === 0 ? (
+                                {!data?.videoFiles || (data.type !== 'MOVIE' ? data.videoFiles.filter(v => !v.episodeId) : data.videoFiles).length === 0 ? (
                                     <div style={{ textAlign: 'center', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: 12 }}>
                                         <AlertTriangle size={24} style={{ color: 'var(--adm-muted)', marginBottom: 8, margin: '0 auto' }} />
-                                        <p style={{ fontSize: '.85rem', color: 'var(--adm-muted)' }}>No hay videos asociados.</p>
+                                        <p style={{ fontSize: '.85rem', color: 'var(--adm-muted)' }}>{data?.type === 'MOVIE' ? 'No hay videos asociados.' : 'No hay videos directos (sin episodio).'}</p>
                                         <Link href="/admin/upload" className="adm-btn adm-btn--ghost adm-btn--sm mt-3" style={{ fontSize: '.75rem' }}>
                                             Ir a Subidas
                                         </Link>
                                     </div>
                                 ) : (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                                        {data.videoFiles.map((video, idx) => (
+                                        {(data.type !== 'MOVIE' ? data.videoFiles.filter(v => !v.episodeId) : data.videoFiles).map((video, idx) => (
                                             <div key={video.id || idx} style={{
                                                 background: 'rgba(255,255,255,0.03)', padding: '16px',
                                                 borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)'

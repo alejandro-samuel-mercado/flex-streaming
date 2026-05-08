@@ -342,23 +342,50 @@ export default function AdminContentPage() {
                                                     ▶ Tráiler
                                                 </span>
                                             )}
-                                            {(item.videoFiles || []).map((v, i) => {
-                                                const isFailed = v.status === 'FAILED' || v.status === 'ERROR';
-                                                const isProcessing = v.status === 'PROCESSING' || v.status === 'QUEUED';
-                                                const isCompleted = v.status === 'READY' || v.status === 'COMPLETED';
-                                                
-                                                return (
-                                                    <div key={i} title={`Video ${i + 1}: ${v.status}`} className="adm-badge" style={{
-                                                        background: isFailed ? 'rgba(244, 63, 94, 0.1)' : isCompleted ? 'rgba(74, 222, 128, 0.1)' : 'rgba(167, 139, 250, 0.1)',
-                                                        color: isFailed ? '#f43f5e' : isCompleted ? '#4ade80' : '#a78bfa',
-                                                        width: 'fit-content',
-                                                        border: isFailed ? '1px solid rgba(244, 63, 94, 0.2)' : 'none'
-                                                    }}>
-                                                        {isFailed ? <AlertTriangle size={11} style={{ marginRight: 4 }} /> : <Film size={11} className={isProcessing ? 'animate-spin' : ''} style={{ marginRight: 4 }} />}
-                                                        {isFailed ? 'FALLIDO' : (v.qualities && v.qualities.length > 0 ? v.qualities[v.qualities.length - 1].resolution : 'Auto')}
-                                                    </div>
-                                                );
-                                            })}
+                                            
+                                            {item.type === 'MOVIE' ? (
+                                                (item.videoFiles || []).map((v, i) => {
+                                                    const isFailed = v.status === 'FAILED' || v.status === 'ERROR';
+                                                    const isProcessing = v.status === 'PROCESSING' || v.status === 'QUEUED';
+                                                    const isCompleted = v.status === 'READY' || v.status === 'COMPLETED';
+                                                    
+                                                    return (
+                                                        <div key={i} title={`Video ${i + 1}: ${v.status}`} className="adm-badge" style={{
+                                                            background: isFailed ? 'rgba(244, 63, 94, 0.1)' : isCompleted ? 'rgba(74, 222, 128, 0.1)' : 'rgba(167, 139, 250, 0.1)',
+                                                            color: isFailed ? '#f43f5e' : isCompleted ? '#4ade80' : '#a78bfa',
+                                                            width: 'fit-content',
+                                                            border: isFailed ? '1px solid rgba(244, 63, 94, 0.2)' : 'none'
+                                                        }}>
+                                                            {isFailed ? <AlertTriangle size={11} style={{ marginRight: 4 }} /> : <Film size={11} className={isProcessing ? 'animate-spin' : ''} style={{ marginRight: 4 }} />}
+                                                            {isFailed ? 'FALLIDO' : (v.qualities && v.qualities.length > 0 ? v.qualities[v.qualities.length - 1].resolution : 'Auto')}
+                                                        </div>
+                                                    );
+                                                })
+                                            ) : (
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                                    {(() => {
+                                                        const total = item.videoFiles?.length || 0;
+                                                        const completed = item.videoFiles?.filter(v => v.status === 'COMPLETED' || v.status === 'READY').length || 0;
+                                                        const failed = item.videoFiles?.filter(v => v.status === 'FAILED' || v.status === 'ERROR').length || 0;
+                                                        
+                                                        return (
+                                                            <>
+                                                                {completed > 0 && (
+                                                                    <div className="adm-badge" style={{ background: 'rgba(74, 222, 128, 0.1)', color: '#4ade80', width: 'fit-content' }}>
+                                                                        <Film size={11} style={{ marginRight: 4 }} /> {completed} Episodios
+                                                                    </div>
+                                                                )}
+                                                                {failed > 0 && (
+                                                                    <div className="adm-badge" style={{ background: 'rgba(244, 63, 94, 0.1)', color: '#f43f5e', width: 'fit-content', border: '1px solid rgba(244, 63, 94, 0.2)' }}>
+                                                                        <AlertTriangle size={11} style={{ marginRight: 4 }} /> {failed} Fallidos
+                                                                    </div>
+                                                                )}
+                                                                {total === 0 && <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)' }}>Sin episodios</span>}
+                                                            </>
+                                                        );
+                                                    })()}
+                                                </div>
+                                            )}
                                             {(!item.videoFiles || item.videoFiles.length === 0) && !item.trailerUrl && <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)' }}>Sin contenido multimedia</span>}
                                         </div>
                                     </td>
