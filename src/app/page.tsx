@@ -156,6 +156,7 @@ export default function HomePage() {
                     if (resJson.success && resJson.data) {
                         setContinueWatching(resJson.data.map((h: any) => {
                             const film = mapContentToFilm(h.content);
+                            if (!film) return null;
                             return {
                                 ...film,
                                 episodeId: h.episodeId,
@@ -164,7 +165,7 @@ export default function HomePage() {
                                 // Enlace directo al reproductor para "Continuar viendo"
                                 customLink: `/watch/${film.id}${h.episodeId ? `?episodeId=${h.episodeId}` : ''}`
                             };
-                        }));
+                        }).filter((f: any): f is any => !!f));
                     }
                 })
                 .catch(console.error);
@@ -194,9 +195,9 @@ export default function HomePage() {
     }, []);
 
     // Decide data source
-    const featured = useMock ? MOCK_FILMS.slice(0, 5) : (data?.featured || []).map(mapContentToFilm).filter(Boolean);
-    const trending = useMock ? MOCK_FILMS : (data?.trending || []).map(mapContentToFilm).filter(Boolean);
-    const recent = useMock ? [...MOCK_FILMS].reverse() : (data?.recent || []).map(mapContentToFilm).filter(Boolean);
+    const featured = useMock ? MOCK_FILMS.slice(0, 5) : (data?.featured || []).map(mapContentToFilm).filter((f): f is any => !!f);
+    const trending = useMock ? MOCK_FILMS : (data?.trending || []).map(mapContentToFilm).filter((f): f is any => !!f);
+    const recent = useMock ? [...MOCK_FILMS].reverse() : (data?.recent || []).map(mapContentToFilm).filter((f): f is any => !!f);
     const platforms = useMock ? MOCK_PLATFORMS : (data?.platforms || []);
     const genres = useMock ? MOCK_GENRES : (data?.genres || []);
     const contentTypes = useMock ? MOCK_CONTENT_TYPES : (data?.contentTypes || []);
