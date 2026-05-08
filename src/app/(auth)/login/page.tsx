@@ -9,6 +9,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { Eye, EyeOff, LogIn, Play, User, Lock, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { API_ROUTES } from '@/lib/api-routes';
 
 const loginSchema = z.object({
     username: z.string().min(1, 'Ingresá tu usuario'),
@@ -40,7 +41,7 @@ function LoginContent() {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+            const response = await fetch(API_ROUTES.AUTH.LOGIN, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),

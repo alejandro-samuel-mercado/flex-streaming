@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+            const res = await fetch(API_ROUTES.AUTH.ME, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
