@@ -121,12 +121,12 @@ export default function FilmDetailPage() {
 
     const backdropUrl = resolveImageUrl(backdrop);
     const posterUrl = resolveImageUrl(poster);
-    const hasCompletedEpisodes = seasons.some((s: any) =>
+    const hasEpisodesWithVideo = seasons.some((s: any) =>
         s.episodes?.some((e: any) =>
-            e.videoFiles?.some((v: any) => v.status === 'COMPLETED')
+            e.videoFiles && e.videoFiles.length > 0
         )
     );
-    const canPlay = content.status === 'READY' || hasCompletedEpisodes || content.videoFiles?.some((v: any) => v.type === 'MOVIE' && v.status === 'COMPLETED');
+    const canPlay = content.status === 'READY' || content.status === 'ACTIVE' || hasEpisodesWithVideo || (content.videoFiles && content.videoFiles.length > 0);
     const formatMoney = (n: any) => {
         if (!n || n === '0' || n === 0) return null;
         const num = Number(n);
@@ -140,7 +140,7 @@ export default function FilmDetailPage() {
             <TrailerModal url={content.trailerUrl || ''} isOpen={isTrailerOpen} onClose={() => setIsTrailerOpen(false)} />
 
             {/* ═══ HERO BANNER ═══ */}
-            <section style={{ position: 'relative', height: '85vh', width: '100%', overflow: 'hidden' }}>
+            <section style={{ position: 'relative', minHeight: '85vh', width: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                 {backdropUrl && <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${backdropUrl})`, backgroundSize: 'cover', backgroundPosition: 'center 15%', transform: 'scale(1.05)' }} />}
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, #030612 0%, rgba(3,6,18,0.7) 50%, transparent 100%)' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #030612 0%, rgba(3,6,18,0.3) 50%, transparent 100%)' }} />
@@ -153,8 +153,7 @@ export default function FilmDetailPage() {
                 </div>
 
                 {/* Hero Content */}
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', paddingLeft: '7%', paddingRight: '7%', paddingBottom: 120, paddingTop: 140 }}>
-                    <div style={{ flex: 1 }} />
+                <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', paddingLeft: '7%', paddingRight: '7%', paddingBottom: 100, paddingTop: 180, flex: 1, justifyContent: 'flex-end' }}>
                     <div style={{ maxWidth: '900px' }}>
                         {/* Badges */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 24 }}>
@@ -188,9 +187,18 @@ export default function FilmDetailPage() {
                         </div>
 
                         {/* Synopsis */}
-                        <p style={{ color: '#e5e7eb', fontSize: 'clamp(0.9rem, 1.5vw, 1.15rem)', lineHeight: 1.7, marginBottom: 32, maxWidth: 700, fontWeight: 500, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                            {translation.description}
-                        </p>
+                        <div style={{ 
+                            maxHeight: '200px', 
+                            overflowY: 'auto', 
+                            marginBottom: 32, 
+                            paddingRight: 10,
+                            scrollbarWidth: 'thin',
+                            scrollbarColor: 'rgba(0,229,255,0.3) transparent'
+                        }} className="custom-scrollbar">
+                            <p style={{ color: '#e5e7eb', fontSize: 'clamp(0.9rem, 1.5vw, 1.15rem)', lineHeight: 1.7, margin: 0, fontWeight: 500, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                                {translation.description}
+                            </p>
+                        </div>
 
                         {/* Action Buttons */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
@@ -260,7 +268,7 @@ export default function FilmDetailPage() {
                             const epReady = ep.videoFiles?.some((v: any) => v.status === 'COMPLETED');
                             return (
                                 <Link
-                                    href={epReady ? `/watch/${id}?episodeId=${ep.id}` : '#'}
+                                    href={`/watch/${id}?episodeId=${ep.id}`}
                                     key={ep.id}
                                     className="episode-card"
                                     style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 12, borderRadius: 16, textDecoration: 'none', transition: 'all 0.3s', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.03)' }}

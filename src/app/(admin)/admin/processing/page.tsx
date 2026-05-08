@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { Activity, Clock, CheckCircle2, AlertCircle, PlayCircle, Loader2, X, Terminal } from 'lucide-react';
+import { Activity, Clock, CheckCircle2, AlertCircle, PlayCircle, Loader2, X, Terminal, Search, Filter, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { API_ROUTES, API_ORIGIN } from '@/lib/api-routes';
 
@@ -26,6 +26,11 @@ export default function ProcessingMonitorPage() {
     const [viewingLogs, setViewingLogs] = useState<string | null>(null);
     const [logs, setLogs] = useState<string[]>([]);
     const [logsLoading, setLogsLoading] = useState(false);
+
+    // Filters state
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState<string>('ALL');
+    const [dateFilter, setDateFilter] = useState<string>('');
 
     useEffect(() => {
         // 1. Initial fetch
@@ -209,6 +214,34 @@ export default function ProcessingMonitorPage() {
         }
     };
 
+    // Filter logic
+    const filteredVideos = videos.filter(v => {
+        const matchesSearch = (v.content?.slug || '').toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = statusFilter === 'ALL' || v.status === statusFilter;
+        const matchesDate = !dateFilter || new Date(v.createdAt).toISOString().split('T')[0] === dateFilter;
+        return matchesSearch && matchesStatus && matchesDate;
+    });
+
+    const sortedVideos = [...filteredVideos].sort((a, b) => {
+        const priority: Record<string, number> = {
+            'PROCESSING': 0,
+            'QUEUED': 1,
+            'PENDING': 2,
+            'FAILED': 3,
+            'COMPLETED': 4
+        };
+
+        if (priority[a.status] !== priority[b.status]) {
+            return priority[a.status] - priority[b.status];
+        }
+
+        if (a.status === 'PROCESSING') {
+            return (b.progress || 0) - (a.progress || 0);
+        }
+
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
     return (
         <div className="adm-page">
             <div className="adm-page-header">
@@ -223,17 +256,84 @@ export default function ProcessingMonitorPage() {
             </div>
 
             <div className="adm-table-card">
-                <div className="adm-table-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h2 className="adm-table-card-title">Cola de Trabajos Recientes (Últimos 100)</h2>
-                    {videos.some(v => v.status === 'FAILED') && (
-                        <button 
-                            className="adm-btn" 
-                            onClick={handleRetryAll}
-                            style={{ background: 'var(--adm-danger)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}
+                <div className="adm-table-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+                    <h2 className="adm-table-card-title">Cola de Trabajos Recientes (Historial de 100)</h2>
+                    <div style={{ display: 'flex', gap: 12 }}>
+                        {videos.some(v => v.status === 'FAILED') && (
+                            <button 
+                                className="adm-btn" 
+                                onClick={handleRetryAll}
+                                style={{ background: 'var(--adm-danger)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}
+                            >
+                                Reintentar Todo lo Fallido
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Filter Bar */}
+                <div style={{ 
+                    padding: '16px 20px', 
+                    borderBottom: '1px solid var(--adm-border)', 
+                    display: 'flex', 
+                    gap: 16, 
+                    flexWrap: 'wrap',
+                    background: 'rgba(255,255,255,0.02)'
+                }}>
+                    <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
+                        <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--adm-muted)' }} />
+                        <input 
+                            type="text" 
+                            placeholder="Buscar por nombre..." 
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            style={{ 
+                                width: '100%', padding: '10px 12px 10px 38px', 
+                                background: 'var(--adm-bg-alt)', border: '1px solid var(--adm-border)',
+                                borderRadius: 8, color: 'white', fontSize: '0.9rem'
+                            }}
+                        />
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 150 }}>
+                        <Filter size={16} style={{ color: 'var(--adm-muted)' }} />
+                        <select 
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            style={{ 
+                                padding: '10px 12px', background: 'var(--adm-bg-alt)', border: '1px solid var(--adm-border)',
+                                borderRadius: 8, color: 'white', fontSize: '0.9rem', cursor: 'pointer'
+                            }}
                         >
-                            Reintentar Todos los Fallidos
-                        </button>
-                    )}
+                            <option value="ALL">Todos los estados</option>
+                            <option value="PROCESSING">Procesando</option>
+                            <option value="QUEUED">En Cola</option>
+                            <option value="PENDING">Pendiente</option>
+                            <option value="FAILED">Fallido</option>
+                            <option value="COMPLETED">Completado</option>
+                        </select>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Calendar size={16} style={{ color: 'var(--adm-muted)' }} />
+                        <input 
+                            type="date" 
+                            value={dateFilter}
+                            onChange={(e) => setDateFilter(e.target.value)}
+                            style={{ 
+                                padding: '10px 12px', background: 'var(--adm-bg-alt)', border: '1px solid var(--adm-border)',
+                                borderRadius: 8, color: 'white', fontSize: '0.9rem', cursor: 'pointer'
+                            }}
+                        />
+                        {dateFilter && (
+                            <button 
+                                onClick={() => setDateFilter('')}
+                                style={{ background: 'transparent', border: 'none', color: 'var(--adm-danger)', cursor: 'pointer', fontSize: '0.8rem' }}
+                            >
+                                Limpiar
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {loading ? (
@@ -258,27 +358,7 @@ export default function ProcessingMonitorPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {[...videos].sort((a, b) => {
-                                    const priority: Record<string, number> = {
-                                        'PROCESSING': 0,
-                                        'QUEUED': 1,
-                                        'PENDING': 2,
-                                        'FAILED': 3,
-                                        'COMPLETED': 4
-                                    };
-
-                                    if (priority[a.status] !== priority[b.status]) {
-                                        return priority[a.status] - priority[b.status];
-                                    }
-
-                                    // If both are PROCESSING, sort by progress (highest first)
-                                    if (a.status === 'PROCESSING') {
-                                        return (b.progress || 0) - (a.progress || 0);
-                                    }
-
-                                    // Fallback to createdAt
-                                    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-                                }).map(v => (
+                                {sortedVideos.map(v => (
                                     <tr key={v.id}>
                                         <td>
                                             <div style={{ fontWeight: 600, color: 'white' }}>{v?.content?.slug || 'Sin título'}</div>

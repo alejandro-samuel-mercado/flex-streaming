@@ -669,55 +669,77 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                         </div>
                     </div>
 
-                    {/* Archivos de Video */}
-                    <div className="adm-settings-section">
-                        <div className="adm-settings-section-header">
-                            <Play className="adm-settings-icon" size={18} />
-                            <h2>Archivos de Video</h2>
-                        </div>
-                        <div className="adm-settings-body">
-                            {data?.type === 'SERIES' && data.videoFiles && data.videoFiles.length > 0 && (
-                                <div style={{ 
-                                    background: 'rgba(251, 113, 133, 0.1)', 
-                                    border: '1px solid rgba(251, 113, 133, 0.2)', 
-                                    padding: '12px 16px', 
-                                    borderRadius: 12, 
-                                    marginBottom: 16,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 12,
-                                    color: '#fda4af',
-                                    fontSize: '0.8rem'
-                                }}>
-                                    <AlertTriangle size={18} />
-                                    <div>
-                                        <strong>Atención:</strong> Esta serie tiene archivos de video vinculados directamente. 
-                                        Para que aparezcan como episodios, debes ejecutar el script de reparación o moverlos manualmente.
+                    {/* Archivos de Video (Solo si hay archivos o es Película) */}
+                    {(!(data?.type !== 'MOVIE' && (!data?.videoFiles || data.videoFiles.length === 0))) && (
+                        <div className="adm-settings-section">
+                            <div className="adm-settings-section-header">
+                                <Play className="adm-settings-icon" size={18} />
+                                <h2>{data?.type === 'MOVIE' ? 'Archivos de Video' : 'Archivos de Video (Directos / Modo Película)'}</h2>
+                            </div>
+                            <div className="adm-settings-body">
+                                {data?.type !== 'MOVIE' && data.videoFiles && data.videoFiles.length > 0 && (
+                                    <div style={{ 
+                                        background: 'rgba(251, 113, 133, 0.1)', 
+                                        border: '1px solid rgba(251, 113, 133, 0.2)', 
+                                        padding: '12px 16px', 
+                                        borderRadius: 12, 
+                                        marginBottom: 16,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 12,
+                                        color: '#fda4af',
+                                        fontSize: '0.8rem'
+                                    }}>
+                                        <AlertTriangle size={18} />
+                                        <div>
+                                            <strong>Atención:</strong> Esta serie tiene archivos de video vinculados directamente. 
+                                            Para que aparezcan como episodios, debes ejecutar el script de reparación o moverlos manualmente.
+                                        </div>
                                     </div>
-                                </div>
-                            )}
-                            {/* Embedded Player Overlay */}
-                            {activeVideo && typeof window !== 'undefined' && createPortal(
-                                <div style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'black' }}>
+                                )}
+                                {/* Embedded Player Overlay */}
+                                {activeVideo && typeof window !== 'undefined' && createPortal(
+                                    <div style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'black' }}>
+                                        <button 
+                                            onClick={() => setActiveVideo(null)}
+                                            style={{
+                                                position: 'absolute',
+                                                top: 20,
+                                                right: 20,
+                                                zIndex: 1000001,
+                                                background: 'rgba(255,255,255,0.1)',
+                                                border: 'none',
+                                                borderRadius: '50%',
+                                                width: 44,
+                                                height: 44,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                color: 'white',
+                                                cursor: 'pointer',
+                                                backdropFilter: 'blur(10px)'
+                                            }}
+                                        >
+                                            <X size={24} />
+                                        </button>
+                                        <VideoPlayer
+                                            src={activeVideo.url}
+                                            title={activeVideo.title}
+                                            poster={resolveImageUrl(data?.thumbnails?.find(t => t.type === 'BACKDROP')?.url) || undefined}
+                                        />
+                                    </div>,
+                                    document.body
+                                )}
 
-                                    <VideoPlayer
-                                        src={activeVideo.url}
-                                        title={activeVideo.title}
-                                        poster={resolveImageUrl(data?.thumbnails?.find(t => t.type === 'BACKDROP')?.url) || undefined}
-                                    />
-                                </div>,
-                                document.body
-                            )}
-
-                            {!data?.videoFiles || data.videoFiles.length === 0 ? (
-                                <div style={{ textAlign: 'center', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: 12 }}>
-                                    <AlertTriangle size={24} style={{ color: 'var(--adm-muted)', marginBottom: 8, margin: '0 auto' }} />
-                                    <p style={{ fontSize: '.85rem', color: 'var(--adm-muted)' }}>No hay videos asociados.</p>
-                                    <Link href="/admin/upload" className="adm-btn adm-btn--ghost adm-btn--sm mt-3" style={{ fontSize: '.75rem' }}>
-                                        Ir a Subidas
-                                    </Link>
-                                </div>
-                            ) : (
+                                {!data?.videoFiles || data.videoFiles.length === 0 ? (
+                                    <div style={{ textAlign: 'center', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: 12 }}>
+                                        <AlertTriangle size={24} style={{ color: 'var(--adm-muted)', marginBottom: 8, margin: '0 auto' }} />
+                                        <p style={{ fontSize: '.85rem', color: 'var(--adm-muted)' }}>No hay videos asociados.</p>
+                                        <Link href="/admin/upload" className="adm-btn adm-btn--ghost adm-btn--sm mt-3" style={{ fontSize: '.75rem' }}>
+                                            Ir a Subidas
+                                        </Link>
+                                    </div>
+                                ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                                     {data.videoFiles.map((video, idx) => (
                                         <div key={video.id || idx} style={{
@@ -767,12 +789,8 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                                     });
                                                                     const resJson = await res.json();
                                                                     if (resJson.success) {
-                                                                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-                                                                        const backendOrigin = new URL(apiUrl).origin;
-
-                                                                        // Reconstruct URL to be resilient to old/incorrect paths in DB
                                                                         const filename = video.masterPlaylist?.split('/').pop() || 'master.m3u8';
-                                                                        const streamUrl = `${backendOrigin}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}`;
+                                                                        const streamUrl = `${API_ORIGIN}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}`;
 
                                                                         setActiveVideo({
                                                                             url: streamUrl,
@@ -901,10 +919,9 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                                             });
                                                                             const resJson = await res.json();
                                                                             if (resJson.success) {
-                                                                                const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-                                                                                const backendOrigin = new URL(apiUrl).origin;
                                                                                 const filename = video.masterPlaylist?.split('/').pop() || 'master.m3u8';
-                                                                                const streamUrl = `${backendOrigin}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}`;
+                                                                                const streamUrl = `${API_ORIGIN}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}`;
+                                                                                
                                                                                 setActiveVideo({
                                                                                     url: streamUrl,
                                                                                     title: `${data?.translations?.find(t => t.lang === 'es')?.title || data?.originalTitle || 'Serie'} - T${season?.number}E${episode?.number}`

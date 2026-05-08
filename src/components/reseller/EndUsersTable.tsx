@@ -118,7 +118,10 @@ export default function EndUsersTable({ users, loading, search, onSearchChange, 
                                             <span className="font-mono text-[13px] bg-white/5 px-2 py-0.5 rounded border border-white/5">
                                                 {visiblePw.has(u.id) ? u.password : '••••••••'}
                                             </span>
-                                            <button className="adm-icon-btn" onClick={() => togglePw(u.id)}>{visiblePw.has(u.id) ? <EyeOff size={14} /> : <Eye size={14} />}</button>
+                                            <div className="flex items-center gap-1">
+                                                <button className="adm-icon-btn" title="Ver/Ocultar" onClick={() => togglePw(u.id)}>{visiblePw.has(u.id) ? <EyeOff size={14} /> : <Eye size={14} />}</button>
+                                                <button className="adm-icon-btn" title="Copiar contraseña" onClick={() => copyText(u.password)}><Copy size={14} /></button>
+                                            </div>
                                         </div>
                                     </td>
                                     <td className="adm-table-muted">{u.managedBy?.name || u.managedBy?.email || '—'}</td>
