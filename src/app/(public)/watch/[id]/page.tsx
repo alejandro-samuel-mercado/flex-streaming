@@ -119,7 +119,13 @@ export default function WatchPage() {
                 if (!resJson.success) throw new Error(resJson.error || 'Acceso denegado.');
 
                 const { token: signedToken, videoFileId } = resJson.data;
-                const hlsUrl = `${backendUrl}/api/stream/hls/${videoFileId}/master.m3u8?token=${signedToken}`;
+                
+                // Get the actual playlist filename from the videoFile data
+                const targetVideos = currentEpisode ? currentEpisode.videoFiles : content.videoFiles;
+                const videoFile = targetVideos?.find((v: any) => v.id === videoFileId) || targetVideos?.[0];
+                const filename = videoFile?.masterPlaylist?.split('/').pop() || 'master.m3u8';
+                
+                const hlsUrl = `${backendUrl}/api/stream/hls/${videoFileId}/${filename}?token=${signedToken}`;
                 setStreamSrc(hlsUrl);
             } catch (err: any) {
                 setError(err.message);
