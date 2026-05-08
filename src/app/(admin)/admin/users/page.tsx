@@ -24,6 +24,7 @@ export default function AdminUsersPage() {
     const [formError, setFormError] = useState('');
     const [formData, setFormData] = useState({
         name: '',
+        username: '',
         email: '',
         password: '',
         role: 'VENDOR',
@@ -102,6 +103,7 @@ export default function AdminUsersPage() {
         setCurrentUser(null);
         setFormData({
             name: '',
+            username: '',
             email: '',
             password: '',
             role: activeTab === 'ADMIN' ? 'ADMIN' : 'SUPER_VENDOR',
@@ -118,6 +120,7 @@ export default function AdminUsersPage() {
         setCurrentUser(user);
         setFormData({
             name: user.name || '',
+            username: user.username || '',
             email: user.email || '',
             password: '', // Password empty by default on edit
             role: user.role,
