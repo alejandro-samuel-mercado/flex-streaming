@@ -53,10 +53,10 @@ export default function AdminLoginPage() {
 
             localStorage.setItem('adminToken', json.data.accessToken);
             localStorage.setItem('adminRefreshToken', json.data.refreshToken);
-            
+
             // Cookie for Next.js middleware protection
             document.cookie = `adminToken=${json.data.accessToken}; path=/; max-age=${8 * 3600}; SameSite=Lax`;
-            
+
             window.location.href = redirectPath;
 
         } catch (err) {
@@ -93,7 +93,7 @@ export default function AdminLoginPage() {
                         <Shield size={28} strokeWidth={1.5} />
                     </motion.div>
                     <div>
-                        <h1 className="admin-login-title">FlexStreaming</h1>
+                        <h1 className="admin-login-title">Nuba</h1>
                         <p className="admin-login-subtitle">Panel de Administración</p>
                     </div>
                 </div>

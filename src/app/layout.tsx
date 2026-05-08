@@ -5,15 +5,20 @@ import { AuthProvider } from '@/context/AuthContext';
 
 export const metadata: Metadata = {
     title: {
-        default: 'FlexStreaming— Streaming & Alquiler de Películas',
-        template: '%s | FlexStreaming',
+        default: 'Nuba— Streaming & Alquiler de Películas',
+        template: '%s | Nuba',
     },
     description: 'La mejor plataforma de streaming y alquiler de películas, series, animes y más. Contenido premium para toda Latinoamérica.',
     keywords: ['streaming', 'películas', 'series', 'anime', 'alquiler', 'latinoamérica'],
     openGraph: {
         type: 'website',
         locale: 'es_LA',
-        siteName: 'PeliPlus',
+        siteName: 'Nuba',
+    },
+    icons: {
+        icon: '/logo-nuba.png',
+        shortcut: '/logo-nuba.png',
+        apple: '/logo-nuba.png',
     },
 };
 

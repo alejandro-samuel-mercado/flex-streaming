@@ -6,9 +6,9 @@ import ContentCard from '@/components/catalog/ContentCard';
 import { Filter, SlidersHorizontal, Grid3X3, LayoutGrid } from 'lucide-react';
 
 const TIPO_CONFIG: Record<string, { label: string; description: string }> = {
-  peliculas: { label: 'Películas', description: 'Todo el catálogo de películas disponible en PeliPlus.' },
-  series: { label: 'Series', description: 'Las mejores series de todas las plataformas en un solo lugar.' },
-  anime: { label: 'Anime', description: 'Desde clásicos hasta los estrenos más recientes del anime japonés.' },
+  peliculas: { label: 'Películas', description: 'Todo el catálogo de películas disponible en Nuba.' },
+  series: { label: 'Series', description: 'Las mejores series y shows exclusivos en Nuba.' },
+  anime: { label: 'Anime', description: 'Disfruta del mejor catálogo de anime legal en Nuba.' },
   documentales: { label: 'Documentales', description: 'Explora el mundo a través de documentales fascinantes.' },
 };
 

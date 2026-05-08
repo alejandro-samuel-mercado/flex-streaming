@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
                 className="relative z-10 w-full max-w-md bg-black/75 backdrop-blur-md p-10 md:p-14 rounded-md border border-gray-800/50 shadow-2xl"
             >
                 <Link href="/" className="flex items-center gap-2 mb-10 text-[#E50914] font-bold text-3xl" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
-                    FlexStreaming
+                    Nuba
                 </Link>
 
                 <h1 className="auth-title">Recuperar contraseña</h1>

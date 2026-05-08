@@ -114,7 +114,7 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [] 
                 {/* Left: Logo + Nav Items */}
                 <div className="nav-cinema-left">
                     <Link href="/" className="nav-cinema-logo" id="nav-logo">
-                        <img src="/logo-flex.png" alt="FlexStreaming" className="nav-cinema-logo-img" />
+                        <img src="/logo-nuba.png" alt="Nuba" className="nav-cinema-logo-img" />
                     </Link>
 
                     {/* Desktop Nav Items */}

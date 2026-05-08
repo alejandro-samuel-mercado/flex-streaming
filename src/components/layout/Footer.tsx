@@ -35,7 +35,7 @@ export default function Footer({ backdropUrl }: FooterProps) {
                 <div className="cinema-footer-top">
                     <div className="cinema-footer-brand">
                         <Link href="/" className="cinema-footer-logo">
-                            <img src="/logo-flex.png" alt="FlexStreaming" className="cinema-footer-logo-img" />
+                            <img src="/logo-nuba.png" alt="Nuba" className="cinema-footer-logo-img" />
                         </Link>
                         <p className="cinema-footer-tagline">
                             Tu destino de entretenimiento. Miles de películas, series, animes y más al alcance de un clic.
@@ -62,7 +62,7 @@ export default function Footer({ backdropUrl }: FooterProps) {
                         <div className="cinema-footer-col">
                             <h4 className="cinema-footer-col-title">Contacto</h4>
                             <span className="cinema-footer-link cinema-footer-link--info">
-                                <Mail size={14} /> soporte@flexstreaming.com
+                                <Mail size={14} /> soporte@Nuba.com
                             </span>
                             <span className="cinema-footer-link cinema-footer-link--info">
                                 <Phone size={14} /> +54 9 11 0000-0000
@@ -86,7 +86,7 @@ export default function Footer({ backdropUrl }: FooterProps) {
                     </div>
 
                     <p className="cinema-footer-copy">
-                        © {new Date().getFullYear()} FlexStreaming. Todos los derechos reservados.
+                        © {new Date().getFullYear()} Nuba. Todos los derechos reservados.
                     </p>
                 </div>
             </div>

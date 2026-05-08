@@ -43,7 +43,7 @@ export default function AdminSettingsPage() {
                     // Pre-fill from status; fallback legacy AUTO_SCAN_PATH → moviePath
                     setSettings(prev => ({
                         ...prev,
-                        AUTO_SCAN_MOVIE_PATH:  statusJson.data.moviePath  || statusJson.data.path || prev['AUTO_SCAN_MOVIE_PATH']  || '',
+                        AUTO_SCAN_MOVIE_PATH: statusJson.data.moviePath || statusJson.data.path || prev['AUTO_SCAN_MOVIE_PATH'] || '',
                         AUTO_SCAN_SERIES_PATH: statusJson.data.seriesPath || prev['AUTO_SCAN_SERIES_PATH'] || ''
                     }));
                 }
@@ -105,8 +105,8 @@ export default function AdminSettingsPage() {
                     <h1 className="adm-page-title">Configuración</h1>
                     <p className="adm-page-subtitle">Ajustes globales de la plataforma</p>
                 </div>
-                <button 
-                    className="adm-btn adm-btn--primary" 
+                <button
+                    className="adm-btn adm-btn--primary"
                     onClick={handleSave}
                     disabled={saving}
                 >
@@ -282,7 +282,7 @@ export default function AdminSettingsPage() {
                     <div className="adm-settings-body">
                         <div className="adm-form-row">
                             <label>Límite de películas concurrentes en subida</label>
-                            <input type="number" min="1" max="10" className="adm-input" value={settings['UPLOAD_CONCURRENT_LIMIT'] || '5'} onChange={e => setSettings({...settings, UPLOAD_CONCURRENT_LIMIT: e.target.value})} />
+                            <input type="number" min="1" max="10" className="adm-input" value={settings['UPLOAD_CONCURRENT_LIMIT'] || '5'} onChange={e => setSettings({ ...settings, UPLOAD_CONCURRENT_LIMIT: e.target.value })} />
                         </div>
                     </div>
                 </div>
@@ -296,7 +296,7 @@ export default function AdminSettingsPage() {
                     <div className="adm-settings-body">
                         <div className="adm-form-row">
                             <label>Nombre del sitio</label>
-                            <input className="adm-input" value={settings['SITE_NAME'] || 'FlexStreaming'} onChange={e => setSettings({...settings, SITE_NAME: e.target.value})} />
+                            <input className="adm-input" value={settings['SITE_NAME'] || 'Nuba'} onChange={e => setSettings({ ...settings, SITE_NAME: e.target.value })} />
                         </div>
                     </div>
                 </div>

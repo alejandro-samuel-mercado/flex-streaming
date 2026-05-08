@@ -48,7 +48,7 @@ function LoginContent() {
             });
             const result = await response.json();
             if (!result.success) throw new Error(result.error ?? 'Error al iniciar sesión');
-            
+
             login(result.data.accessToken, result.data.refreshToken);
             router.push(redirectUrl);
         } catch (err) {
@@ -132,13 +132,9 @@ function LoginContent() {
                     {/* Logo */}
                     <Link href="/" className="flex flex-col items-center justify-center gap-2 group" style={{ marginBottom: '40px' }}>
                         <div className="flex items-center justify-center" style={{ height: '50px' }}>
-                            <img src="/logo flex.png" alt="FlexStreaming" className="h-full w-auto object-contain filter drop-shadow-[0_0_15px_rgba(0,229,255,0.6)] group-hover:drop-shadow-[0_0_25px_rgba(0,229,255,1)] transition-all duration-300" onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                                const span = e.currentTarget.nextElementSibling as HTMLElement;
-                                if (span) span.style.display = 'block';
-                            }} />
+                            <img src="/logo-nuba.png" alt="Nuba" className="h-full w-auto object-contain filter drop-shadow-[0_0_15px_rgba(0,229,255,0.6)] group-hover:drop-shadow-[0_0_25px_rgba(0,229,255,1)] transition-all duration-300" />
                             <span className="hidden text-[#00E5FF] font-black tracking-[4px]" style={{ fontSize: '32px', fontFamily: 'var(--font-display, Bebas Neue, sans-serif)', textShadow: '0 0 20px rgba(0,229,255,0.8)' }}>
-                                FLEXSTREAMING
+                                NUBA
                             </span>
                         </div>
                     </Link>

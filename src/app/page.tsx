@@ -61,7 +61,7 @@ const MOCK_PLANS = [
 ];
 
 const MOCK_FAQ = [
-    { question: '¿Cómo puedo suscribirme a FlexStreaming?', answer: 'Puedes elegir el plan que más te convenga en la sección de planes y contactarnos por WhatsApp. Te crearemos una cuenta y podrás empezar a disfrutar de todo el contenido.' },
+    { question: '¿Cómo puedo suscribirme a Nuba?', answer: 'Puedes elegir el plan que más te convenga en la sección de planes y contactarnos por WhatsApp. Te crearemos una cuenta y podrás empezar a disfrutar de todo el contenido.' },
     { question: '¿Qué métodos de pago aceptan?', answer: 'Aceptamos transferencias bancarias, Mercado Pago, PayPal y pagos en efectivo. Contáctanos por WhatsApp para más detalles.' },
     { question: '¿Puedo ver contenido gratis?', answer: 'Sí, tenemos una selección de contenido gratuito disponible para todos. Solo necesitas crear una cuenta gratuita para empezar a disfrutarlo.' },
     { question: '¿En cuántos dispositivos puedo ver?', answer: 'Depende del plan que elijas. El plan Básico permite 1 dispositivo, el Premium hasta 3 y el Familiar hasta 5 dispositivos simultáneos.' },
@@ -87,6 +87,7 @@ interface HomepageData {
 const DEMO_BACKDROP = 'https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=2574&auto=format&fit=crop';
 
 function mapContentToFilm(c: any) {
+    if (!c) return null;
     const title = c.translations?.[0]?.title || c.slug || 'Sin título';
     const desc = c.translations?.[0]?.description || '';
 
@@ -193,9 +194,9 @@ export default function HomePage() {
     }, []);
 
     // Decide data source
-    const featured = useMock ? MOCK_FILMS.slice(0, 5) : (data?.featured || []).map(mapContentToFilm);
-    const trending = useMock ? MOCK_FILMS : (data?.trending || []).map(mapContentToFilm);
-    const recent = useMock ? [...MOCK_FILMS].reverse() : (data?.recent || []).map(mapContentToFilm);
+    const featured = useMock ? MOCK_FILMS.slice(0, 5) : (data?.featured || []).map(mapContentToFilm).filter(Boolean);
+    const trending = useMock ? MOCK_FILMS : (data?.trending || []).map(mapContentToFilm).filter(Boolean);
+    const recent = useMock ? [...MOCK_FILMS].reverse() : (data?.recent || []).map(mapContentToFilm).filter(Boolean);
     const platforms = useMock ? MOCK_PLATFORMS : (data?.platforms || []);
     const genres = useMock ? MOCK_GENRES : (data?.genres || []);
     const contentTypes = useMock ? MOCK_CONTENT_TYPES : (data?.contentTypes || []);
@@ -205,7 +206,8 @@ export default function HomePage() {
     const whatsappNumber = config['whatsapp_number'] || '';
 
     // Hero slides
-    const heroSlides = featured.map((f: any) => ({
+    const rawSlides = featured.length > 0 ? featured : MOCK_FILMS.slice(0, 5);
+    const heroSlides = rawSlides.map((f: any) => ({
         id: f.id,
         title: f.title,
         description: f.description || '',
@@ -245,7 +247,7 @@ export default function HomePage() {
                 <ParticlesBackground />
                 <div className="cinematic-loader-content">
                     <div className="cinematic-loader-logo">
-                        <span style={{ color: 'var(--color-primary)' }}>FLEX</span>STREAMING
+                        <span style={{ color: 'var(--color-primary)' }}>NU</span>BA
                     </div>
                     <div className="cinematic-loader-spinner" />
                     <p className="cinematic-loader-text">Preparando tu experiencia cinematográfica...</p>

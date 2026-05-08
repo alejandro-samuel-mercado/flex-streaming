@@ -114,8 +114,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <aside className={`adm-sidebar${mobileOpen ? ' adm-sidebar--open' : ''}`}>
                 <div className="adm-sidebar-logo-row">
                     <Link href="/admin" className="adm-sidebar-logo" onClick={() => setMobileOpen(false)}>
-                        <MonitorPlay size={24} strokeWidth={1.5} className="adm-logo-icon" />
-                        <span className="adm-logo-text">FLEXSTREAMING</span>
+                        <img src="/logo-nuba.png" alt="Nuba" style={{ height: '32px', width: 'auto', objectFit: 'contain' }} />
                     </Link>
                     <button className="adm-collapse-btn" onClick={() => setCollapsed(c => !c)} title={collapsed ? 'Expandir' : 'Colapsar'}>
                         <ChevronLeft size={15} className="adm-collapse-chevron" />

@@ -255,6 +255,62 @@ export default function ProcessingMonitorPage() {
                 </div>
             </div>
 
+            {/* Stats Grid - Moved to top with better design */}
+            <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
+                gap: 20, 
+                marginBottom: 24 
+            }}>
+                <div className="adm-table-card" style={{ padding: 24, background: 'linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%)', border: '1px solid rgba(167, 139, 250, 0.2)' }}>
+                    <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                        <div style={{ background: 'var(--adm-primary)', color: 'white', padding: 12, borderRadius: 16, boxShadow: '0 8px 16px rgba(139, 92, 246, 0.3)' }}>
+                            <Activity size={24} className="animate-pulse" />
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', fontWeight: 700, letterSpacing: '1px' }}>PROCESANDO</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 900, color: 'white', lineHeight: 1 }}>{videos.filter(v => v.status === 'PROCESSING').length}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="adm-table-card" style={{ padding: 24, background: 'linear-gradient(135deg, rgba(245, 197, 24, 0.1) 0%, rgba(245, 197, 24, 0.05) 100%)', border: '1px solid rgba(245, 197, 24, 0.2)' }}>
+                    <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                        <div style={{ background: 'var(--adm-yellow)', color: 'black', padding: 12, borderRadius: 16, boxShadow: '0 8px 16px rgba(245, 197, 24, 0.3)' }}>
+                            <Clock size={24} />
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', fontWeight: 700, letterSpacing: '1px' }}>EN COLA</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 900, color: 'white', lineHeight: 1 }}>{videos.filter(v => v.status === 'PENDING' || v.status === 'QUEUED').length}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="adm-table-card" style={{ padding: 24, background: 'linear-gradient(135deg, rgba(70, 211, 105, 0.1) 0%, rgba(70, 211, 105, 0.05) 100%)', border: '1px solid rgba(70, 211, 105, 0.2)' }}>
+                    <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                        <div style={{ background: 'var(--adm-success)', color: 'white', padding: 12, borderRadius: 16, boxShadow: '0 8px 16px rgba(70, 211, 105, 0.3)' }}>
+                            <CheckCircle2 size={24} />
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', fontWeight: 700, letterSpacing: '1px' }}>COMPLETADOS</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 900, color: 'white', lineHeight: 1 }}>{videos.filter(v => v.status === 'COMPLETED').length}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="adm-table-card" style={{ padding: 24, background: 'linear-gradient(135deg, rgba(229, 9, 20, 0.1) 0%, rgba(229, 9, 20, 0.05) 100%)', border: '1px solid rgba(229, 9, 20, 0.2)' }}>
+                    <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                        <div style={{ background: 'var(--adm-danger)', color: 'white', padding: 12, borderRadius: 16, boxShadow: '0 8px 16px rgba(229, 9, 20, 0.3)' }}>
+                            <AlertCircle size={24} />
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', fontWeight: 700, letterSpacing: '1px' }}>FALLIDOS</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 900, color: 'white', lineHeight: 1 }}>{videos.filter(v => v.status === 'FAILED').length}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div className="adm-table-card">
                 <div className="adm-table-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
                     <h2 className="adm-table-card-title">Cola de Trabajos Recientes (Historial de 100)</h2>
@@ -340,7 +396,7 @@ export default function ProcessingMonitorPage() {
                     <div style={{ padding: 40, display: 'flex', justifyContent: 'center' }}>
                         <Loader2 className="animate-spin" size={32} color="var(--adm-primary)" />
                     </div>
-                ) : videos.length === 0 ? (
+                ) : filteredVideos.length === 0 ? (
                     <div style={{ padding: 60, textAlign: 'center', color: 'var(--adm-muted)' }}>
                         <PlayCircle size={48} style={{ marginBottom: 16, opacity: 0.3 }} />
                         <p>No hay videos procesándose actualmente.</p>
@@ -449,52 +505,6 @@ export default function ProcessingMonitorPage() {
                 )}
             </div>
 
-            <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-                <div className="adm-table-card" style={{ padding: 20 }}>
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                        <div style={{ background: 'var(--adm-primary)22', color: 'var(--adm-primary)', padding: 10, borderRadius: 12 }}>
-                            <Activity size={20} className="animate-pulse" />
-                        </div>
-                        <div>
-                            <div style={{ fontSize: '.75rem', color: 'var(--adm-muted)', fontWeight: 600 }}>PROCESANDO</div>
-                            <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>{videos.filter(v => v.status === 'PROCESSING').length}</div>
-                        </div>
-                    </div>
-                </div>
-                <div className="adm-table-card" style={{ padding: 20 }}>
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                        <div style={{ background: 'var(--adm-yellow)22', color: 'var(--adm-yellow)', padding: 10, borderRadius: 12 }}>
-                            <Clock size={20} />
-                        </div>
-                        <div>
-                            <div style={{ fontSize: '.75rem', color: 'var(--adm-muted)', fontWeight: 600 }}>EN COLA</div>
-                            <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>{videos.filter(v => v.status === 'PENDING' || v.status === 'QUEUED').length}</div>
-                        </div>
-                    </div>
-                </div>
-                <div className="adm-table-card" style={{ padding: 20 }}>
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                        <div style={{ background: 'var(--adm-success)22', color: 'var(--adm-success)', padding: 10, borderRadius: 12 }}>
-                            <CheckCircle2 size={20} />
-                        </div>
-                        <div>
-                            <div style={{ fontSize: '.75rem', color: 'var(--adm-muted)', fontWeight: 600 }}>COMPLETADOS</div>
-                            <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>{videos.filter(v => v.status === 'COMPLETED').length}</div>
-                        </div>
-                    </div>
-                </div>
-                <div className="adm-table-card" style={{ padding: 20 }}>
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                        <div style={{ background: 'var(--adm-danger)22', color: 'var(--adm-danger)', padding: 10, borderRadius: 12 }}>
-                            <AlertCircle size={20} />
-                        </div>
-                        <div>
-                            <div style={{ fontSize: '.75rem', color: 'var(--adm-muted)', fontWeight: 600 }}>FALLIDOS</div>
-                            <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>{videos.filter(v => v.status === 'FAILED').length}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             {/* Terminal Modal for Job Logs */}
             {viewingLogs && (
