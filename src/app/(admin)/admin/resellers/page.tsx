@@ -172,6 +172,21 @@ export default function ResellersPage() {
                   </select>
                 </div>
               </div>
+
+              {/* Summary */}
+              {form.planId && plans.find(p => p.id === form.planId) && (
+                (() => {
+                  const p = plans.find(p => p.id === form.planId)!;
+                  return (
+                    <div style={{ padding: '.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '.82rem', border: '1px solid rgba(255,255,255,.06)' }}>
+                      <div style={{ fontWeight: 600, marginBottom: '.3rem' }}>Resumen del Plan</div>
+                      <div>Plan: <strong>{p.name}</strong></div>
+                      <div>Duración: <strong>{p.durationDays} días</strong></div>
+                      <div>Dispositivos: <strong>{p.maxDevices} {p.maxDevices === 1 ? 'dispositivo' : 'dispositivos'}</strong></div>
+                    </div>
+                  );
+                })()
+              )}
               <div style={{ display: 'flex', gap: '.5rem', justifyContent: 'flex-end', marginTop: '.5rem' }}>
                 <button type="button" className="adm-btn adm-btn--ghost" onClick={() => setShowCreateModal(false)}>Cancelar</button>
                 <button type="submit" className="adm-btn adm-btn--primary">Crear Revendedor</button>
@@ -229,6 +244,21 @@ export default function ResellersPage() {
                 ))}
               </select>
             </div>
+
+            {/* Summary */}
+            {selectedPlanId && plans.find(p => p.id === selectedPlanId) && (
+              (() => {
+                const p = plans.find(p => p.id === selectedPlanId)!;
+                return (
+                  <div style={{ padding: '.75rem', marginTop: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '.82rem', border: '1px solid rgba(255,255,255,.06)' }}>
+                    <div style={{ fontWeight: 600, marginBottom: '.3rem' }}>Resumen</div>
+                    <div>Plan: <strong>{p.name}</strong></div>
+                    <div>Duración: <strong>{p.durationDays} días</strong></div>
+                    <div>Dispositivos: <strong>{p.maxDevices} {p.maxDevices === 1 ? 'dispositivo' : 'dispositivos'}</strong></div>
+                  </div>
+                );
+              })()
+            )}
             <div style={{ display: 'flex', gap: '.5rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
               <button className="adm-btn adm-btn--ghost" onClick={() => setShowPlanModal(null)}>Cancelar</button>
               <button className="adm-btn adm-btn--primary" onClick={handleAssignPlan} disabled={!selectedPlanId}><CheckCircle size={16} /> Asignar Plan</button>

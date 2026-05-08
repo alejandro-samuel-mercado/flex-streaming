@@ -844,6 +844,7 @@ export default function AdminUsersPage() {
                                             <div style={{ fontWeight: 600, marginBottom: '.3rem' }}>Resumen</div>
                                             <div>Plan: <strong>{euSelectedPlan.name}</strong></div>
                                             <div>Duración: <strong>{euSelectedPlan.isDemo ? `${euSelectedPlan.demoHours}h` : `${euSelectedPlan.durationDays} días`}{euSelectedPlan.bonusDays ? ` (+${euSelectedPlan.bonusDays} bonus)` : ''}</strong></div>
+                                            <div>Dispositivos: <strong>{euSelectedPlan.maxDevices} {euSelectedPlan.maxDevices === 1 ? 'dispositivo' : 'dispositivos'}</strong></div>
                                             <div>Costo: <strong style={{ color: '#4ade80' }}>Sin costo (Admin)</strong></div>
                                         </div>
                                     )}
