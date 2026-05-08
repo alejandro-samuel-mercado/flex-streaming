@@ -21,7 +21,7 @@ export default function ResellersPage() {
   const [showPlanModal, setShowPlanModal] = useState<string | null>(null);
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
 
-  const [form, setForm] = useState({ email: '', name: '', password: '', credits: 0, planId: '' });
+  const [form, setForm] = useState({ email: '', username: '', name: '', password: '', credits: 0, planId: '' });
 
   const fetchData = useCallback(async () => {
     try {
@@ -57,7 +57,7 @@ export default function ResellersPage() {
       const json = await res.json();
       if (json.success) { 
         setShowCreateModal(false); 
-        setForm({ email: '', name: '', password: '', credits: 0, planId: '' }); 
+        setForm({ email: '', username: '', name: '', password: '', credits: 0, planId: '' }); 
         fetchData(); 
       }
       else alert(json.error);
@@ -115,11 +115,12 @@ export default function ResellersPage() {
 
       <div className="adm-table-card">
         <table className="adm-table">
-          <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Créditos</th><th>Vendedores</th><th>Clientes</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>Nombre</th><th>Usuario</th><th>Email</th><th>Rol</th><th>Créditos</th><th>Vendedores</th><th>Clientes</th><th>Estado</th><th>Acciones</th></tr></thead>
           <tbody>
             {vendors.map(v => (
               <tr key={v.id}>
                 <td style={{ fontWeight: 500 }}>{v.name}</td>
+                <td style={{ fontSize: '.85rem' }}>{v.username || '-'}</td>
                 <td className="adm-table-muted" style={{ fontSize: '.85rem' }}>{v.email}</td>
                 <td>{roleBadge(v.role)}</td>
                 <td>
@@ -156,7 +157,10 @@ export default function ResellersPage() {
             <h2 style={{ margin: '0 0 1rem', fontSize: '1.1rem' }}>Nuevo {createType === 'super' ? 'Super Vendedor' : 'Vendedor'}</h2>
             <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
               <div className="adm-field"><label className="adm-label">Nombre</label><input className="adm-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required placeholder="Nombre completo" /></div>
-              <div className="adm-field"><label className="adm-label">Email</label><input className="adm-input" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required placeholder="correo@ejemplo.com" /></div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.75rem' }}>
+                <div className="adm-field"><label className="adm-label">Usuario</label><input className="adm-input" value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))} required placeholder="Nombre de usuario" /></div>
+                <div className="adm-field"><label className="adm-label">Email</label><input className="adm-input" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required placeholder="correo@ejemplo.com" /></div>
+              </div>
               <div className="adm-field"><label className="adm-label">Contraseña</label><input className="adm-input" type="text" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required minLength={6} placeholder="Mínimo 6 caracteres" /></div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.75rem' }}>
                 <div className="adm-field"><label className="adm-label">Créditos iniciales</label><input className="adm-input" type="number" min={0} value={form.credits} onChange={e => setForm(f => ({ ...f, credits: parseInt(e.target.value) || 0 }))} /></div>

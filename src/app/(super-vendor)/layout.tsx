@@ -23,6 +23,11 @@ export default function SuperVendorLayout({ children }: { children: React.ReactN
     else setAuthed(true);
   }, [pathname, router]);
 
+  // Limpieza automática al cambiar de ruta
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
   const logout = useCallback(() => {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminRefreshToken');

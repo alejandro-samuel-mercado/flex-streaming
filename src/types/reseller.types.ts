@@ -76,13 +76,14 @@ export interface CreditTransaction {
 export interface ResellerVendor {
   id: string;
   email: string;
+  username?: string;
   name: string;
   role: UserRole;
   credits: number;
   isActive: boolean;
   createdAt: string;
   parentId?: string | null;
-  parent?: { id: string; name: string; email: string } | null;
+  parent?: { id: string; name: string; email: string; username?: string } | null;
   _count: { children: number; managedEndUsers: number };
 }
 

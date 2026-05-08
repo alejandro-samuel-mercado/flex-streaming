@@ -224,40 +224,31 @@ export default function SubscriptionPlansPage() {
                                 </div>
                             ) : (
                                 <>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.75rem' }}>
-                                        <div className="adm-field">
-                                            <label className="adm-label">Duración (días)</label>
-                                            <input className="adm-input" type="number" min={1} value={form.durationDays} onChange={e => setForm(f => ({ ...f, durationDays: parseInt(e.target.value) || 1 }))} />
+                                    <div className="adm-field">
+                                        <label className="adm-label">Costo (créditos)</label>
+                                        <div style={{ position: 'relative' }}>
+                                            <Zap size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#facc15' }} />
+                                            <input 
+                                                className="adm-input" 
+                                                type="number" 
+                                                min={0} 
+                                                style={{ paddingLeft: 34, color: '#facc15', fontWeight: 700 }}
+                                                value={form.creditCost} 
+                                                onChange={e => {
+                                                    const val = parseInt(e.target.value) || 0;
+                                                    setForm(f => ({ ...f, creditCost: val, baseCredits: val }));
+                                                }} 
+                                                required={!form.isDemo}
+                                            />
                                         </div>
-                                        <div className="adm-field">
-                                            <label className="adm-label">Costo (créditos)</label>
-                                            <div className="adm-input" style={{ background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', color: '#facc15', fontWeight: 700 }}>
-                                                <Zap size={14} style={{ marginRight: '.5rem' }} /> {form.creditCost}
-                                            </div>
-                                        </div>
+                                        <p style={{ fontSize: '0.7rem', color: 'var(--adm-muted)', marginTop: 4 }}>
+                                            Cantidad de créditos que se descontarán al revendedor por activar este plan.
+                                        </p>
                                     </div>
 
-                                    {/* Package Selector */}
-                                    <div className="adm-field" style={{ padding: '1rem', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px', marginTop: '.25rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', marginBottom: '.5rem', color: '#a78bfa' }}>
-                                            <Package size={14} />
-                                            <span style={{ fontSize: '.75rem', fontWeight: 600, textTransform: 'uppercase' }}>Seleccionar Paquete de Créditos</span>
-                                        </div>
-                                        <select
-                                            className="adm-input"
-                                            style={{ fontSize: '.85rem', background: 'rgba(0,0,0,0.2)' }}
-                                            onChange={(e) => handlePackageSelect(e.target.value)}
-                                            required={!form.isDemo}
-                                            defaultValue=""
-                                        >
-                                            <option value="" disabled>Elegir paquete...</option>
-                                            {packages.map(pkg => (
-                                                <option key={pkg.id} value={pkg.id}>
-                                                    {pkg.name} — {pkg.baseCredits} créditos
-                                                </option>
-                                            ))}
-                                        </select>
-
+                                    <div className="adm-field">
+                                        <label className="adm-label">Duración (días)</label>
+                                        <input className="adm-input" type="number" min={1} value={form.durationDays} onChange={e => setForm(f => ({ ...f, durationDays: parseInt(e.target.value) || 1 }))} />
                                     </div>
 
                                     {form.isPromo && (

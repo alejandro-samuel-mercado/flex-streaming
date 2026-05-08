@@ -34,6 +34,11 @@ export default function AddPlanModal({ account, onClose, onSuccess, fetchFn }: P
     return !p.isDemo && !p.isPromo;
   });
 
+  const now = new Date();
+  const isDemoActive = account.type === 'DEMO' && account.status === 'DEMO' && account.endDate && new Date(account.endDate) > now;
+  const isFormalActive = account.type === 'FORMAL' && account.endDate && new Date(account.endDate) > now;
+  const canAssignDemo = !isDemoActive && !isFormalActive;
+
   const hasDemoPlans = plans.some(p => p.isDemo);
   const hasPromoPlans = plans.some(p => p.isPromo && !p.isDemo);
 
@@ -78,9 +83,17 @@ export default function AddPlanModal({ account, onClose, onSuccess, fetchFn }: P
               {hasPromoPlans && <button className="adm-btn adm-btn--ghost" style={{ flex: 1, minWidth: 120, padding: '.75rem', borderColor: '#a78bfa', color: '#a78bfa' }} onClick={() => { setFilter('promo'); setStep('select-plan'); }}>
                 🎉 Plan Promo
               </button>}
-              {hasDemoPlans && <button className="adm-btn adm-btn--ghost" style={{ flex: 1, minWidth: 120, padding: '.75rem', borderColor: '#facc15', color: '#facc15' }} onClick={() => { setFilter('demo'); setStep('select-plan'); }}>
-                🎁 Demo
-              </button>}
+              {hasDemoPlans && (
+                <button 
+                  className={`adm-btn ${canAssignDemo ? 'adm-btn--ghost' : 'adm-btn--ghost opacity-40 cursor-not-allowed'}`} 
+                  style={{ flex: 1, minWidth: 120, padding: '.75rem', borderColor: '#facc15', color: '#facc15', position: 'relative' }} 
+                  onClick={() => { if (canAssignDemo) { setFilter('demo'); setStep('select-plan'); } }}
+                  title={!canAssignDemo ? (isFormalActive ? 'No se puede asignar demo a un plan activo' : 'El usuario ya tiene una demo activa') : ''}
+                >
+                  🎁 Demo
+                  {!canAssignDemo && <span style={{ position: 'absolute', bottom: -15, left: 0, right: 0, fontSize: '9px', textAlign: 'center', opacity: 0.8 }}>No elegible</span>}
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -117,6 +130,7 @@ export default function AddPlanModal({ account, onClose, onSuccess, fetchFn }: P
               <div style={{ display: 'flex', flexDirection: 'column', gap: '.5rem', fontSize: '.88rem' }}>
                 <div><strong>Plan:</strong> {selected.name}</div>
                 <div><strong>Duración:</strong> {selected.isDemo ? `${selected.demoHours}h` : `${selected.durationDays} días`}{selected.bonusDays && selected.bonusDays > 0 ? ` (+${selected.bonusDays} bonus)` : ''}</div>
+                <div><strong>Dispositivos:</strong> {selected.maxDevices} {selected.maxDevices === 1 ? 'dispositivo' : 'dispositivos'}</div>
                 <div><strong>Costo:</strong> {selected.isDemo ? 'Gratis' : `${selected.creditCost} crédito(s)`}</div>
                 <div><strong>Nueva expiración:</strong> {calculateNewEndDate()?.toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' }) ?? '—'}</div>
               </div>

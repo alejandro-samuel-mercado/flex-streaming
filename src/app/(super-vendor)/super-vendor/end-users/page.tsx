@@ -19,16 +19,20 @@ export default function SuperVendorEndUsersPage() {
   const [myCredits, setMyCredits] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
   const [planFilter, setPlanFilter] = useState<'normal' | 'promo' | 'demo'>('normal');
+  const [scope, setScope] = useState<'all' | 'me' | 'others'>('all');
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     const params = new URLSearchParams({ page: String(page), limit: '20' });
     if (search) params.set('search', search);
+    if (scope === 'me') params.set('managedByMeOnly', 'true');
+    if (scope === 'others') params.set('managedByOthersOnly', 'true');
+
     const r = await resellerFetch(`${API_ROUTES.END_USERS.BASE}?${params}`);
     const j = await r.json();
     if (j.success) { setUsers(j.data.users); setTotalPages(j.data.totalPages); }
     setLoading(false);
-  }, [page, search]);
+  }, [page, search, scope]);
 
   const fetchPlans = useCallback(async () => {
     const r = await resellerFetch(API_ROUTES.SUBSCRIPTION_PLANS.BASE);
@@ -87,6 +91,31 @@ export default function SuperVendorEndUsersPage() {
         <div><h1 className="adm-page-title">Mis Clientes</h1><p className="adm-page-subtitle">Cuentas de clientes finales</p></div>
         <button className="adm-btn adm-btn--primary" onClick={openCreateModal}><Plus size={16} /> Nueva Cuenta</button>
       </div>
+
+      <div className="adm-tabs" style={{ marginBottom: '1.25rem', display: 'flex', gap: '0.5rem', background: 'rgba(255,255,255,0.03)', padding: '0.4rem', borderRadius: '12px', width: 'fit-content' }}>
+        <button 
+          className={`adm-tab ${scope === 'all' ? 'adm-tab--active' : ''}`} 
+          style={{ padding: '0.5rem 1.25rem', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 600, border: 'none', background: scope === 'all' ? 'var(--color-primary)' : 'transparent', color: scope === 'all' ? 'white' : 'var(--adm-muted)', cursor: 'pointer', transition: 'all 0.2s' }}
+          onClick={() => { setScope('all'); setPage(1); }}
+        >
+          Todos
+        </button>
+        <button 
+          className={`adm-tab ${scope === 'me' ? 'adm-tab--active' : ''}`} 
+          style={{ padding: '0.5rem 1.25rem', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 600, border: 'none', background: scope === 'me' ? 'var(--color-primary)' : 'transparent', color: scope === 'me' ? 'white' : 'var(--adm-muted)', cursor: 'pointer', transition: 'all 0.2s' }}
+          onClick={() => { setScope('me'); setPage(1); }}
+        >
+          Mis Clientes
+        </button>
+        <button 
+          className={`adm-tab ${scope === 'others' ? 'adm-tab--active' : ''}`} 
+          style={{ padding: '0.5rem 1.25rem', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 600, border: 'none', background: scope === 'others' ? 'var(--color-primary)' : 'transparent', color: scope === 'others' ? 'white' : 'var(--adm-muted)', cursor: 'pointer', transition: 'all 0.2s' }}
+          onClick={() => { setScope('others'); setPage(1); }}
+        >
+          Clientes Terceros
+        </button>
+      </div>
+
       <EndUsersTable users={users} loading={loading} search={search} onSearchChange={setSearch} page={page} totalPages={totalPages} onPageChange={setPage} onRefresh={fetchUsers} fetchFn={resellerFetch} />
 
       {showCreate && (
@@ -166,6 +195,7 @@ export default function SuperVendorEndUsersPage() {
                   <div style={{ fontWeight: 600, marginBottom: '.3rem' }}>Resumen</div>
                   <div>Plan: <strong>{selectedPlan.name}</strong></div>
                   <div>Duración: <strong>{selectedPlan.isDemo ? `${selectedPlan.demoHours}h` : `${selectedPlan.durationDays} días`}{selectedPlan.bonusDays ? ` (+${selectedPlan.bonusDays} bonus)` : ''}</strong></div>
+                  <div>Dispositivos: <strong>{selectedPlan.maxDevices} {selectedPlan.maxDevices === 1 ? 'dispositivo' : 'dispositivos'}</strong></div>
                   <div>Costo: <strong style={{ color: selectedPlan.isDemo ? '#4ade80' : '#facc15' }}>{selectedPlan.isDemo ? 'Gratis' : `${selectedPlan.creditCost} crédito(s)`}</strong></div>
                   {!selectedPlan.isDemo && myCredits !== null && (
                     <div style={{ marginTop: '.3rem', color: myCredits >= selectedPlan.creditCost ? '#4ade80' : '#f87171' }}>

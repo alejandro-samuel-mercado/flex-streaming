@@ -64,6 +64,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [files]);
 
+    // Limpieza automática de menús al cambiar de ruta
+    useEffect(() => {
+        setMobileOpen(false);
+        setNotifOpen(false);
+    }, [pathname]);
+
     const fetchNotifs = async () => {
         setLoadingNotifs(true);
         try {

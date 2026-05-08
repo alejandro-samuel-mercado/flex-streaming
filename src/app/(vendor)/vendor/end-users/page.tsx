@@ -166,6 +166,7 @@ export default function VendorEndUsersPage() {
                   <div style={{ fontWeight: 600, marginBottom: '.3rem' }}>Resumen</div>
                   <div>Plan: <strong>{selectedPlan.name}</strong></div>
                   <div>Duración: <strong>{selectedPlan.isDemo ? `${selectedPlan.demoHours}h` : `${selectedPlan.durationDays} días`}{selectedPlan.bonusDays ? ` (+${selectedPlan.bonusDays} bonus)` : ''}</strong></div>
+                  <div>Dispositivos: <strong>{selectedPlan.maxDevices} {selectedPlan.maxDevices === 1 ? 'dispositivo' : 'dispositivos'}</strong></div>
                   <div>Costo: <strong style={{ color: selectedPlan.isDemo ? '#4ade80' : '#facc15' }}>{selectedPlan.isDemo ? 'Gratis' : `${selectedPlan.creditCost} crédito(s)`}</strong></div>
                   {!selectedPlan.isDemo && myCredits !== null && (
                     <div style={{ marginTop: '.3rem', color: myCredits >= selectedPlan.creditCost ? '#4ade80' : '#f87171' }}>

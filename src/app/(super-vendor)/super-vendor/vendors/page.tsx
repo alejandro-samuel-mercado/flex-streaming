@@ -16,7 +16,7 @@ export default function SuperVendorVendorsPage() {
 
     const [packages, setPackages] = useState<any[]>([]);
     const [selectedPackageId, setSelectedPackageId] = useState<string>('');
-    const [form, setForm] = useState({ email: '', name: '', password: '', packageId: '' });
+    const [form, setForm] = useState({ email: '', username: '', name: '', password: '', packageId: '' });
 
     const fetchVendors = useCallback(async () => {
         try { const r = await resellerFetch(API_ROUTES.RESELLER.LIST); const j = await r.json(); if (j.success) setVendors(j.data); }
@@ -35,7 +35,7 @@ export default function SuperVendorVendorsPage() {
         if (!form.packageId) { alert('Debes seleccionar un paquete'); return; }
 
         // Create vendor with 0 credits
-        const r = await resellerFetch(API_ROUTES.RESELLER.VENDORS, { method: 'POST', body: JSON.stringify({ email: form.email, name: form.name, password: form.password, credits: 0 }) });
+        const r = await resellerFetch(API_ROUTES.RESELLER.VENDORS, { method: 'POST', body: JSON.stringify({ email: form.email, username: form.username, name: form.name, password: form.password, credits: 0 }) });
         const j = await r.json();
         if (j.success) {
             const vendorId = j.data.id;
@@ -44,7 +44,7 @@ export default function SuperVendorVendorsPage() {
             const pJson = await pRes.json();
             if (!pJson.success) alert('Vendedor creado pero hubo un error al asignar el paquete: ' + pJson.error);
 
-            setShowCreate(false); setForm({ email: '', name: '', password: '', packageId: '' }); fetchVendors();
+            setShowCreate(false); setForm({ email: '', username: '', name: '', password: '', packageId: '' }); fetchVendors();
         } else alert(j.error);
     };
 
@@ -107,7 +107,10 @@ export default function SuperVendorVendorsPage() {
                                             </div>
                                             <div className="adm-table-user-info">
                                                 <span className="adm-table-user-name">{v.name}</span>
-                                                <span className="adm-table-user-email">{v.email}</span>
+                                                <div className="flex flex-col">
+                                                    <span className="adm-table-user-email">@{v.username || '-'}</span>
+                                                    <span className="adm-table-user-email opacity-60 text-xs">{v.email}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
@@ -145,7 +148,10 @@ export default function SuperVendorVendorsPage() {
                         <h2 style={{ margin: '0 0 1rem', fontSize: '1.1rem' }}>Nuevo Vendedor</h2>
                         <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
                             <div className="adm-field"><label className="adm-label">Nombre</label><input className="adm-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required /></div>
-                            <div className="adm-field"><label className="adm-label">Email</label><input className="adm-input" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required /></div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.75rem' }}>
+                                <div className="adm-field"><label className="adm-label">Usuario</label><input className="adm-input" value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))} required /></div>
+                                <div className="adm-field"><label className="adm-label">Email</label><input className="adm-input" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required /></div>
+                            </div>
                             <div className="adm-field"><label className="adm-label">Contraseña</label><input className="adm-input" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required minLength={6} /></div>
                             <div className="adm-field">
                                 <label className="adm-label">Paquete Inicial</label>
