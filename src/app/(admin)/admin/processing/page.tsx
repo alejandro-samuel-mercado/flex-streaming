@@ -169,6 +169,37 @@ export default function ProcessingMonitorPage() {
         }
     };
 
+    const handleRetryAll = async () => {
+        if (!window.confirm('¿Deseas reintentar TODOS los videos fallidos?')) return;
+        try {
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
+            const res = await fetch(API_ROUTES.ADMIN.VIDEOS_RETRY_FAILED, {
+                method: 'POST',
+                headers: {
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                }
+            });
+
+            if (res.ok) {
+                // Refresh list
+                const resStatus = await fetch(API_ROUTES.ADMIN.VIDEOS_STATUS, {
+                    headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+                });
+                if (resStatus.ok) {
+                    const data = await resStatus.json();
+                    setVideos(data.data || []);
+                }
+                alert('Todos los videos fallidos han sido reenviados a la cola.');
+            } else {
+                const err = await res.json();
+                alert(`Error al reintentar todos: ${err.error || 'No se pudo completar la operación'}`);
+            }
+        } catch (err) {
+            console.error('Retry all error:', err);
+            alert('Error de conexión al intentar reintentar todos');
+        }
+    };
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'COMPLETED': return 'var(--adm-success)';
@@ -192,8 +223,17 @@ export default function ProcessingMonitorPage() {
             </div>
 
             <div className="adm-table-card">
-                <div className="adm-table-card-header">
-                    <h2 className="adm-table-card-title">Cola de Trabajos Recientes</h2>
+                <div className="adm-table-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h2 className="adm-table-card-title">Cola de Trabajos Recientes (Últimos 100)</h2>
+                    {videos.some(v => v.status === 'FAILED') && (
+                        <button 
+                            className="adm-btn" 
+                            onClick={handleRetryAll}
+                            style={{ background: 'var(--adm-danger)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}
+                        >
+                            Reintentar Todos los Fallidos
+                        </button>
+                    )}
                 </div>
 
                 {loading ? (

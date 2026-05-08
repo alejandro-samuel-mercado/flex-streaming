@@ -62,7 +62,7 @@ export default function ProfilePage() {
                     
                     <div className="!flex !flex-col md:!flex-row !items-center !gap-8 !relative !z-10">
                         <div className="!w-32 !h-32 !rounded-full !bg-gradient-to-tr !from-[var(--color-primary)] !to-cyan-400 !flex !items-center !justify-center !text-black !text-5xl !font-black !shadow-[0_0_30px_rgba(0,229,255,0.3)]">
-                            {user.name.charAt(0).toUpperCase()}
+                            {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                         </div>
                         <div className="!flex-1 !text-center md:!text-left">
                             <h1 className="!text-4xl !font-black !tracking-tight !mb-2 !uppercase">{user.name}</h1>

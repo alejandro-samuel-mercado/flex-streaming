@@ -96,6 +96,7 @@ export const API_ROUTES = {
         USERS: `${API_BASE_URL}/admin/users`,
         SETTINGS: `${API_BASE_URL}/admin/settings`,
         VIDEOS_STATUS: `${API_BASE_URL}/admin/videos/status`,
+        VIDEOS_RETRY_FAILED: `${API_BASE_URL}/admin/videos/retry-failed`,
         JOB_LOGS: (jobId: string) => `${API_BASE_URL}/admin/videos/job/${jobId}/logs`,
         UPLOAD: {
             BASE: `${API_BASE_URL}/upload`,

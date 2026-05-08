@@ -103,7 +103,7 @@ export default function SuperVendorVendorsPage() {
                                     <td>
                                         <div className="adm-table-user">
                                             <div className="adm-table-avatar" style={{ background: `linear-gradient(135deg, #7c3aed22, #3b82f644)` }}>
-                                                {v.name.charAt(0).toUpperCase()}
+                                                {v.name ? v.name.charAt(0).toUpperCase() : 'V'}
                                             </div>
                                             <div className="adm-table-user-info">
                                                 <span className="adm-table-user-name">{v.name}</span>

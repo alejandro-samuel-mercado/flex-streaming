@@ -105,7 +105,7 @@ export default function EndUsersTable({ users, loading, search, onSearchChange, 
                                     <td>
                                         <div className="adm-table-user">
                                             <div className="adm-table-avatar" style={{ background: u.type === 'DEMO' ? 'linear-gradient(135deg, #facc1522, #f59e0b44)' : undefined, color: u.type === 'DEMO' ? '#facc15' : undefined }}>
-                                                {u.username.charAt(0).toUpperCase()}
+                                                {u.username ? u.username.charAt(0).toUpperCase() : '?'}
                                             </div>
                                             <div className="adm-table-user-info">
                                                 <span className="adm-table-user-name">{u.username}</span>
