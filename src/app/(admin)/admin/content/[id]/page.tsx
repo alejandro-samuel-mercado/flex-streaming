@@ -740,212 +740,214 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                         </Link>
                                     </div>
                                 ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                                    {data.videoFiles.map((video, idx) => (
-                                        <div key={video.id || idx} style={{
-                                            background: 'rgba(255,255,255,0.03)', padding: '16px',
-                                            borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)'
-                                        }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                                <div style={{ display: 'flex', gap: 12 }}>
-                                                    <div style={{
-                                                        width: 40, height: 40, borderRadius: 10,
-                                                        background: video.status === 'COMPLETED' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(167, 139, 250, 0.1)',
-                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                        color: video.status === 'COMPLETED' ? '#4ade80' : '#a78bfa'
-                                                    }}>
-                                                        <Film size={20} />
-                                                    </div>
-                                                    <div>
-                                                        <p style={{ fontSize: '.9rem', fontWeight: 700, color: 'white' }}>
-                                                            {video.type || 'Archivo de Video'}
-                                                            <span style={{ marginLeft: 8, fontSize: '0.7rem', color: 'var(--adm-muted)', fontWeight: 400 }}>ID: {video.id}</span>
-                                                        </p>
-                                                        <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-                                                            <span className={`adm-badge ${video.status === 'COMPLETED' ? 'adm-badge--green' : 'adm-badge--blue'}`} style={{ fontSize: '0.65rem', padding: '2px 8px' }}>
-                                                                {video.status}
-                                                            </span>
-                                                            {video.resolution && (
-                                                                <span className="adm-badge adm-badge--gray" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>
-                                                                    {video.resolution}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                        {data.videoFiles.map((video, idx) => (
+                                            <div key={video.id || idx} style={{
+                                                background: 'rgba(255,255,255,0.03)', padding: '16px',
+                                                borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)'
+                                            }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                    <div style={{ display: 'flex', gap: 12 }}>
+                                                        <div style={{
+                                                            width: 40, height: 40, borderRadius: 10,
+                                                            background: video.status === 'COMPLETED' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(167, 139, 250, 0.1)',
+                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                            color: video.status === 'COMPLETED' ? '#4ade80' : '#a78bfa'
+                                                        }}>
+                                                            <Film size={20} />
+                                                        </div>
+                                                        <div>
+                                                            <p style={{ fontSize: '.9rem', fontWeight: 700, color: 'white' }}>
+                                                                {video.type || 'Archivo de Video'}
+                                                                <span style={{ marginLeft: 8, fontSize: '0.7rem', color: 'var(--adm-muted)', fontWeight: 400 }}>ID: {video.id}</span>
+                                                            </p>
+                                                            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                                                                <span className={`adm-badge ${video.status === 'COMPLETED' ? 'adm-badge--green' : 'adm-badge--blue'}`} style={{ fontSize: '0.65rem', padding: '2px 8px' }}>
+                                                                    {video.status}
                                                                 </span>
-                                                            )}
+                                                                {video.resolution && (
+                                                                    <span className="adm-badge adm-badge--gray" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>
+                                                                        {video.resolution}
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div style={{ display: 'flex', gap: 8 }}>
-                                                    {video.status === 'COMPLETED' && video.masterPlaylist && (
-                                                        <button
-                                                            onClick={async () => {
-                                                                try {
-                                                                    const token = localStorage.getItem('adminToken');
-                                                                    const res = await fetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
-                                                                        method: 'POST',
-                                                                        headers: {
-                                                                            'Content-Type': 'application/json',
-                                                                            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                                                                        },
-                                                                        body: JSON.stringify({ contentId: id })
-                                                                    });
-                                                                    const resJson = await res.json();
-                                                                    if (resJson.success) {
-                                                                        const filename = video.masterPlaylist?.split('/').pop() || 'master.m3u8';
-                                                                        const streamUrl = `${API_ORIGIN}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}`;
-
-                                                                        setActiveVideo({
-                                                                            url: streamUrl,
-                                                                            title: data?.translations.find(t => t.lang === 'es')?.title || 'Video'
+                                                    <div style={{ display: 'flex', gap: 8 }}>
+                                                        {video.status === 'COMPLETED' && video.masterPlaylist && (
+                                                            <button
+                                                                onClick={async () => {
+                                                                    try {
+                                                                        const token = localStorage.getItem('adminToken');
+                                                                        const res = await fetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
+                                                                            method: 'POST',
+                                                                            headers: {
+                                                                                'Content-Type': 'application/json',
+                                                                                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                                                                            },
+                                                                            body: JSON.stringify({ contentId: id })
                                                                         });
-                                                                    } else {
-                                                                        alert('Error al acceder al video: ' + (resJson.error || 'Token denegado'));
-                                                                    }
-                                                                } catch (e) {
-                                                                    console.error(e);
-                                                                    alert('Error de conexión al obtener acceso al video.');
-                                                                }
-                                                            }}
-                                                            className="adm-btn adm-btn--primary adm-btn--sm"
-                                                            style={{ fontSize: '.75rem', padding: '6px 12px' }}
-                                                        >
-                                                            <Play size={14} fill="currentColor" /> Ver
-                                                        </button>
-                                                    )}
-                                                    <button onClick={() => handleDeleteVideo(video.id)} className="adm-icon-btn adm-icon-btn--danger">
-                                                        <Trash2 size={14} />
-                                                    </button>
-                                                </div>
-                                            </div>
+                                                                        const resJson = await res.json();
+                                                                        if (resJson.success) {
+                                                                            const filename = video.masterPlaylist?.split('/').pop() || 'master.m3u8';
+                                                                            const streamUrl = `${API_ORIGIN}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}`;
 
-                                            {/* Audio Tracks */}
-                                            <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 10, paddingTop: 10 }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                                                    <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)', fontWeight: 600, display: 'flex', gap: 6, alignItems: 'center' }}>
-                                                        <Headphones size={12} /> PISTAS DE AUDIO
-                                                    </span>
-                                                </div>
-                                                {video.audioTracks && video.audioTracks.length > 0 ? (
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                                        {video.audioTracks.map((audio: any) => (
-                                                            <div key={audio.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem' }}>
-                                                                <div style={{ color: 'white' }}>
-                                                                    <span style={{ fontWeight: 700, color: '#facc15' }}>{audio.language.toUpperCase()}</span> - {audio.label}
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <div style={{ fontSize: '.7rem', color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>No hay pistas de audio adicionales extraídas.</div>
-                                                )}
-                                            </div>
-
-                                            {/* Subtitles */}
-                                            <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 10, paddingTop: 10 }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                                                    <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)', fontWeight: 600, display: 'flex', gap: 6, alignItems: 'center' }}>
-                                                        <MessageSquare size={12} /> SUBTÍTULOS
-                                                    </span>
-                                                    <label className="adm-btn adm-btn--gray adm-btn--sm" style={{ padding: '2px 8px', fontSize: '.7rem', cursor: 'pointer' }}>
-                                                        {uploadingSubtitle === video.id ? <Loader2 className="animate-spin" size={12} /> : '+ Añadir'}
-                                                        <input type="file" accept=".vtt,.srt" style={{ display: 'none' }} onChange={(e) => handleUploadSubtitle(video.id, e)} disabled={uploadingSubtitle === video.id} />
-                                                    </label>
-                                                </div>
-                                                {video.subtitleTracks && video.subtitleTracks.length > 0 ? (
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                                        {video.subtitleTracks.map((sub: any) => (
-                                                            <div key={sub.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem' }}>
-                                                                <div style={{ color: 'white' }}><span style={{ fontWeight: 700, color: 'var(--adm-primary)' }}>{sub.language.toUpperCase()}</span> - {sub.label}</div>
-                                                                <button onClick={() => handleDeleteSubtitle(sub.id)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}><X size={12} /></button>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <div style={{ fontSize: '.7rem', color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>No hay subtítulos externos.</div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Seasons & Episodes Section (Only for Series) */}
-                            {data?.type === 'SERIES' && data.seasons && data.seasons.length > 0 && (
-                                <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
-                                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 20 }}>
-                                        <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--adm-primary)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                                            <Layout size={18} /> ESTRUCTURA DE TEMPORADAS ({data?.seasons?.length || 0})
-                                        </h3>
-                                    </div>
-                                    {data?.seasons?.map(season => (
-                                        <div key={season?.id} style={{ background: 'rgba(255,255,255,0.02)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
-                                            <div style={{ padding: '12px 20px', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'white' }}>Temporada {season?.number}</h4>
-                                                <span style={{ fontSize: '0.75rem', color: 'var(--adm-muted)' }}>{season?.episodes?.length} episodios</span>
-                                            </div>
-                                            <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                                {season?.episodes?.map(episode => {
-                                                    const video = episode?.videoFiles?.[0];
-                                                    const epTitle = episode?.translations?.[0]?.title || `Episodio ${episode?.number}`;
-                                                    return (
-                                                        <div key={episode.id} style={{ background: 'rgba(255,255,255,0.02)', padding: '10px 16px', borderRadius: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid rgba(255,255,255,0.03)' }}>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(99,102,241,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#818cf8', fontSize: '0.75rem', fontWeight: 800 }}>
-                                                                    {episode.number}
-                                                                </div>
-                                                                <div>
-                                                                    <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'white' }}>{epTitle}</p>
-                                                                    {video ? (
-                                                                        <span style={{ fontSize: '0.7rem', color: '#4ade80', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                                                            <CheckCircle2 size={10} /> {video.resolution || 'HLS READY'}
-                                                                        </span>
-                                                                    ) : (
-                                                                        <span style={{ fontSize: '0.7rem', color: '#fb7185', display: 'flex', alignItems: 'center', gap: 4 }}>
-                                                                            <AlertTriangle size={10} /> Sin video
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                            {video?.status === 'COMPLETED' && (
-                                                                <button 
-                                                                    onClick={async () => {
-                                                                        try {
-                                                                            const token = localStorage.getItem('adminToken');
-                                                                            const res = await fetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
-                                                                                method: 'POST',
-                                                                                headers: {
-                                                                                    'Content-Type': 'application/json',
-                                                                                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                                                                                },
-                                                                                body: JSON.stringify({ contentId: id })
+                                                                            setActiveVideo({
+                                                                                url: streamUrl,
+                                                                                title: data?.translations.find(t => t.lang === 'es')?.title || 'Video'
                                                                             });
-                                                                            const resJson = await res.json();
-                                                                            if (resJson.success) {
-                                                                                const filename = video.masterPlaylist?.split('/').pop() || 'master.m3u8';
-                                                                                const streamUrl = `${API_ORIGIN}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}`;
-                                                                                
-                                                                                setActiveVideo({
-                                                                                    url: streamUrl,
-                                                                                    title: `${data?.translations?.find(t => t.lang === 'es')?.title || data?.originalTitle || 'Serie'} - T${season?.number}E${episode?.number}`
-                                                                                });
-                                                                            }
-                                                                        } catch (e) { console.error(e); }
-                                                                    }}
-                                                                    className="adm-btn adm-btn--ghost adm-btn--sm" 
-                                                                    style={{ fontSize: '0.7rem', padding: '4px 10px' }}
-                                                                >
-                                                                    Ver Episodio
-                                                                </button>
-                                                            )}
+                                                                        } else {
+                                                                            alert('Error al acceder al video: ' + (resJson.error || 'Token denegado'));
+                                                                        }
+                                                                    } catch (e) {
+                                                                        console.error(e);
+                                                                        alert('Error de conexión al obtener acceso al video.');
+                                                                    }
+                                                                }}
+                                                                className="adm-btn adm-btn--primary adm-btn--sm"
+                                                                style={{ fontSize: '.75rem', padding: '6px 12px' }}
+                                                            >
+                                                                <Play size={14} fill="currentColor" /> Ver
+                                                            </button>
+                                                        )}
+                                                        <button onClick={() => handleDeleteVideo(video.id)} className="adm-icon-btn adm-icon-btn--danger">
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Audio Tracks */}
+                                                <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 10, paddingTop: 10 }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                                        <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)', fontWeight: 600, display: 'flex', gap: 6, alignItems: 'center' }}>
+                                                            <Headphones size={12} /> PISTAS DE AUDIO
+                                                        </span>
+                                                    </div>
+                                                    {video.audioTracks && video.audioTracks.length > 0 ? (
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                                            {video.audioTracks.map((audio: any) => (
+                                                                <div key={audio.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem' }}>
+                                                                    <div style={{ color: 'white' }}>
+                                                                        <span style={{ fontWeight: 700, color: '#facc15' }}>{audio.language.toUpperCase()}</span> - {audio.label}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
                                                         </div>
-                                                    );
-                                                })}
+                                                    ) : (
+                                                        <div style={{ fontSize: '.7rem', color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>No hay pistas de audio adicionales extraídas.</div>
+                                                    )}
+                                                </div>
+
+                                                {/* Subtitles */}
+                                                <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 10, paddingTop: 10 }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                                        <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)', fontWeight: 600, display: 'flex', gap: 6, alignItems: 'center' }}>
+                                                            <MessageSquare size={12} /> SUBTÍTULOS
+                                                        </span>
+                                                        <label className="adm-btn adm-btn--gray adm-btn--sm" style={{ padding: '2px 8px', fontSize: '.7rem', cursor: 'pointer' }}>
+                                                            {uploadingSubtitle === video.id ? <Loader2 className="animate-spin" size={12} /> : '+ Añadir'}
+                                                            <input type="file" accept=".vtt,.srt" style={{ display: 'none' }} onChange={(e) => handleUploadSubtitle(video.id, e)} disabled={uploadingSubtitle === video.id} />
+                                                        </label>
+                                                    </div>
+                                                    {video.subtitleTracks && video.subtitleTracks.length > 0 ? (
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                                            {video.subtitleTracks.map((sub: any) => (
+                                                                <div key={sub.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem' }}>
+                                                                    <div style={{ color: 'white' }}><span style={{ fontWeight: 700, color: 'var(--adm-primary)' }}>{sub.language.toUpperCase()}</span> - {sub.label}</div>
+                                                                    <button onClick={() => handleDeleteSubtitle(sub.id)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}><X size={12} /></button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div style={{ fontSize: '.7rem', color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>No hay subtítulos externos.</div>
+                                                    )}
+                                                </div>
                                             </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Seasons & Episodes Section (Only for Series) */}
+                                {data?.type !== 'MOVIE' && data.seasons && data.seasons.length > 0 && (
+                                    <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+                                        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 20 }}>
+                                            <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--adm-primary)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                <Layout size={18} /> ESTRUCTURA DE TEMPORADAS ({data?.seasons?.length || 0})
+                                            </h3>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
+                                        {data?.seasons?.map(season => (
+                                            <div key={season?.id} style={{ background: 'rgba(255,255,255,0.02)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+                                                <div style={{ padding: '12px 20px', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'white' }}>Temporada {season?.number}</h4>
+                                                    <span style={{ fontSize: '0.75rem', color: 'var(--adm-muted)' }}>{season?.episodes?.length} episodios</span>
+                                                </div>
+                                                <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                                    {season?.episodes?.map(episode => {
+                                                        const video = episode?.videoFiles?.[0];
+                                                        const epTitle = episode?.translations?.[0]?.title || `Episodio ${episode?.number}`;
+                                                        return (
+                                                            <div key={episode.id} style={{ background: 'rgba(255,255,255,0.02)', padding: '10px 16px', borderRadius: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid rgba(255,255,255,0.03)' }}>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                                                    <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(99,102,241,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#818cf8', fontSize: '0.75rem', fontWeight: 800 }}>
+                                                                        {episode.number}
+                                                                    </div>
+                                                                    <div>
+                                                                        <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'white' }}>{epTitle}</p>
+                                                                        {video ? (
+                                                                            <span style={{ fontSize: '0.7rem', color: '#4ade80', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                                                <CheckCircle2 size={10} /> {video.resolution || 'HLS READY'}
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span style={{ fontSize: '0.7rem', color: '#fb7185', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                                                <AlertTriangle size={10} /> Sin video
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                                {video?.status === 'COMPLETED' && (
+                                                                    <button 
+                                                                        onClick={async () => {
+                                                                            try {
+                                                                                const token = localStorage.getItem('adminToken');
+                                                                                const res = await fetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
+                                                                                    method: 'POST',
+                                                                                    headers: {
+                                                                                        'Content-Type': 'application/json',
+                                                                                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                                                                                    },
+                                                                                    body: JSON.stringify({ contentId: id })
+                                                                                });
+                                                                                const resJson = await res.json();
+                                                                                if (resJson.success) {
+                                                                                    const filename = video.masterPlaylist?.split('/').pop() || 'master.m3u8';
+                                                                                    const streamUrl = `${API_ORIGIN}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}`;
+                                                                                    
+                                                                                    setActiveVideo({
+                                                                                        url: streamUrl,
+                                                                                        title: `${data?.translations?.find(t => t.lang === 'es')?.title || data?.originalTitle || 'Serie'} - T${season?.number}E${episode?.number}`
+                                                                                    });
+                                                                                }
+                                                                            } catch (e) { console.error(e); }
+                                                                        }}
+                                                                        className="adm-btn adm-btn--ghost adm-btn--sm" 
+                                                                        style={{ fontSize: '0.7rem', padding: '4px 10px' }}
+                                                                    >
+                                                                        Ver Episodio
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
+
 
                 {/* COLUMNA DERECHA: Configuración Técnica y Metadatos */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
