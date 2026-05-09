@@ -340,6 +340,7 @@ export default function AdminUsersPage() {
                                     ) : (
                                         <>
                                             <th style={{ textAlign: 'center' }}>Usuario</th>
+                                            <th style={{ textAlign: 'center' }}>Nº de teléfono</th>
                                             <th style={{ textAlign: 'center' }}>Rol</th>
                                             <th style={{ textAlign: 'center' }}>Estado</th>
                                             <th style={{ textAlign: 'center' }}>Perfiles</th>
@@ -351,7 +352,7 @@ export default function AdminUsersPage() {
                             </thead>
                             <tbody>
                                 {users.length === 0 ? (
-                                    <tr><td colSpan={activeTab === 'VENDOR' ? 7 : 6} style={{ textAlign: 'center', padding: '40px' }}>No se encontraron registros.</td></tr>
+                                    <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>No se encontraron registros.</td></tr>
                                 ) : users.map(user => (
                                     <tr key={user.id}>
                                         {activeTab === 'VENDOR' ? (
@@ -405,10 +406,12 @@ export default function AdminUsersPage() {
                                                             </div>
                                                             <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                                                                 <span style={{ color: '#60a5fa', fontWeight: 600 }}>{user.username || '-'}</span>
-                                                                {user.phone && <span>{user.phone}</span>}
                                                             </div>
                                                         </div>
                                                     </div>
+                                                </td>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <span style={{ fontSize: '.85rem' }}>{user.phone || '-'}</span>
                                                 </td>
                                                 <td style={{ textAlign: 'center' }}>
                                                     <span className={`adm-badge ${user.role === 'ADMIN' ? 'adm-badge--purple' : 'adm-badge--blue'}`}>

@@ -364,23 +364,29 @@ export default function AdminContentPage() {
                                             ) : (
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                                                     {(() => {
-                                                        const total = item.videoFiles?.length || 0;
-                                                        const completed = item.videoFiles?.filter(v => v.status === 'COMPLETED' || v.status === 'READY').length || 0;
+                                                        // Priority: item.episodeCount (real count from backend) 
+                                                        // Fallback: item.videoFiles (legacy count)
+                                                        const completed = (item as any).episodeCount !== undefined 
+                                                            ? (item as any).episodeCount 
+                                                            : (item.videoFiles?.filter(v => v.status === 'COMPLETED' || v.status === 'READY').length || 0);
+                                                        
+                                                        const totalVideoFiles = item.videoFiles?.length || 0;
                                                         const failed = item.videoFiles?.filter(v => v.status === 'FAILED' || v.status === 'ERROR').length || 0;
                                                         
                                                         return (
                                                             <>
-                                                                {completed > 0 && (
+                                                                {completed > 0 ? (
                                                                     <div className="adm-badge" style={{ background: 'rgba(74, 222, 128, 0.1)', color: '#4ade80', width: 'fit-content' }}>
                                                                         <Film size={11} style={{ marginRight: 4 }} /> {completed} Episodios
                                                                     </div>
-                                                                )}
+                                                                ) : totalVideoFiles === 0 ? (
+                                                                    <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)' }}>Sin episodios</span>
+                                                                ) : null}
                                                                 {failed > 0 && (
                                                                     <div className="adm-badge" style={{ background: 'rgba(244, 63, 94, 0.1)', color: '#f43f5e', width: 'fit-content', border: '1px solid rgba(244, 63, 94, 0.2)' }}>
                                                                         <AlertTriangle size={11} style={{ marginRight: 4 }} /> {failed} Fallidos
                                                                     </div>
                                                                 )}
-                                                                {total === 0 && <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)' }}>Sin episodios</span>}
                                                             </>
                                                         );
                                                     })()}

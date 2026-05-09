@@ -29,7 +29,7 @@ export default function SuperVendorVendorsPage() {
 
     const fetchPackages = useCallback(async () => {
         try {
-            const r = await resellerFetch(API_ROUTES.CREDIT_PACKAGES.ALL);
+            const r = await resellerFetch(API_ROUTES.CREDIT_PACKAGES.BASE);
             const j = await r.json();
             if (j.success) setPackages(j.data);
         } catch (e) { console.error(e); }
