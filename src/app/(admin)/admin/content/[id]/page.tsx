@@ -105,6 +105,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
     const [activeVideo, setActiveVideo] = useState<{ url: string, title: string } | null>(null);
     const [trailerFile, setTrailerFile] = useState<File | null>(null);
     const [uploadingSubtitle, setUploadingSubtitle] = useState<string | null>(null); // videoFileId
+    const [showEpisodes, setShowEpisodes] = useState(false);
 
     const [data, setData] = useState<ContentData | null>(null);
     const [allPlatforms, setAllPlatforms] = useState<{ id: string; name: string }[]>([]);
@@ -695,14 +696,14 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                 <h2>Estructura de Temporadas ({data.seasons?.length || 0})</h2>
                             </div>
                             <div className="adm-settings-body">
-                                {!data.seasons || data.seasons.length === 0 ? (
+                                {!data?.seasons || data.seasons.length === 0 ? (
                                     <div style={{ textAlign: 'center', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: 12 }}>
                                         <AlertTriangle size={24} style={{ color: 'var(--adm-muted)', marginBottom: 8, margin: '0 auto' }} />
                                         <p style={{ fontSize: '.85rem', color: 'var(--adm-muted)' }}>No se encontraron temporadas para esta serie.</p>
                                     </div>
                                 ) : (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                                        {data.seasons.map(season => (
+                                        {data?.seasons?.map(season => (
                                             <div key={season?.id} style={{ background: 'rgba(255,255,255,0.02)', borderRadius: 16, border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
                                                 <div style={{ padding: '12px 20px', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                     <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'white' }}>Temporada {season?.number}</h4>
@@ -735,14 +736,9 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                                     <button 
                                                                         onClick={async () => {
                                                                             try {
-                                                                                const token = localStorage.getItem('adminToken');
-                                                                                const res = await fetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
+                                                                                const res = await adminFetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
                                                                                     method: 'POST',
-                                                                                    headers: {
-                                                                                        'Content-Type': 'application/json',
-                                                                                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                                                                                    },
-                                                                                    body: JSON.stringify({ contentId: id })
+                                                                                    body: JSON.stringify({ contentId: id, episodeId: episode.id })
                                                                                 });
                                                                                 const resJson = await res.json();
                                                                                 if (resJson.success) {
@@ -753,8 +749,13 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                                                         url: streamUrl,
                                                                                         title: `${data?.translations?.find(t => t.lang === 'es')?.title || data?.originalTitle || 'Serie'} - T${season?.number}E${episode?.number}`
                                                                                     });
+                                                                                } else {
+                                                                                    alert('Error al acceder al episodio: ' + (resJson.error || 'Token denegado'));
                                                                                 }
-                                                                            } catch (e) { console.error(e); }
+                                                                            } catch (e: any) { 
+                                                                                console.error(e); 
+                                                                                alert('Error de conexión: ' + e.message);
+                                                                            }
                                                                         }}
                                                                         className="adm-btn adm-btn--ghost adm-btn--sm" 
                                                                         style={{ fontSize: '0.7rem', padding: '4px 10px' }}
@@ -851,12 +852,103 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                             src={activeVideo.url}
                                             title={activeVideo.title}
                                             poster={resolveImageUrl(data?.thumbnails?.find(t => t.type === 'BACKDROP')?.url) || undefined}
+                                            onShowEpisodes={data?.type !== 'MOVIE' ? () => setShowEpisodes(v => !v) : undefined}
                                         />
+
+                                        {/* Episode Sidebar Panel - Admin Version */}
+                                        {showEpisodes && (
+                                            <div style={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                bottom: 0,
+                                                right: 0,
+                                                width: '100%',
+                                                maxWidth: '380px',
+                                                background: 'rgba(5, 8, 28, 0.95)',
+                                                backdropFilter: 'blur(20px)',
+                                                borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
+                                                zIndex: 1000000,
+                                                padding: '30px',
+                                                overflowY: 'auto',
+                                                color: 'white',
+                                                boxShadow: '-10px 0 30px rgba(0,0,0,0.5)'
+                                            }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                                                    <h2 style={{ fontSize: '1.5rem', fontWeight: 900, textTransform: 'uppercase', fontStyle: 'italic' }}>Episodios</h2>
+                                                    <button onClick={() => setShowEpisodes(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
+                                                        <X size={24} />
+                                                    </button>
+                                                </div>
+
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                                                    {data?.seasons?.map((s: any) => (
+                                                        <div key={s.id}>
+                                                            <h3 style={{ fontSize: '10px', fontWeight: 900, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '15px', opacity: 0.8, borderBottom: '1px solid rgba(124, 58, 237, 0.2)', paddingBottom: '8px' }}>Temporada {s.number}</h3>
+                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                                                {s.episodes?.map((e: any) => {
+                                                                    const video = e.videoFiles?.[0];
+                                                                    const isReady = video?.status === 'COMPLETED';
+                                                                    return (
+                                                                        <button
+                                                                            key={e.id}
+                                                                            disabled={!isReady}
+                                                                            onClick={async () => {
+                                                                                if (!isReady) return;
+                                                                                try {
+                                                                                    const res = await adminFetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
+                                                                                        method: 'POST',
+                                                                                        body: JSON.stringify({ contentId: id, episodeId: e.id })
+                                                                                    });
+                                                                                    const resJson = await res.json();
+                                                                                    if (resJson.success && resJson.data) {
+                                                                                        const streamUrl = `${API_ORIGIN}/api/stream/hls/${resJson.data.videoFileId}/${resJson.data.videoFileId === video.id ? (video.masterPlaylist?.split('/').pop() || 'master.m3u8') : 'master.m3u8'}?token=${resJson.data.token}`;
+                                                                                        setActiveVideo({
+                                                                                            url: streamUrl,
+                                                                                            title: `${data?.translations?.find(t => t.lang === 'es')?.title || data?.originalTitle || 'Serie'} - T${s.number}E${e.number}`
+                                                                                        });
+                                                                                        setShowEpisodes(false);
+                                                                                    }
+                                                                                } catch (err) {
+                                                                                    console.error(err);
+                                                                                }
+                                                                            }}
+                                                                            style={{
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                gap: '15px',
+                                                                                padding: '12px',
+                                                                                borderRadius: '16px',
+                                                                                background: e.id === activeVideo.title.includes(`E${e.number}`) ? 'rgba(124, 58, 237, 0.15)' : 'rgba(255,255,255,0.03)',
+                                                                                border: e.id === activeVideo.title.includes(`E${e.number}`) ? '1px solid rgba(124, 58, 237, 0.3)' : '1px solid rgba(255,255,255,0.05)',
+                                                                                cursor: isReady ? 'pointer' : 'not-allowed',
+                                                                                textAlign: 'left',
+                                                                                opacity: isReady ? 1 : 0.4,
+                                                                                width: '100%'
+                                                                            }}
+                                                                        >
+                                                                            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(124, 58, 237, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7c3aed', fontSize: '0.75rem', fontWeight: 800, flexShrink: 0 }}>
+                                                                                {e.number}
+                                                                            </div>
+                                                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                                                <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'white', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                                                    {e.translations?.[0]?.title || `Episodio ${e.number}`}
+                                                                                </p>
+                                                                                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>{e.duration || '??'} MIN</span>
+                                                                            </div>
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>,
                                     document.body
                                 )}
 
-                                {!data?.videoFiles || (data.type !== 'MOVIE' ? data.videoFiles.filter(v => !v.episodeId) : data.videoFiles).length === 0 ? (
+                                {!data || !data.videoFiles || (data.type !== 'MOVIE' ? data.videoFiles.filter(v => !v.episodeId) : data.videoFiles).length === 0 ? (
                                     <div style={{ textAlign: 'center', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: 12 }}>
                                         <AlertTriangle size={24} style={{ color: 'var(--adm-muted)', marginBottom: 8, margin: '0 auto' }} />
                                         <p style={{ fontSize: '.85rem', color: 'var(--adm-muted)' }}>{data?.type === 'MOVIE' ? 'No hay videos asociados.' : 'No hay videos directos (sin episodio).'}</p>
@@ -866,7 +958,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                     </div>
                                 ) : (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                                        {(data.type !== 'MOVIE' ? data.videoFiles.filter(v => !v.episodeId) : data.videoFiles).map((video, idx) => (
+                                        {(data && data.videoFiles ? (data.type !== 'MOVIE' ? data.videoFiles.filter(v => !v.episodeId) : data.videoFiles) : []).map((video, idx) => (
                                             <div key={video.id || idx} style={{
                                                 background: 'rgba(255,255,255,0.03)', padding: '16px',
                                                 borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)'
@@ -903,13 +995,8 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                             <button
                                                                 onClick={async () => {
                                                                     try {
-                                                                        const token = localStorage.getItem('adminToken');
-                                                                        const res = await fetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
+                                                                        const res = await adminFetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
                                                                             method: 'POST',
-                                                                            headers: {
-                                                                                'Content-Type': 'application/json',
-                                                                                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                                                                            },
                                                                             body: JSON.stringify({ contentId: id })
                                                                         });
                                                                         const resJson = await res.json();
@@ -1174,7 +1261,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                     <div>
                                         <label style={{ display: 'block', fontSize: '.75rem', color: 'var(--adm-muted)', marginBottom: 8, fontWeight: 600 }}>Director(es)</label>
                                         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                                            {data.directors.map((d: any, i: number) => (
+                                            {data?.directors?.map((d: any, i: number) => (
                                                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.04)', padding: '6px 12px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)' }}>
                                                     {d.director.photoUrl && <img src={d.director.photoUrl} alt={d.director.name} style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />}
                                                     <span style={{ fontSize: '.8rem', fontWeight: 600, color: 'white' }}>{d.director.name}</span>
@@ -1185,9 +1272,9 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                 )}
                                 {data?.actors && data.actors.length > 0 && (
                                     <div style={{ marginTop: 16 }}>
-                                        <label style={{ display: 'block', fontSize: '.75rem', color: 'var(--adm-muted)', marginBottom: 8, fontWeight: 600 }}>Reparto principal ({data.actors.length})</label>
+                                        <label style={{ display: 'block', fontSize: '.75rem', color: 'var(--adm-muted)', marginBottom: 8, fontWeight: 600 }}>Reparto principal ({data?.actors?.length || 0})</label>
                                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                                            {data.actors.map((a: any, i: number) => (
+                                            {data?.actors?.map((a: any, i: number) => (
                                                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.04)', padding: '4px 8px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)', fontSize: '.75rem' }}>
                                                     {a.actor.photoUrl && <img src={a.actor.photoUrl} alt={a.actor.name} style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }} />}
                                                     <span style={{ fontWeight: 600, color: 'white' }}>{a.actor.name}</span>

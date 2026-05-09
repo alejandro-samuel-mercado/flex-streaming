@@ -297,7 +297,10 @@ export default function WatchPage() {
 
             {/* Episode Sidebar Panel */}
             {showEpisodes && (
-                <div className="absolute inset-y-0 right-0 w-full max-w-sm bg-black/90 backdrop-blur-2xl border-l border-white/10 z-[100] p-8 overflow-y-auto animate-in slide-in-from-right duration-300 shadow-[-20px_0_40px_rgba(0,0,0,0.8)]">
+                <div 
+                    className="absolute inset-y-0 right-0 w-full max-w-sm bg-black/95 backdrop-blur-2xl border-l border-white/10 z-[200] p-8 overflow-y-auto shadow-[-20px_0_40px_rgba(0,0,0,0.8)] transition-all duration-300 ease-out"
+                    style={{ right: 0 }}
+                >
                     <div className="flex justify-between items-center mb-8">
                         <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Episodios</h2>
                         <button onClick={() => setShowEpisodes(false)} className="text-white/40 hover:text-white p-2">

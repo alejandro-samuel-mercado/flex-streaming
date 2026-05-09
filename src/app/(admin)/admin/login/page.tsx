@@ -160,9 +160,7 @@ export default function AdminLoginPage() {
                     </motion.button>
                 </form>
 
-                <p className="admin-login-hint">
-                    Usuario de prueba: <strong>admin@peliplus.com</strong> / <strong>admin123</strong>
-                </p>
+
             </motion.div>
         </div>
     );
