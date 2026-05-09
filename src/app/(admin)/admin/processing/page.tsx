@@ -26,6 +26,12 @@ export default function ProcessingMonitorPage() {
     const [viewingLogs, setViewingLogs] = useState<string | null>(null);
     const [logs, setLogs] = useState<string[]>([]);
     const [logsLoading, setLogsLoading] = useState(false);
+    const [totalStats, setTotalStats] = useState({
+        completed: 0,
+        failed: 0,
+        processing: 0,
+        queued: 0
+    });
 
     // Filters state
     const [searchTerm, setSearchTerm] = useState('');
@@ -44,7 +50,15 @@ export default function ProcessingMonitorPage() {
                 });
                 if (res.ok) {
                     const data = await res.json();
-                    setVideos(data.data || []);
+                    setVideos(data.data?.videos || []);
+                    if (data.data?.stats) {
+                        setTotalStats({
+                            completed: data.data.stats.totalCompleted,
+                            failed: data.data.stats.totalFailed,
+                            processing: data.data.stats.totalProcessing,
+                            queued: data.data.stats.totalQueued
+                        });
+                    }
                 }
             } catch (err) {
                 console.error('Error fetching video status:', err);
@@ -269,7 +283,7 @@ export default function ProcessingMonitorPage() {
                         </div>
                         <div>
                             <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', fontWeight: 700, letterSpacing: '1px' }}>PROCESANDO</div>
-                            <div style={{ fontSize: '2rem', fontWeight: 900, color: 'white', lineHeight: 1 }}>{videos.filter(v => v.status === 'PROCESSING').length}</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 900, color: 'white', lineHeight: 1 }}>{totalStats.processing}</div>
                         </div>
                     </div>
                 </div>
@@ -280,8 +294,8 @@ export default function ProcessingMonitorPage() {
                             <Clock size={24} />
                         </div>
                         <div>
-                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', fontWeight: 700, letterSpacing: '1px' }}>EN COLA</div>
-                            <div style={{ fontSize: '2rem', fontWeight: 900, color: 'white', lineHeight: 1 }}>{videos.filter(v => v.status === 'PENDING' || v.status === 'QUEUED').length}</div>
+                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', fontWeight: 700, letterSpacing: '1px' }}>EN COLA / PENDIENTE</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 900, color: 'white', lineHeight: 1 }}>{totalStats.queued}</div>
                         </div>
                     </div>
                 </div>
@@ -292,8 +306,8 @@ export default function ProcessingMonitorPage() {
                             <CheckCircle2 size={24} />
                         </div>
                         <div>
-                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', fontWeight: 700, letterSpacing: '1px' }}>COMPLETADOS</div>
-                            <div style={{ fontSize: '2rem', fontWeight: 900, color: 'white', lineHeight: 1 }}>{videos.filter(v => v.status === 'COMPLETED').length}</div>
+                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', fontWeight: 700, letterSpacing: '1px' }}>TOTAL COMPLETADOS</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 900, color: 'white', lineHeight: 1 }}>{totalStats.completed}</div>
                         </div>
                     </div>
                 </div>
@@ -304,8 +318,8 @@ export default function ProcessingMonitorPage() {
                             <AlertCircle size={24} />
                         </div>
                         <div>
-                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', fontWeight: 700, letterSpacing: '1px' }}>FALLIDOS</div>
-                            <div style={{ fontSize: '2rem', fontWeight: 900, color: 'white', lineHeight: 1 }}>{videos.filter(v => v.status === 'FAILED').length}</div>
+                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', fontWeight: 700, letterSpacing: '1px' }}>TOTAL FALLIDOS</div>
+                            <div style={{ fontSize: '2rem', fontWeight: 900, color: 'white', lineHeight: 1 }}>{totalStats.failed}</div>
                         </div>
                     </div>
                 </div>
