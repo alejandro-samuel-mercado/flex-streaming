@@ -18,7 +18,7 @@ interface CreditHistoryModalProps {
 interface Transaction {
     id: string;
     amount: number;
-    type: 'ADD' | 'DEDUCT';
+    type: string;
     description: string;
     createdAt: string;
     referenceId?: string;
@@ -106,7 +106,7 @@ export function CreditHistoryModal({ isOpen, onClose, targetUserId, isAdmin }: C
                                             </td>
                                             <td>{tx.description}</td>
                                             <td>
-                                                {tx.type === 'ADD' ? (
+                                                {tx.amount > 0 ? (
                                                     <span style={{ color: '#4ade80', display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.85rem' }}>
                                                         <ArrowUpRight size={14} /> Ingreso
                                                     </span>
@@ -119,9 +119,9 @@ export function CreditHistoryModal({ isOpen, onClose, targetUserId, isAdmin }: C
                                             <td style={{ 
                                                 textAlign: 'right', 
                                                 fontWeight: 600,
-                                                color: tx.type === 'ADD' ? '#4ade80' : '#f87171' 
+                                                color: tx.amount > 0 ? '#4ade80' : '#f87171' 
                                             }}>
-                                                {tx.type === 'ADD' ? '+' : '-'}{tx.amount}
+                                                {tx.amount > 0 ? '+' : ''}{tx.amount}
                                             </td>
                                         </tr>
                                     ))}

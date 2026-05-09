@@ -51,7 +51,7 @@ export interface EndUserAccount {
   id: string;
   username: string;
   password: string;
-  managedBy: { id: string; name: string; email: string };
+  managedBy: { id: string; name: string; phone: string; username?: string; role?: string; parent?: { name: string; username?: string } | null };
   plan?: { id: string; name: string; durationDays: number } | null;
   status: EndUserAccountStatus;
   type: EndUserAccountType;
@@ -75,7 +75,7 @@ export interface CreditTransaction {
 
 export interface ResellerVendor {
   id: string;
-  email: string;
+  phone: string;
   username?: string;
   name: string;
   role: UserRole;
@@ -83,7 +83,7 @@ export interface ResellerVendor {
   isActive: boolean;
   createdAt: string;
   parentId?: string | null;
-  parent?: { id: string; name: string; email: string; username?: string } | null;
+  parent?: { id: string; name: string; phone: string; username?: string } | null;
   _count: { children: number; managedEndUsers: number };
 }
 

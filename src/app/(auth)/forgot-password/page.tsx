@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { Key } from 'lucide-react';
 
 const forgotPasswordSchema = z.object({
-    email: z.string().email('Email inválido'),
+    phone: z.string().min(8, 'Número inválido'),
 });
 
 type ForgotForm = z.infer<typeof forgotPasswordSchema>;
@@ -27,7 +27,7 @@ export default function ForgotPasswordPage() {
         // Simulating API Call
         setTimeout(() => {
             setIsLoading(false);
-            setSuccessMsg('Si existe una cuenta asociada a este correo, recibirás un enlace de recuperación pronto.');
+            setSuccessMsg('Si existe una cuenta asociada a este número, recibirás un mensaje de recuperación pronto.');
         }, 1500);
     };
 
@@ -54,7 +54,7 @@ export default function ForgotPasswordPage() {
                 </Link>
 
                 <h1 className="auth-title">Recuperar contraseña</h1>
-                <p className="auth-subtitle mb-6 text-gray-400">Ingresá tu correo electrónico y te enviaremos instrucciones.</p>
+                <p className="auth-subtitle mb-6 text-gray-400">Ingresá tu Nº de teléfono y te enviaremos instrucciones.</p>
 
                 {successMsg && (
                     <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="p-4 mb-6 rounded bg-green-500/20 border border-green-500/50 text-green-200 text-sm">
@@ -65,13 +65,13 @@ export default function ForgotPasswordPage() {
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
                     <div className="flex flex-col gap-2">
                         <input
-                            {...register('email')}
-                            type="email"
-                            className={`w-full bg-[#333] text-white px-4 py-3.5 rounded outline-none focus:ring-2 focus:ring-gray-400 transition placeholder-gray-400 ${errors.email ? 'ring-2 ring-red-500' : ''}`}
-                            placeholder="tu@email.com"
-                            autoComplete="email"
+                            {...register('phone')}
+                            type="tel"
+                            className={`w-full bg-[#333] text-white px-4 py-3.5 rounded outline-none focus:ring-2 focus:ring-gray-400 transition placeholder-gray-400 ${errors.phone ? 'ring-2 ring-red-500' : ''}`}
+                            placeholder="Ej: 1122334455"
+                            autoComplete="tel"
                         />
-                        {errors.email && <span className="text-red-500 text-xs font-semibold">{errors.email.message}</span>}
+                        {errors.phone && <span className="text-red-500 text-xs font-semibold">{errors.phone.message}</span>}
                     </div>
 
                     <motion.button

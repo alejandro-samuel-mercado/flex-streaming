@@ -48,9 +48,12 @@ export default function ProfilePage() {
     }
 
     const endUser = user.endUserAccount;
+    const isInactivePending = endUser?.status === 'INACTIVE' && endUser?.planId;
     const remainingDays = endUser?.endDate 
         ? Math.max(0, Math.ceil((new Date(endUser.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-        : 0;
+        : isInactivePending && endUser?.plan
+            ? (endUser.plan.durationDays + (endUser.plan.bonusDays ?? 0))
+            : 0;
 
     return (
         <div className="!min-h-screen !bg-[#02040A] !text-white !pt-24 !pb-12 !px-4 sm:!px-8">
@@ -106,11 +109,23 @@ export default function ProfilePage() {
                                     <div className="!space-y-4">
                                         <div className="!flex !justify-between !items-center !py-3 !border-b !border-white/5">
                                             <span className="!text-gray-400 !text-sm">Días restantes</span>
-                                            <span className="!font-black !text-xl">{remainingDays}</span>
+                                            <div className="!flex !items-center !gap-2">
+                                                <span className="!font-black !text-xl">{remainingDays}</span>
+                                                {isInactivePending && (
+                                                    <span className="!text-[10px] !font-bold !uppercase !bg-yellow-500/20 !text-yellow-400 !border !border-yellow-500/30 !px-2 !py-0.5 !rounded-full">Pendiente activar</span>
+                                                )}
+                                            </div>
                                         </div>
                                         <div className="!flex !justify-between !items-center !py-3 !border-b !border-white/5">
                                             <span className="!text-gray-400 !text-sm">Vence el</span>
-                                            <span className="!font-bold !text-sm">{new Date(endUser.endDate).toLocaleDateString()}</span>
+                                            <span className="!font-bold !text-sm">
+                                                {endUser.endDate
+                                                    ? new Date(endUser.endDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
+                                                    : isInactivePending
+                                                        ? 'Al activar tu cuenta'
+                                                        : '—'
+                                                }
+                                            </span>
                                         </div>
                                         <div className="!flex !justify-between !items-center !py-3">
                                             <span className="!text-gray-400 !text-sm">Dispositivos</span>

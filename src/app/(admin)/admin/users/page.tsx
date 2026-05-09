@@ -25,7 +25,7 @@ export default function AdminUsersPage() {
     const [formData, setFormData] = useState({
         name: '',
         username: '',
-        email: '',
+        phone: '',
         password: '',
         role: 'VENDOR',
         isActive: true,
@@ -104,7 +104,7 @@ export default function AdminUsersPage() {
         setFormData({
             name: '',
             username: '',
-            email: '',
+            phone: '',
             password: '',
             role: activeTab === 'ADMIN' ? 'ADMIN' : 'SUPER_VENDOR',
             isActive: true,
@@ -121,7 +121,7 @@ export default function AdminUsersPage() {
         setFormData({
             name: user.name || '',
             username: user.username || '',
-            email: user.email || '',
+            phone: user.phone || '',
             password: '', // Password empty by default on edit
             role: user.role,
             isActive: user.isActive,
@@ -306,7 +306,7 @@ export default function AdminUsersPage() {
                             <Search size={16} style={{ position: 'absolute', left: 12, top: 12, color: 'var(--adm-muted)' }} />
                             <input
                                 type="text"
-                                placeholder="Buscar por nombre o email..."
+                                placeholder="Buscar por nombre o teléfono..."
                                 className="adm-input"
                                 style={{ paddingLeft: 36 }}
                                 value={searchQuery}
@@ -327,118 +327,114 @@ export default function AdminUsersPage() {
                         <table className="adm-table">
                             <thead>
                                 <tr>
-                                    <th>Usuario</th>
                                     {activeTab === 'VENDOR' ? (
                                         <>
-                                            <th>Rol</th>
-                                            <th>Créditos</th>
-                                            <th style={{ textAlign: 'center' }}>Revendedores</th>
+                                            <th style={{ textAlign: 'center' }}>Nombre</th>
+                                            <th style={{ textAlign: 'center' }}>Usuario</th>
+                                            <th style={{ textAlign: 'center' }}>Nº de teléfono</th>
+                                            <th style={{ textAlign: 'center' }}>Créditos</th>
                                             <th style={{ textAlign: 'center' }}>Clientes</th>
-                                            <th>Estado</th>
+                                            <th style={{ textAlign: 'center' }}>Estados</th>
+                                            <th style={{ textAlign: 'center' }}>Acciones</th>
                                         </>
                                     ) : (
                                         <>
-                                            <th>Rol</th>
-                                            <th>Estado</th>
-                                            <th>Perfiles</th>
+                                            <th style={{ textAlign: 'center' }}>Usuario</th>
+                                            <th style={{ textAlign: 'center' }}>Rol</th>
+                                            <th style={{ textAlign: 'center' }}>Estado</th>
+                                            <th style={{ textAlign: 'center' }}>Perfiles</th>
+                                            <th style={{ textAlign: 'center' }}>Registro</th>
+                                            <th style={{ textAlign: 'center' }}>Acciones</th>
                                         </>
                                     )}
-                                    <th>Registro</th>
-                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {users.length === 0 ? (
-                                    <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px' }}>No se encontraron registros.</td></tr>
+                                    <tr><td colSpan={activeTab === 'VENDOR' ? 7 : 6} style={{ textAlign: 'center', padding: '40px' }}>No se encontraron registros.</td></tr>
                                 ) : users.map(user => (
                                     <tr key={user.id}>
                                         {activeTab === 'VENDOR' ? (
                                             <>
                                                 <td>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
                                                         <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--adm-bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                             <User size={20} color="var(--adm-muted)" />
                                                         </div>
-                                                        <div>
-                                                            <div style={{ fontWeight: 600, color: 'white' }}>{user.name}</div>
-                                                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', display: 'flex', gap: '8px' }}>
-                                                                {user.username && <span style={{ color: '#a78bfa', fontWeight: 600 }}>@{user.username}</span>}
-                                                                <span>{user.email}</span>
-                                                            </div>
-                                                        </div>
+                                                        <div style={{ fontWeight: 600, color: 'white' }}>{user.name}</div>
                                                     </div>
                                                 </td>
-                                                <td>
-                                                    <span className="adm-badge adm-badge--purple">
-                                                        {(getRoleLabel(user.role) || '').toUpperCase()}
-                                                    </span>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <div className="flex flex-col items-center justify-center">
+                                                        {user.username ? <span style={{ color: '#a78bfa', fontWeight: 600 }}>@{user.username}</span> : <span style={{ color: '#a78bfa', fontWeight: 600 }}>-</span>}
+                                                        <span style={{ fontSize: '.8rem', color: 'var(--adm-muted)' }}>{user.phone}</span>
+                                                    </div>
                                                 </td>
-                                                <td>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <span className="opacity-60">-</span>
+                                                </td>
+                                                <td style={{ textAlign: 'center' }}>
                                                     <span style={{ fontWeight: 700, color: '#facc15' }}>
                                                         {user.credits}
                                                     </span>
                                                 </td>
-                                                <td style={{ textAlign: 'center' }}>{user._count?.children || 0}</td>
                                                 <td style={{ textAlign: 'center' }}>{user._count?.managedEndUsers || 0}</td>
-                                                <td>
+                                                <td style={{ textAlign: 'center' }}>
                                                     <span className={`adm-badge ${user.isActive ? 'adm-badge--green' : 'adm-badge--red'}`}>
                                                         {user.isActive ? 'Activo' : 'Inactivo'}
                                                     </span>
+                                                </td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+                                                        <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => setShowCreditsModal(user.id)} title="Cargar Créditos" style={{ color: '#facc15' }}><Package size={14} /></button>
+                                                        <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => openEditModal(user)}><Edit2 size={14} /></button>
+                                                        <button className="adm-btn adm-btn--ghost adm-btn--sm adm-btn--red" onClick={() => setUserToDelete(user)}><Trash2 size={14} /></button>
+                                                    </div>
                                                 </td>
                                             </>
                                         ) : (
                                             <>
                                                 <td>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
                                                         <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--adm-bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                             <User size={20} color="var(--adm-muted)" />
                                                         </div>
-                                                        <div>
-                                                            <div style={{ fontWeight: 600, color: 'white', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                        <div style={{ textAlign: 'center' }}>
+                                                            <div style={{ fontWeight: 600, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                                                                 {user.name}
                                                                 {user._count?.memberships > 0 && <Crown size={14} color="#fbbf24" />}
                                                             </div>
-                                                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                                                                 {user.username && <span style={{ color: '#60a5fa', fontWeight: 600 }}>@{user.username}</span>}
-                                                                <Mail size={12} /> {user.email}
+                                                                {user.phone}
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td>
+                                                <td style={{ textAlign: 'center' }}>
                                                     <span className={`adm-badge ${user.role === 'ADMIN' ? 'adm-badge--purple' : 'adm-badge--blue'}`}>
                                                         {user.role === 'ADMIN' && <Shield size={12} style={{ marginRight: 4 }} />}
                                                         {getRoleLabel(user.role)}
                                                     </span>
                                                 </td>
-                                                <td>
+                                                <td style={{ textAlign: 'center' }}>
                                                     <span className={`adm-badge ${user.isActive ? 'adm-badge--green' : 'adm-badge--red'}`}>
                                                         {user.isActive ? 'Activo' : 'Inactivo'}
                                                     </span>
                                                 </td>
-                                                <td>
+                                                <td style={{ textAlign: 'center' }}>
                                                     <span style={{ fontSize: '.9rem', color: 'var(--adm-muted)' }}>
                                                         {user._count?.profiles || 0} perfiles
                                                     </span>
                                                 </td>
-                                            </>
-                                        )}
-                                        <td>
-                                            <span style={{ fontSize: '.85rem', color: 'var(--adm-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                                                <Calendar size={14} />
-                                                {new Date(user.createdAt).toLocaleDateString()}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div style={{ display: 'flex', gap: 8 }}>
-                                                {activeTab === 'VENDOR' ? (
-                                                    <>
-                                                        <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => setShowCreditsModal(user.id)} title="Cargar Créditos" style={{ color: '#facc15' }}><Package size={14} /></button>
-                                                        <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => openEditModal(user)}><Edit2 size={14} /></button>
-                                                        <button className="adm-btn adm-btn--ghost adm-btn--sm adm-btn--red" onClick={() => setUserToDelete(user)}><Trash2 size={14} /></button>
-                                                    </>
-                                                ) : (
-                                                    <>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <span style={{ fontSize: '.85rem', color: 'var(--adm-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                                        <Calendar size={14} />
+                                                        {new Date(user.createdAt).toLocaleDateString()}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
                                                         <button
                                                             className="adm-btn adm-btn--ghost adm-btn--sm"
                                                             onClick={() => openEditModal(user)}
@@ -453,10 +449,10 @@ export default function AdminUsersPage() {
                                                         >
                                                             <Trash2 size={14} />
                                                         </button>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </td>
+                                                    </div>
+                                                </td>
+                                            </>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>
@@ -521,14 +517,14 @@ export default function AdminUsersPage() {
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                                     <div className="adm-form-group">
-                                        <label className="adm-label">Correo Electrónico</label>
+                                        <label className="adm-label">Nº de Teléfono</label>
                                         <input
-                                            type="email"
+                                            type="tel"
                                             className="adm-input"
                                             required
-                                            placeholder="ejemplo@correo.com"
-                                            value={formData.email}
-                                            onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                            placeholder="Ej: 1122334455"
+                                            value={formData.phone}
+                                            onChange={e => setFormData({ ...formData, phone: e.target.value })}
                                         />
                                     </div>
                                     <div className="adm-form-group">
@@ -626,7 +622,7 @@ export default function AdminUsersPage() {
                         </div>
                         <div className="adm-modal-body" style={{ paddingBottom: 24 }}>
                             <p style={{ color: 'var(--adm-muted)', lineHeight: 1.5 }}>
-                                Estás a punto de eliminar a <strong>{userToDelete.name}</strong> ({userToDelete.email}).
+                                Estás a punto de eliminar a <strong>{userToDelete.name}</strong> ({userToDelete.phone}).
                                 Esta acción es permanente y no se puede deshacer.
                             </p>
                         </div>

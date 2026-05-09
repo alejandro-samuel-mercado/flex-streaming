@@ -21,7 +21,7 @@ export default function ResellersPage() {
   const [showPlanModal, setShowPlanModal] = useState<string | null>(null);
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
 
-  const [form, setForm] = useState({ email: '', username: '', name: '', password: '', credits: 0, planId: '' });
+  const [form, setForm] = useState({ phone: '', username: '', name: '', password: '', credits: 0, planId: '' });
 
   const fetchData = useCallback(async () => {
     try {
@@ -57,7 +57,7 @@ export default function ResellersPage() {
       const json = await res.json();
       if (json.success) { 
         setShowCreateModal(false); 
-        setForm({ email: '', username: '', name: '', password: '', credits: 0, planId: '' }); 
+        setForm({ phone: '', username: '', name: '', password: '', credits: 0, planId: '' }); 
         fetchData(); 
       }
       else alert(json.error);
@@ -115,13 +115,13 @@ export default function ResellersPage() {
 
       <div className="adm-table-card">
         <table className="adm-table">
-          <thead><tr><th>Nombre</th><th>Usuario</th><th>Email</th><th>Rol</th><th>Créditos</th><th>Vendedores</th><th>Clientes</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>Nombre</th><th>Usuario</th><th>Nº de Teléfono</th><th>Rol</th><th>Créditos</th><th>Vendedores</th><th>Clientes</th><th>Estado</th><th>Acciones</th></tr></thead>
           <tbody>
             {vendors.map(v => (
               <tr key={v.id}>
                 <td style={{ fontWeight: 500 }}>{v.name}</td>
                 <td style={{ fontSize: '.85rem' }}>{v.username || '-'}</td>
-                <td className="adm-table-muted" style={{ fontSize: '.85rem' }}>{v.email}</td>
+                <td className="adm-table-muted" style={{ fontSize: '.85rem' }}>{v.phone}</td>
                 <td>{roleBadge(v.role)}</td>
                 <td>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '.4rem', fontWeight: 600, color: '#facc15' }}>
@@ -159,7 +159,7 @@ export default function ResellersPage() {
               <div className="adm-field"><label className="adm-label">Nombre</label><input className="adm-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required placeholder="Nombre completo" /></div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.75rem' }}>
                 <div className="adm-field"><label className="adm-label">Usuario</label><input className="adm-input" value={form.username} onChange={e => setForm(f => ({ ...f, username: e.target.value }))} required placeholder="Nombre de usuario" /></div>
-                <div className="adm-field"><label className="adm-label">Email</label><input className="adm-input" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required placeholder="correo@ejemplo.com" /></div>
+                <div className="adm-field"><label className="adm-label">Nº de Teléfono</label><input className="adm-input" type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} required placeholder="Ej: 1122334455" /></div>
               </div>
               <div className="adm-field"><label className="adm-label">Contraseña</label><input className="adm-input" type="text" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required minLength={6} placeholder="Mínimo 6 caracteres" /></div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.75rem' }}>

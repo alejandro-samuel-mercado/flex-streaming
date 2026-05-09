@@ -1,8 +1,8 @@
 'use client';
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { Loader2, AlertCircle, ChevronRight, Play, LayoutGrid, X } from 'lucide-react';
+import { useEffect, useState, useMemo } from 'react';
+import { Loader2, AlertCircle, ChevronRight, Play, X } from 'lucide-react';
 import VideoPlayer from '@/components/video/VideoPlayer';
 import { API_ROUTES, API_ORIGIN, resolveImageUrl } from '@/lib/api-routes';
 
@@ -36,6 +36,22 @@ export default function WatchPage() {
     const [initialTime, setInitialTime] = useState<number>(0);
     const [streamSrc, setStreamSrc] = useState<string | null>(null);
     const [showEpisodes, setShowEpisodes] = useState(false);
+
+    // Flat list of all episodes across all seasons for prev/next navigation
+    const allEpisodes = useMemo(() => {
+        if (!content?.seasons) return [];
+        return content.seasons.flatMap((s: any) =>
+            (s.episodes || []).map((e: any) => ({ ...e, seasonNumber: s.number }))
+        );
+    }, [content?.seasons]);
+
+    const currentEpisodeIndex = useMemo(() => {
+        if (!currentEpisode) return -1;
+        return allEpisodes.findIndex((e: any) => e.id === currentEpisode.id);
+    }, [allEpisodes, currentEpisode]);
+
+    const hasNextEpisode = currentEpisodeIndex >= 0 && currentEpisodeIndex < allEpisodes.length - 1;
+    const hasPrevEpisode = currentEpisodeIndex > 0;
 
     // 1. Fetch content metadata
     useEffect(() => {
@@ -204,17 +220,15 @@ export default function WatchPage() {
     };
 
     const handleNextEpisode = () => {
-        if (!content?.seasons || !currentEpisode) return;
-        let foundCurrent = false;
-        for (const s of content.seasons) {
-            for (const e of s.episodes || []) {
-                if (foundCurrent) {
-                    router.push(`/watch/${id}?episodeId=${e.id}`);
-                    return;
-                }
-                if (e.id === currentEpisode.id) foundCurrent = true;
-            }
-        }
+        if (currentEpisodeIndex < 0 || !hasNextEpisode) return;
+        const next = allEpisodes[currentEpisodeIndex + 1];
+        router.push(`/watch/${id}?episodeId=${next.id}`);
+    };
+
+    const handlePrevEpisode = () => {
+        if (currentEpisodeIndex <= 0) return;
+        const prev = allEpisodes[currentEpisodeIndex - 1];
+        router.push(`/watch/${id}?episodeId=${prev.id}`);
     };
 
     if (loading) {
@@ -259,32 +273,27 @@ export default function WatchPage() {
         <div className="h-screen w-full bg-black relative overflow-hidden group">
             <VideoPlayer
                 src={streamSrc}
-                title={currentEpisode ? `${content.translations[0]?.title} - T${currentEpisode.seasonNumber}E${currentEpisode.number}` : content.translations[0]?.title}
+                title={currentEpisode
+                    ? `${content.translations[0]?.title} — T${currentEpisode.seasonNumber}E${currentEpisode.number}: ${currentEpisode.translations?.[0]?.title || ''}`
+                    : content.translations[0]?.title
+                }
                 initialTime={initialTime}
                 externalSubtitles={subtitles}
                 onProgressUpdate={handleProgressUpdate}
                 onEnded={handleNextEpisode}
+                onNextEpisode={hasNextEpisode ? handleNextEpisode : undefined}
+                onPrevEpisode={hasPrevEpisode ? handlePrevEpisode : undefined}
+                hasNextEpisode={hasNextEpisode}
+                hasPrevEpisode={hasPrevEpisode}
+                onShowEpisodes={allEpisodes.length > 0 ? () => setShowEpisodes(v => !v) : undefined}
             />
 
-            {/* Navigation Overlay */}
+            {/* Back button */}
             <div className="absolute top-8 left-8 z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <button onClick={() => router.back()} className="flex items-center gap-2 text-white/70 hover:text-white font-bold transition-all">
                     <ChevronRight size={24} className="rotate-180" /> {content.translations[0]?.title}
                 </button>
             </div>
-
-            {/* Episodes Toggle */}
-            {content.seasons && content.seasons.length > 0 && (
-                <div className="absolute bottom-28 right-8 z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <button
-                        onClick={() => setShowEpisodes(!showEpisodes)}
-                        className="flex items-center gap-2 bg-black/60 backdrop-blur-md border border-white/10 p-4 rounded-full text-white hover:bg-primary/20 hover:border-primary/50 transition-all shadow-2xl"
-                        title="Episodios"
-                    >
-                        <LayoutGrid size={28} />
-                    </button>
-                </div>
-            )}
 
             {/* Episode Sidebar Panel */}
             {showEpisodes && (

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
-import { Play, Pause, Volume2, VolumeX, Maximize, Settings, RotateCcw, SkipBack, SkipForward, Lock, Unlock, MessageSquare, Headphones, ArrowLeft, RotateCw } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize, Settings, RotateCcw, SkipBack, SkipForward, Lock, Unlock, MessageSquare, Headphones, ArrowLeft, RotateCw, ChevronLeft, ChevronRight, List } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { parseVTT, SubtitleCue } from '@/lib/vtt-parser';
 
@@ -18,9 +18,14 @@ interface VideoPlayerProps {
     }>;
     onProgressUpdate?: (currentTime: number, duration: number) => void;
     onEnded?: () => void;
+    onNextEpisode?: () => void;
+    onPrevEpisode?: () => void;
+    hasNextEpisode?: boolean;
+    hasPrevEpisode?: boolean;
+    onShowEpisodes?: () => void;
 }
 
-export default function VideoPlayer({ src, title, poster, initialTime = 0, externalSubtitles = [], onProgressUpdate, onEnded }: VideoPlayerProps) {
+export default function VideoPlayer({ src, title, poster, initialTime = 0, externalSubtitles = [], onProgressUpdate, onEnded, onNextEpisode, onPrevEpisode, hasNextEpisode, hasPrevEpisode, onShowEpisodes }: VideoPlayerProps) {
     const router = useRouter();
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -499,7 +504,7 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
                 onTimeUpdate={handleTimeUpdate}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
-                onEnded={onEnded}
+                onEnded={() => { onEnded?.(); }}
             />
             {/* Custom Subtitle Overlay */}
             {currentCue && !isLocked && (
@@ -535,7 +540,36 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
                         </div>
                     </div>
 
-
+                    {/* Episode navigation buttons (top right, series only) */}
+                    <div className="flex items-center gap-3">
+                        {hasPrevEpisode && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onPrevEpisode?.(); }}
+                                className="flex items-center gap-2 bg-black/30 backdrop-blur-md border border-white/10 px-4 py-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 hover:border-white/30 transition-all text-sm font-bold"
+                                title="Episodio anterior"
+                            >
+                                <ChevronLeft size={16} /> Anterior
+                            </button>
+                        )}
+                        {hasNextEpisode && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onNextEpisode?.(); }}
+                                className="flex items-center gap-2 bg-black/30 backdrop-blur-md border border-white/10 px-4 py-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 hover:border-white/30 transition-all text-sm font-bold"
+                                title="Siguiente episodio"
+                            >
+                                Siguiente <ChevronRight size={16} />
+                            </button>
+                        )}
+                        {onShowEpisodes && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onShowEpisodes(); }}
+                                className="flex items-center gap-2 bg-black/30 backdrop-blur-md border border-white/10 px-4 py-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 hover:border-white/30 transition-all text-sm font-bold"
+                                title="Lista de episodios"
+                            >
+                                <List size={16} /> Episodios
+                            </button>
+                        )}
+                    </div>
                 </div>
             )}
 

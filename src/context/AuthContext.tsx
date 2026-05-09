@@ -13,12 +13,14 @@ interface AuthUser {
         id: string;
         status: string;
         type: string;
-        endDate: string;
+        planId?: string | null;
+        endDate: string | null;
         maxDevices: number;
         plan?: {
             id: string;
             name: string;
             durationDays: number;
+            bonusDays?: number;
         }
     }
 }

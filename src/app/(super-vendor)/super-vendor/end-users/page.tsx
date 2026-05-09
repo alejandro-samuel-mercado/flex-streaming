@@ -46,7 +46,7 @@ export default function SuperVendorEndUsersPage() {
         if (j.success) setMyCredits(j.data?.credits ?? j.user?.credits ?? null);
     }, []);
 
-    useEffect(() => { fetchUsers(); }, [fetchUsers]);
+    useEffect(() => { fetchUsers(); fetchCredits(); }, [fetchUsers, fetchCredits]);
 
     const openCreateModal = async () => {
         setForm({ username: '', password: '', planId: '' });
@@ -89,7 +89,21 @@ export default function SuperVendorEndUsersPage() {
         <div className="adm-page">
             <div className="adm-page-header">
                 <div><h1 className="adm-page-title">Mis Clientes</h1><p className="adm-page-subtitle">Cuentas de clientes finales</p></div>
-                <button className="adm-btn adm-btn--primary" onClick={openCreateModal}><Plus size={16} /> Nueva Cuenta</button>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem' }}>
+                    <button 
+                        className="adm-btn adm-btn--primary" 
+                        onClick={openCreateModal}
+                        disabled={myCredits === 0}
+                        style={myCredits === 0 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                    >
+                        <Plus size={16} /> Nueva Cuenta
+                    </button>
+                    {myCredits === 0 && (
+                        <span style={{ fontSize: '0.75rem', color: '#f87171', fontWeight: 600 }}>
+                            No tienes créditos. Debes recargar.
+                        </span>
+                    )}
+                </div>
             </div>
 
             <div className="adm-tabs" style={{ marginBottom: '1.25rem', display: 'flex', gap: '0.5rem', background: 'rgba(255,255,255,0.03)', padding: '0.4rem', borderRadius: '12px', width: 'fit-content' }}>

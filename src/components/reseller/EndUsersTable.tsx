@@ -84,14 +84,14 @@ export default function EndUsersTable({ users, loading, search, onSearchChange, 
                 <table className="adm-table">
                     <thead>
                         <tr>
-                            <th>Usuario</th>
-                            <th>Contraseña</th>
-                            <th>Revendedor</th>
-                            <th>Vencimiento</th>
-                            <th>Estado</th>
-                            <th>Tipo / Plan</th>
-                            <th>Disp.</th>
-                            <th></th>
+                            <th style={{ textAlign: 'center' }}>Usuario</th>
+                            <th style={{ textAlign: 'center' }}>Contraseña</th>
+                            <th style={{ textAlign: 'center' }}>Revendedor</th>
+                            <th style={{ textAlign: 'center' }}>Vencimiento</th>
+                            <th style={{ textAlign: 'center' }}>Estado</th>
+                            <th style={{ textAlign: 'center' }}>Tipo / Plan</th>
+                            <th style={{ textAlign: 'center' }}>Disp.</th>
+                            <th style={{ textAlign: 'center' }}>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -103,18 +103,18 @@ export default function EndUsersTable({ users, loading, search, onSearchChange, 
                             users.map(u => (
                                 <tr key={u.id}>
                                     <td>
-                                        <div className="adm-table-user">
+                                        <div className="adm-table-user justify-center">
                                             <div className="adm-table-avatar" style={{ background: u.type === 'DEMO' ? 'linear-gradient(135deg, #facc1522, #f59e0b44)' : undefined, color: u.type === 'DEMO' ? '#facc15' : undefined }}>
                                                 {u.username ? u.username.charAt(0).toUpperCase() : '?'}
                                             </div>
-                                            <div className="adm-table-user-info">
+                                            <div className="adm-table-user-info text-center">
                                                 <span className="adm-table-user-name">{u.username}</span>
-                                                <button className="adm-link text-[10px] opacity-40 hover:opacity-100 flex items-center gap-1" onClick={() => copyText(u.username)}><Copy size={10} /> Copiar</button>
+                                                <button className="adm-link text-[10px] opacity-40 hover:opacity-100 flex items-center justify-center gap-1 w-full" onClick={() => copyText(u.username)}><Copy size={10} /> Copiar</button>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center justify-center gap-2">
                                             <span className="font-mono text-[13px] bg-white/5 px-2 py-0.5 rounded border border-white/5">
                                                 {visiblePw.has(u.id) ? u.password : '••••••••'}
                                             </span>
@@ -124,22 +124,31 @@ export default function EndUsersTable({ users, loading, search, onSearchChange, 
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="adm-table-muted">{u.managedBy?.name || u.managedBy?.email || '—'}</td>
-                                    <td>{expiryBadge(u)}</td>
-                                    <td><span className={`adm-badge adm-badge--${STATUS_COLORS[u.status] || 'gray'}`}>{u.status}</span></td>
+                                    <td style={{ textAlign: 'center' }}>
+                                        <div className="flex flex-col items-center justify-center">
+                                            <span className="font-medium">@{u.managedBy?.username || u.managedBy?.name || '—'}</span>
+                                            {u.managedBy?.parent && (
+                                                <span className="text-[10px] text-purple-400/80 mt-0.5">
+                                                    Super: @{u.managedBy.parent.username || u.managedBy.parent.name}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td style={{ textAlign: 'center' }}>{expiryBadge(u)}</td>
+                                    <td style={{ textAlign: 'center' }}><span className={`adm-badge adm-badge--${STATUS_COLORS[u.status] || 'gray'}`}>{u.status}</span></td>
                                     <td>
-                                        <div className="flex flex-col">
+                                        <div className="flex flex-col items-center justify-center">
                                             <span className={`adm-badge adm-badge--${TYPE_COLORS[u.type] || 'gray'} mb-1`}>{u.type}</span>
                                             {u.plan && <span className="text-[10px] text-purple-400/70 font-bold">{u.plan.name}</span>}
                                         </div>
                                     </td>
-                                    <td>
+                                    <td style={{ textAlign: 'center' }}>
                                         <button className="adm-badge adm-badge--gray cursor-pointer hover:bg-white/10 transition-colors" onClick={() => setDevicesModal(u)}>
                                             <DeviceIcons count={u.connectedDevicesCount} max={u.maxDevices} />
                                         </button>
                                     </td>
                                     <td>
-                                        <div className="adm-table-actions">
+                                        <div className="adm-table-actions justify-center">
                                             <button className="adm-icon-btn" onClick={() => setOpenMenu(openMenu === u.id ? null : u.id)}><MoreVertical size={16} /></button>
                                             {openMenu === u.id && (
                                                 <div className="adm-dropdown" style={{ position: 'absolute', right: 20, zIndex: 100, minWidth: 180, background: '#0a0f25', border: '1px solid var(--adm-border)', borderRadius: 12, padding: 6, boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>

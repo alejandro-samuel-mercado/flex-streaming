@@ -152,6 +152,14 @@ export const API_ROUTES = {
         STATUS: `${API_BASE_URL}/admin/media-scanner/status`,
         APPLY_TMDB: `${API_BASE_URL}/admin/media-scanner/apply-tmdb`,
     },
+    BACKUP: {
+        LIST: `${API_BASE_URL}/admin/backup/list`,
+        CREATE: `${API_BASE_URL}/admin/backup/create`,
+        IMPORT: `${API_BASE_URL}/admin/backup/import`,
+        DOWNLOAD: (filename: string) => `${API_BASE_URL}/admin/backup/download/${filename}`,
+        DELETE: (filename: string) => `${API_BASE_URL}/admin/backup/${filename}`,
+        SETTINGS: `${API_BASE_URL}/admin/backup/settings`,
+    },
 } as const;
 
 // Robust helper to resolve media URLs (thumbnails, etc.)

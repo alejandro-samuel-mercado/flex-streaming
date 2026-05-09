@@ -140,7 +140,13 @@ export default function SubscriptionPlansPage() {
                 {plans.map(plan => {
                     const badge = getBadge(plan);
                     return (
-                        <div key={plan.id} className="adm-table-card" style={{ padding: '1.25rem', opacity: plan.isActive ? 1 : 0.55 }}>
+                        <div key={plan.id} className="adm-table-card" style={{ 
+                            padding: '1.25rem', 
+                            opacity: plan.isActive ? 1 : 0.8,
+                            background: plan.isActive ? undefined : 'rgba(148, 163, 184, 0.04)',
+                            filter: plan.isActive ? 'none' : 'grayscale(0.3)',
+                            borderColor: plan.isActive ? undefined : 'rgba(255, 255, 255, 0.06)'
+                        }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '.75rem' }}>
                                 <div>
                                     <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 600 }}>{plan.name}</h3>
