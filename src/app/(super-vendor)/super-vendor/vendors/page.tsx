@@ -5,8 +5,11 @@ import { Coins, Send, ToggleLeft, ToggleRight, UserPlus, Trash2, Key, Users, Use
 import { resellerFetch } from '@/lib/reseller-api';
 import { API_ROUTES } from '@/lib/api-routes';
 import type { ResellerVendor } from '@/types/reseller.types';
+import { useModal } from '@/components/ui/ModalProvider';
+import CustomSelect from '@/components/ui/CustomSelect';
 
 export default function SuperVendorVendorsPage() {
+    const { showModal } = useModal();
     const [vendors, setVendors] = useState<ResellerVendor[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreate, setShowCreate] = useState(false);
@@ -71,10 +74,21 @@ export default function SuperVendorVendorsPage() {
         fetchVendors();
     };
     const handleDelete = async (id: string, name: string) => {
-        if (!confirm(`¿Estás seguro de eliminar al vendedor "${name}"? No debe tener clientes activos.`)) return;
-        const r = await resellerFetch(`${API_ROUTES.RESELLER.LIST}/${id}`, { method: 'DELETE' });
-        const j = await r.json();
-        if (j.success || r.ok) fetchVendors(); else alert(j.error || 'No se pudo eliminar');
+        showModal({
+            title: '¿Eliminar vendedor?',
+            message: `¿Estás seguro de eliminar al vendedor "${name}"? Esta acción no se puede deshacer y el vendedor no debe tener clientes activos.`,
+            type: 'confirm',
+            confirmText: 'Sí, eliminar',
+            onConfirm: async () => {
+                const r = await resellerFetch(`${API_ROUTES.RESELLER.LIST}/${id}`, { method: 'DELETE' });
+                const j = await r.json();
+                if (j.success || r.ok) {
+                    fetchVendors();
+                } else {
+                    showModal({ title: 'Error', message: j.error || 'No se pudo eliminar', type: 'error' });
+                }
+            }
+        });
     };
 
     if (loading) return <div className="adm-page"><p>Cargando...</p></div>;
@@ -155,12 +169,12 @@ export default function SuperVendorVendorsPage() {
                             <div className="adm-field"><label className="adm-label">Contraseña</label><input className="adm-input" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required minLength={6} /></div>
                             <div className="adm-field">
                                 <label className="adm-label">Paquete Inicial</label>
-                                <select className="adm-input" value={form.packageId} onChange={e => setForm(f => ({ ...f, packageId: e.target.value }))} required>
-                                    <option value="">-- Seleccionar paquete --</option>
-                                    {packages.map(pkg => (
-                                        <option key={pkg.id} value={pkg.id}>{pkg.name} (Cuesta {pkg.baseCredits} cr.)</option>
-                                    ))}
-                                </select>
+                                <CustomSelect
+                                    options={packages.map(pkg => ({ id: pkg.id, name: `${pkg.name} (${pkg.baseCredits} cr.)` }))}
+                                    value={form.packageId}
+                                    onChange={val => setForm(f => ({ ...f, packageId: val as string }))}
+                                    placeholder="Seleccionar paquete inicial..."
+                                />
                             </div>
                             <div style={{ display: 'flex', gap: '.5rem', justifyContent: 'flex-end' }}>
                                 <button type="button" className="adm-btn adm-btn--ghost" onClick={() => setShowCreate(false)}>Cancelar</button>
@@ -177,12 +191,12 @@ export default function SuperVendorVendorsPage() {
                         <h2 style={{ margin: '0 0 1rem', fontSize: '1.05rem' }}>Asignar Paquete</h2>
                         <div className="adm-field">
                             <label className="adm-label">Seleccionar Paquete</label>
-                            <select className="adm-input" value={selectedPackageId} onChange={e => setSelectedPackageId(e.target.value)} required>
-                                <option value="">-- Seleccionar paquete --</option>
-                                {packages.map(pkg => (
-                                    <option key={pkg.id} value={pkg.id}>{pkg.name} (Cuesta {pkg.baseCredits} cr.)</option>
-                                ))}
-                            </select>
+                            <CustomSelect
+                                options={packages.map(pkg => ({ id: pkg.id, name: `${pkg.name} (${pkg.baseCredits} cr.)` }))}
+                                value={selectedPackageId}
+                                onChange={val => setSelectedPackageId(val as string)}
+                                placeholder="Elegir paquete de créditos..."
+                            />
                         </div>
                         <div style={{ display: 'flex', gap: '.5rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
                             <button className="adm-btn adm-btn--ghost" onClick={() => setShowCredits(null)}>Cancelar</button>

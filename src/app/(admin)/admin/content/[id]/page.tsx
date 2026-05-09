@@ -16,6 +16,8 @@ import { adminFetch } from '@/lib/admin-api';
 import VideoPlayer from '@/components/video/VideoPlayer';
 import { createPortal } from 'react-dom';
 import TMDBSuggestions from '@/components/admin/TMDBSuggestions';
+import { useModal } from '@/components/ui/ModalProvider';
+import CustomSelect from '@/components/ui/CustomSelect';
 
 interface Translation {
     id?: string;
@@ -92,6 +94,7 @@ interface ContentData {
 export default function EditContentPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const router = useRouter();
+    const { showModal } = useModal();
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -335,34 +338,49 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
     };
 
     const handleDeleteSubtitle = async (subtitleId: string) => {
-        if (!confirm('¿Eliminar este subtítulo?')) return;
-        try {
-            const res = await adminFetch(API_ROUTES.ADMIN.UPLOAD.DELETE_SUBTITLE(subtitleId), { method: 'DELETE' });
-            if (res.ok) {
-                fetchData();
+        showModal({
+            title: '¿Eliminar subtítulo?',
+            message: 'Esta acción no se puede deshacer. El archivo de subtítulos será eliminado permanentemente.',
+            type: 'confirm',
+            confirmText: 'Sí, eliminar',
+            cancelText: 'Cancelar',
+            onConfirm: async () => {
+                try {
+                    const res = await adminFetch(API_ROUTES.ADMIN.UPLOAD.DELETE_SUBTITLE(subtitleId), { method: 'DELETE' });
+                    if (res.ok) {
+                        fetchData();
+                    }
+                } catch (err) { console.error(err); }
             }
-        } catch (err) { console.error(err); }
+        });
     };
 
     const handleDeleteVideo = async (videoId: string) => {
-        if (!window.confirm('¿Estás seguro de que deseas eliminar este archivo de video?')) return;
-
-        try {
-            const res = await adminFetch(`${API_ROUTES.ADMIN.UPLOAD.BASE}/video/${videoId}`, {
-                method: 'DELETE'
-            });
-            if (res.ok) {
-                setSuccess(true);
-                setTimeout(() => setSuccess(false), 3000);
-                await fetchData();
-            } else {
-                const json = await res.json();
-                setError(json.error || 'Error al eliminar video');
+        showModal({
+            title: '¿Eliminar video?',
+            message: '¿Estás seguro de que deseas eliminar este archivo de video? Se borrarán todos los segmentos procesados.',
+            type: 'confirm',
+            confirmText: 'Eliminar video',
+            cancelText: 'Mantener',
+            onConfirm: async () => {
+                try {
+                    const res = await adminFetch(`${API_ROUTES.ADMIN.UPLOAD.BASE}/video/${videoId}`, {
+                        method: 'DELETE'
+                    });
+                    if (res.ok) {
+                        setSuccess(true);
+                        setTimeout(() => setSuccess(false), 3000);
+                        await fetchData();
+                    } else {
+                        const json = await res.json();
+                        setError(json.error || 'Error al eliminar video');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    setError('Error de conexión');
+                }
             }
-        } catch (err) {
-            console.error(err);
-            setError('Error de conexión');
-        }
+        });
     };
 
     const toggleGenre = (genre: { id: string; name: string }) => {
@@ -960,36 +978,44 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                                 <div className="adm-form-row">
                                     <label>Tipo</label>
-                                    <select className="adm-select" value={data?.type} onChange={e => setData(d => d ? { ...d, type: e.target.value } : null)}>
-                                        <option value="MOVIE">Película</option>
-                                        <option value="SERIES">Serie</option>
-                                        <option value="ANIME">Anime</option>
-                                        <option value="ANIMATION">Animación</option>
-                                        <option value="DOCUMENTARY">Documental</option>
-                                        <option value="BIOGRAPHY">Biografía</option>
-                                        <option value="REALITY_SHOW">Reality Show</option>
-                                        <option value="TALK_SHOW">Talk Show</option>
-                                        <option value="VARIETY_SHOW">Variedad</option>
-                                        <option value="STAND_UP">Stand-up</option>
-                                        <option value="SPECIAL">Especial</option>
-                                        <option value="EDUCATIONAL">Educativo</option>
-                                        <option value="KIDS">Infantil</option>
-                                        <option value="FAMILY">Familiar</option>
-                                        <option value="INTERACTIVE">Interactivo</option>
-                                        <option value="EXPERIMENTAL">Experimental</option>
-                                        <option value="DOCUDRAMA">Docudrama</option>
-                                        <option value="NOVELA">Telenovela</option>
-                                        <option value="SHORT">Cortometraje</option>
-                                    </select>
+                                    <CustomSelect
+                                        options={[
+                                            { id: 'MOVIE', name: 'Película' },
+                                            { id: 'SERIES', name: 'Serie' },
+                                            { id: 'ANIME', name: 'Anime' },
+                                            { id: 'ANIMATION', name: 'Animación' },
+                                            { id: 'DOCUMENTARY', name: 'Documental' },
+                                            { id: 'BIOGRAPHY', name: 'Biografía' },
+                                            { id: 'REALITY_SHOW', name: 'Reality Show' },
+                                            { id: 'TALK_SHOW', name: 'Talk Show' },
+                                            { id: 'VARIETY_SHOW', name: 'Variedad' },
+                                            { id: 'STAND_UP', name: 'Stand-up' },
+                                            { id: 'SPECIAL', name: 'Especial' },
+                                            { id: 'EDUCATIONAL', name: 'Educativo' },
+                                            { id: 'KIDS', name: 'Infantil' },
+                                            { id: 'FAMILY', name: 'Familiar' },
+                                            { id: 'INTERACTIVE', name: 'Interactivo' },
+                                            { id: 'EXPERIMENTAL', name: 'Experimental' },
+                                            { id: 'DOCUDRAMA', name: 'Docudrama' },
+                                            { id: 'NOVELA', name: 'Telenovela' },
+                                            { id: 'SHORT', name: 'Cortometraje' }
+                                        ]}
+                                        value={data?.type || ''}
+                                        onChange={val => setData(d => d ? { ...d, type: val as string } : null)}
+                                    />
                                 </div>
                                 <div className="adm-form-row">
                                     <label>Estado</label>
-                                    <select className="adm-select" value={data?.status} onChange={e => setData(d => d ? { ...d, status: e.target.value } : null)}>
-                                        <option value="ACTIVE">Activo</option>
-                                        <option value="PENDING">Pendiente</option>
-                                        <option value="READY">Listo</option>
-                                        <option value="ERROR">Error</option>
-                                    </select>
+                                    <CustomSelect
+                                        options={[
+                                            { id: 'ACTIVE', name: 'Activo' },
+                                            { id: 'PENDING', name: 'Pendiente' },
+                                            { id: 'READY', name: 'Listo' },
+                                            { id: 'ERROR', name: 'Error' }
+                                        ]}
+                                        value={data?.status || ''}
+                                        onChange={val => setData(d => d ? { ...d, status: val as string } : null)}
+                                    />
                                 </div>
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginTop: 16 }}>
@@ -1009,13 +1035,17 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
 
                             <div className="adm-form-row" style={{ marginTop: 16 }}>
                                 <label>Plataforma principal</label>
-                                <select className="adm-select" value={data?.platforms[0]?.id || ''} onChange={e => {
-                                    const p = allPlatforms.find(x => x.id === e.target.value);
-                                    setData(d => d ? { ...d, platforms: p ? [p] : [] } : null);
-                                }}>
-                                    <option value="">Ninguna</option>
-                                    {allPlatforms.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                                </select>
+                                <CustomSelect
+                                    options={[
+                                        { id: '', name: 'Ninguna' },
+                                        ...allPlatforms.map(p => ({ id: p.id, name: p.name }))
+                                    ]}
+                                    value={data?.platforms[0]?.id || ''}
+                                    onChange={val => {
+                                        const p = allPlatforms.find(x => x.id === val);
+                                        setData(d => d ? { ...d, platforms: p ? [p] : [] } : null);
+                                    }}
+                                />
                             </div>
 
                             <div className="adm-form-row" style={{ marginTop: 16 }}>

@@ -315,13 +315,13 @@ export default function ProcessingMonitorPage() {
                 <div className="adm-table-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
                     <h2 className="adm-table-card-title">Cola de Trabajos Recientes (Historial de 100)</h2>
                     <div style={{ display: 'flex', gap: 12 }}>
-                        {videos.some(v => v.status === 'FAILED') && (
+                        {videos.some(v => v.status === 'FAILED' || v.status === 'PENDING') && (
                             <button 
                                 className="adm-btn" 
                                 onClick={handleRetryAll}
-                                style={{ background: 'var(--adm-danger)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}
+                                style={{ background: 'var(--adm-primary)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(139, 92, 246, 0.2)' }}
                             >
-                                Reintentar Todo lo Fallido
+                                Reintentar Todo (Pendientes/Fallidos)
                             </button>
                         )}
                     </div>

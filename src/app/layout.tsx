@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/components/layout/ThemeProvider';
 import { AuthProvider } from '@/context/AuthContext';
+import { ModalProvider } from '@/components/ui/ModalProvider';
 
 export const metadata: Metadata = {
     title: {
@@ -31,7 +32,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <body>
                 <AuthProvider>
                     <ThemeProvider>
-                        {children}
+                        <ModalProvider>
+                            {children}
+                        </ModalProvider>
                     </ThemeProvider>
                 </AuthProvider>
             </body>
