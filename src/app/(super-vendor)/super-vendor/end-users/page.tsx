@@ -19,7 +19,7 @@ export default function SuperVendorEndUsersPage() {
     const [myCredits, setMyCredits] = useState<number | null>(null);
     const [creating, setCreating] = useState(false);
     const [planFilter, setPlanFilter] = useState<'normal' | 'promo' | 'demo'>('normal');
-    const [scope, setScope] = useState<'all' | 'me' | 'others'>('all');
+    const [scope, setScope] = useState<'me' | 'others'>('me');
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
