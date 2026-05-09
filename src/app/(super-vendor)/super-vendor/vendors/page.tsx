@@ -166,7 +166,7 @@ export default function SuperVendorVendorsPage() {
                                         </div>
                                     </td>
                                     <td style={{ textAlign: 'center' }}>
-                                        <span className="opacity-60">-</span>
+                                        <span className="adm-table-user-email">{v.phone || '-'}</span>
                                     </td>
                                     <td>
                                         <div className="adm-table-credits justify-center">

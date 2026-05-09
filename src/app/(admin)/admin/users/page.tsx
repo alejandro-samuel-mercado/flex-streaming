@@ -370,7 +370,7 @@ export default function AdminUsersPage() {
                                                     </div>
                                                 </td>
                                                 <td style={{ textAlign: 'center' }}>
-                                                    <span className="opacity-60">-</span>
+                                                    <span style={{ fontSize: '.85rem' }}>{user.phone || '-'}</span>
                                                 </td>
                                                 <td style={{ textAlign: 'center' }}>
                                                     <span style={{ fontWeight: 700, color: '#facc15' }}>
@@ -405,6 +405,7 @@ export default function AdminUsersPage() {
                                                             </div>
                                                             <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                                                                 <span style={{ color: '#60a5fa', fontWeight: 600 }}>{user.username || '-'}</span>
+                                                                {user.phone && <span>{user.phone}</span>}
                                                             </div>
                                                         </div>
                                                     </div>
