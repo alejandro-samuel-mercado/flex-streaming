@@ -90,8 +90,8 @@ export default function SuperVendorEndUsersPage() {
             <div className="adm-page-header">
                 <div><h1 className="adm-page-title">Mis Clientes</h1><p className="adm-page-subtitle">Cuentas de clientes finales</p></div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem' }}>
-                    <button 
-                        className="adm-btn adm-btn--primary" 
+                    <button
+                        className="adm-btn adm-btn--primary"
                         onClick={openCreateModal}
                         disabled={myCredits === 0}
                         style={myCredits === 0 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
@@ -153,7 +153,7 @@ export default function SuperVendorEndUsersPage() {
                                 <label className="adm-label">Tipo de Plan</label>
                                 <div style={{ display: 'flex', gap: '.5rem' }}>
                                     <button type="button" className={`adm-btn ${planFilter === 'normal' ? 'adm-btn--primary' : 'adm-btn--ghost'}`} style={{ flex: 1, padding: '.4rem', fontSize: '.8rem' }} onClick={() => { setPlanFilter('normal'); setForm(f => ({ ...f, planId: '' })); }}>
-                                        📦 Normal
+                                        Normal
                                     </button>
                                     {plans.some(p => p.isPromo && !p.isDemo) && (
                                         <button type="button" className={`adm-btn ${planFilter === 'promo' ? 'adm-btn--primary' : 'adm-btn--ghost'}`} style={{ flex: 1, padding: '.4rem', fontSize: '.8rem', borderColor: planFilter === 'promo' ? undefined : '#a78bfa', color: planFilter === 'promo' ? undefined : '#a78bfa' }} onClick={() => { setPlanFilter('promo'); setForm(f => ({ ...f, planId: '' })); }}>

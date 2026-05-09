@@ -21,7 +21,7 @@ export default function SuperVendorVendorsPage() {
     const [selectedPackageId, setSelectedPackageId] = useState<string>('');
     const [myCredits, setMyCredits] = useState<number | null>(null);
     const [form, setForm] = useState({ phone: '', username: '', name: '', password: '', packageId: '' });
-    
+
     // Package Tab State
     const [pkgTab, setPkgTab] = useState<'NORMAL' | 'PROMO'>('NORMAL');
 
@@ -111,7 +111,7 @@ export default function SuperVendorVendorsPage() {
                 body: JSON.stringify(payload)
             });
             const j = await r.json();
-            
+
             if (j.success || r.ok) {
                 setShowEdit(null);
                 fetchVendors();
@@ -151,8 +151,8 @@ export default function SuperVendorVendorsPage() {
             <div className="adm-page-header">
                 <div><h1 className="adm-page-title">Mis Vendedores</h1><p className="adm-page-subtitle">Gestiona tus vendedores y sus créditos</p></div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem' }}>
-                    <button 
-                        className="adm-btn adm-btn--primary" 
+                    <button
+                        className="adm-btn adm-btn--primary"
                         onClick={() => setShowCreate(true)}
                         disabled={myCredits === 0}
                         style={myCredits === 0 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
@@ -269,14 +269,14 @@ export default function SuperVendorVendorsPage() {
                             {/* Selector de paquete — cards con Tabs */}
                             <div className="adm-field">
                                 <label className="adm-label">Paquete Inicial de Créditos</label>
-                                
+
                                 {/* Visual Tabs */}
                                 <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '10px', marginBottom: '10px' }}>
                                     <button type="button" onClick={() => setPkgTab('NORMAL')} style={{ flex: 1, padding: '6px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '.75rem', fontWeight: 600, background: pkgTab === 'NORMAL' ? 'rgba(167,139,250,0.2)' : 'transparent', color: pkgTab === 'NORMAL' ? '#a78bfa' : 'var(--adm-muted)' }}>
-                                        📦 Normal
+                                        Normal
                                     </button>
                                     <button type="button" onClick={() => setPkgTab('PROMO')} style={{ flex: 1, padding: '6px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '.75rem', fontWeight: 600, background: pkgTab === 'PROMO' ? 'rgba(234,179,8,0.2)' : 'transparent', color: pkgTab === 'PROMO' ? '#facc15' : 'var(--adm-muted)' }}>
-                                        🔥 Promoción
+                                        Promoción
                                     </button>
                                 </div>
 
@@ -341,17 +341,17 @@ export default function SuperVendorVendorsPage() {
                 <div className="adm-modal-overlay" onClick={() => setShowCredits(null)}>
                     <div className="adm-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 400 }}>
                         <h2 style={{ margin: '0 0 1rem', fontSize: '1.05rem' }}>Asignar Paquete</h2>
-                        
+
                         <div className="adm-field">
                             <label className="adm-label">Seleccionar Paquete</label>
-                            
+
                             {/* Visual Tabs */}
                             <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '10px', marginBottom: '10px' }}>
                                 <button type="button" onClick={() => setPkgTab('NORMAL')} style={{ flex: 1, padding: '6px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '.75rem', fontWeight: 600, background: pkgTab === 'NORMAL' ? 'rgba(167,139,250,0.2)' : 'transparent', color: pkgTab === 'NORMAL' ? '#a78bfa' : 'var(--adm-muted)' }}>
-                                    📦 Normal
+                                    Normal
                                 </button>
                                 <button type="button" onClick={() => setPkgTab('PROMO')} style={{ flex: 1, padding: '6px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '.75rem', fontWeight: 600, background: pkgTab === 'PROMO' ? 'rgba(234,179,8,0.2)' : 'transparent', color: pkgTab === 'PROMO' ? '#facc15' : 'var(--adm-muted)' }}>
-                                    🔥 Promoción
+                                    Promoción
                                 </button>
                             </div>
 

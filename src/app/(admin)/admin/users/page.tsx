@@ -299,189 +299,189 @@ export default function AdminUsersPage() {
                     fetchFn={adminFetch}
                 />
             ) : (
-            <div className="adm-table-card animate-fadeIn">
-                <div className="adm-table-filters" style={{ padding: '16px 20px', borderBottom: '1px solid var(--adm-border)' }}>
-                    <form onSubmit={handleSearch} style={{ display: 'flex', gap: 12 }}>
-                        <div style={{ position: 'relative', flex: 1, maxWidth: 400 }}>
-                            <Search size={16} style={{ position: 'absolute', left: 12, top: 12, color: 'var(--adm-muted)' }} />
-                            <input
-                                type="text"
-                                placeholder="Buscar por nombre o teléfono..."
-                                className="adm-input"
-                                style={{ paddingLeft: 36 }}
-                                value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)}
-                            />
-                        </div>
+                <div className="adm-table-card animate-fadeIn">
+                    <div className="adm-table-filters" style={{ padding: '16px 20px', borderBottom: '1px solid var(--adm-border)' }}>
+                        <form onSubmit={handleSearch} style={{ display: 'flex', gap: 12 }}>
+                            <div style={{ position: 'relative', flex: 1, maxWidth: 400 }}>
+                                <Search size={16} style={{ position: 'absolute', left: 12, top: 12, color: 'var(--adm-muted)' }} />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar por nombre o teléfono..."
+                                    className="adm-input"
+                                    style={{ paddingLeft: 36 }}
+                                    value={searchQuery}
+                                    onChange={e => setSearchQuery(e.target.value)}
+                                />
+                            </div>
 
-                    </form>
-                </div>
-
-                {loading ? (
-                    <div style={{ padding: 40, textAlign: 'center', color: 'var(--adm-muted)' }}>
-                        <Loader2 className="animate-spin" size={32} style={{ margin: '0 auto 16px' }} />
-                        <p>Cargando usuarios...</p>
+                        </form>
                     </div>
-                ) : (
-                    <div className="adm-table-wrapper">
-                        <table className="adm-table">
-                            <thead>
-                                <tr>
-                                    {activeTab === 'VENDOR' ? (
-                                        <>
-                                            <th style={{ textAlign: 'center' }}>Nombre</th>
-                                            <th style={{ textAlign: 'center' }}>Usuario</th>
-                                            <th style={{ textAlign: 'center' }}>Nº de teléfono</th>
-                                            <th style={{ textAlign: 'center' }}>Créditos</th>
-                                            <th style={{ textAlign: 'center' }}>Clientes</th>
-                                            <th style={{ textAlign: 'center' }}>Estados</th>
-                                            <th style={{ textAlign: 'center' }}>Acciones</th>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <th style={{ textAlign: 'center' }}>Usuario</th>
-                                            <th style={{ textAlign: 'center' }}>Nº de teléfono</th>
-                                            <th style={{ textAlign: 'center' }}>Rol</th>
-                                            <th style={{ textAlign: 'center' }}>Estado</th>
-                                            <th style={{ textAlign: 'center' }}>Perfiles</th>
-                                            <th style={{ textAlign: 'center' }}>Registro</th>
-                                            <th style={{ textAlign: 'center' }}>Acciones</th>
-                                        </>
-                                    )}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {users.length === 0 ? (
-                                    <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>No se encontraron registros.</td></tr>
-                                ) : users.map(user => (
-                                    <tr key={user.id}>
+
+                    {loading ? (
+                        <div style={{ padding: 40, textAlign: 'center', color: 'var(--adm-muted)' }}>
+                            <Loader2 className="animate-spin" size={32} style={{ margin: '0 auto 16px' }} />
+                            <p>Cargando usuarios...</p>
+                        </div>
+                    ) : (
+                        <div className="adm-table-wrapper">
+                            <table className="adm-table">
+                                <thead>
+                                    <tr>
                                         {activeTab === 'VENDOR' ? (
                                             <>
-                                                <td>
-                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-                                                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--adm-bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                            <User size={20} color="var(--adm-muted)" />
-                                                        </div>
-                                                        <div style={{ fontWeight: 600, color: 'white' }}>{user.name}</div>
-                                                    </div>
-                                                </td>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <div className="flex flex-col items-center justify-center">
-                                                        <span style={{ color: '#a78bfa', fontWeight: 600 }}>{user.username || '-'}</span>
-                                                    </div>
-                                                </td>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <span style={{ fontSize: '.85rem' }}>{user.phone || '-'}</span>
-                                                </td>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <span style={{ fontWeight: 700, color: '#facc15' }}>
-                                                        {user.credits}
-                                                    </span>
-                                                </td>
-                                                <td style={{ textAlign: 'center' }}>{user._count?.managedEndUsers || 0}</td>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <span className={`adm-badge ${user.isActive ? 'adm-badge--green' : 'adm-badge--red'}`}>
-                                                        {user.isActive ? 'Activo' : 'Inactivo'}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-                                                        <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => setShowCreditsModal(user.id)} title="Cargar Créditos" style={{ color: '#facc15' }}><Package size={14} /></button>
-                                                        <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => openEditModal(user)}><Edit2 size={14} /></button>
-                                                        <button className="adm-btn adm-btn--ghost adm-btn--sm adm-btn--red" onClick={() => setUserToDelete(user)}><Trash2 size={14} /></button>
-                                                    </div>
-                                                </td>
+                                                <th style={{ textAlign: 'center' }}>Nombre</th>
+                                                <th style={{ textAlign: 'center' }}>Usuario</th>
+                                                <th style={{ textAlign: 'center' }}>Nº de teléfono</th>
+                                                <th style={{ textAlign: 'center' }}>Créditos</th>
+                                                <th style={{ textAlign: 'center' }}>Clientes</th>
+                                                <th style={{ textAlign: 'center' }}>Estados</th>
+                                                <th style={{ textAlign: 'center' }}>Acciones</th>
                                             </>
                                         ) : (
                                             <>
-                                                <td>
-                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-                                                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--adm-bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                            <User size={20} color="var(--adm-muted)" />
-                                                        </div>
-                                                        <div style={{ textAlign: 'center' }}>
-                                                            <div style={{ fontWeight: 600, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                                                                {user.name}
-                                                                {user._count?.memberships > 0 && <Crown size={14} color="#fbbf24" />}
-                                                            </div>
-                                                            <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                                                                <span style={{ color: '#60a5fa', fontWeight: 600 }}>{user.username || '-'}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <span style={{ fontSize: '.85rem' }}>{user.phone || '-'}</span>
-                                                </td>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <span className={`adm-badge ${user.role === 'ADMIN' ? 'adm-badge--purple' : 'adm-badge--blue'}`}>
-                                                        {user.role === 'ADMIN' && <Shield size={12} style={{ marginRight: 4 }} />}
-                                                        {getRoleLabel(user.role)}
-                                                    </span>
-                                                </td>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <span className={`adm-badge ${user.isActive ? 'adm-badge--green' : 'adm-badge--red'}`}>
-                                                        {user.isActive ? 'Activo' : 'Inactivo'}
-                                                    </span>
-                                                </td>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <span style={{ fontSize: '.9rem', color: 'var(--adm-muted)' }}>
-                                                        {user._count?.profiles || 0} perfiles
-                                                    </span>
-                                                </td>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <span style={{ fontSize: '.85rem', color: 'var(--adm-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                                                        <Calendar size={14} />
-                                                        {new Date(user.createdAt).toLocaleDateString()}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-                                                        <button
-                                                            className="adm-btn adm-btn--ghost adm-btn--sm"
-                                                            onClick={() => openEditModal(user)}
-                                                            title="Editar usuario"
-                                                        >
-                                                            <Edit2 size={14} />
-                                                        </button>
-                                                        <button
-                                                            className="adm-btn adm-btn--ghost adm-btn--sm adm-btn--red"
-                                                            onClick={() => setUserToDelete(user)}
-                                                            title="Eliminar usuario"
-                                                        >
-                                                            <Trash2 size={14} />
-                                                        </button>
-                                                    </div>
-                                                </td>
+                                                <th style={{ textAlign: 'center' }}>Usuario</th>
+                                                <th style={{ textAlign: 'center' }}>Nº de teléfono</th>
+                                                <th style={{ textAlign: 'center' }}>Rol</th>
+                                                <th style={{ textAlign: 'center' }}>Estado</th>
+                                                <th style={{ textAlign: 'center' }}>Perfiles</th>
+                                                <th style={{ textAlign: 'center' }}>Registro</th>
+                                                <th style={{ textAlign: 'center' }}>Acciones</th>
                                             </>
                                         )}
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                                </thead>
+                                <tbody>
+                                    {users.length === 0 ? (
+                                        <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>No se encontraron registros.</td></tr>
+                                    ) : users.map(user => (
+                                        <tr key={user.id}>
+                                            {activeTab === 'VENDOR' ? (
+                                                <>
+                                                    <td>
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                                                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--adm-bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                                <User size={20} color="var(--adm-muted)" />
+                                                            </div>
+                                                            <div style={{ fontWeight: 600, color: 'white' }}>{user.name}</div>
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <div className="flex flex-col items-center justify-center">
+                                                            <span style={{ color: '#a78bfa', fontWeight: 600 }}>{user.username || '-'}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <span style={{ fontSize: '.85rem' }}>{user.phone || '-'}</span>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <span style={{ fontWeight: 700, color: '#facc15' }}>
+                                                            {user.credits}
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>{user._count?.managedEndUsers || 0}</td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <span className={`adm-badge ${user.isActive ? 'adm-badge--green' : 'adm-badge--red'}`}>
+                                                            {user.isActive ? 'Activo' : 'Inactivo'}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+                                                            <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => setShowCreditsModal(user.id)} title="Cargar Créditos" style={{ color: '#facc15' }}><Package size={14} /></button>
+                                                            <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => openEditModal(user)}><Edit2 size={14} /></button>
+                                                            <button className="adm-btn adm-btn--ghost adm-btn--sm adm-btn--red" onClick={() => setUserToDelete(user)}><Trash2 size={14} /></button>
+                                                        </div>
+                                                    </td>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <td>
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                                                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--adm-bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                                <User size={20} color="var(--adm-muted)" />
+                                                            </div>
+                                                            <div style={{ textAlign: 'center' }}>
+                                                                <div style={{ fontWeight: 600, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                                                    {user.name}
+                                                                    {user._count?.memberships > 0 && <Crown size={14} color="#fbbf24" />}
+                                                                </div>
+                                                                <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                                                                    <span style={{ color: '#60a5fa', fontWeight: 600 }}>{user.username || '-'}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <span style={{ fontSize: '.85rem' }}>{user.phone || '-'}</span>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <span className={`adm-badge ${user.role === 'ADMIN' ? 'adm-badge--purple' : 'adm-badge--blue'}`}>
+                                                            {user.role === 'ADMIN' && <Shield size={12} style={{ marginRight: 4 }} />}
+                                                            {getRoleLabel(user.role)}
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <span className={`adm-badge ${user.isActive ? 'adm-badge--green' : 'adm-badge--red'}`}>
+                                                            {user.isActive ? 'Activo' : 'Inactivo'}
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <span style={{ fontSize: '.9rem', color: 'var(--adm-muted)' }}>
+                                                            {user._count?.profiles || 0} perfiles
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <span style={{ fontSize: '.85rem', color: 'var(--adm-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                                            <Calendar size={14} />
+                                                            {new Date(user.createdAt).toLocaleDateString()}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+                                                            <button
+                                                                className="adm-btn adm-btn--ghost adm-btn--sm"
+                                                                onClick={() => openEditModal(user)}
+                                                                title="Editar usuario"
+                                                            >
+                                                                <Edit2 size={14} />
+                                                            </button>
+                                                            <button
+                                                                className="adm-btn adm-btn--ghost adm-btn--sm adm-btn--red"
+                                                                onClick={() => setUserToDelete(user)}
+                                                                title="Eliminar usuario"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </>
+                                            )}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
 
-                {totalPages > 1 && (
-                    <div style={{ padding: '16px 20px', borderTop: '1px solid var(--adm-border)', display: 'flex', justifyContent: 'center', gap: 8 }}>
-                        <button
-                            className="adm-btn adm-btn--ghost adm-btn--sm"
-                            disabled={page === 1}
-                            onClick={() => setPage(p => p - 1)}
-                        >
-                            Anterior
-                        </button>
-                        <span style={{ padding: '4px 12px', fontSize: '.9rem', color: 'var(--adm-muted)' }}>Página {page} de {totalPages}</span>
-                        <button
-                            className="adm-btn adm-btn--ghost adm-btn--sm"
-                            disabled={page === totalPages}
-                            onClick={() => setPage(p => p + 1)}
-                        >
-                            Siguiente
-                        </button>
-                    </div>
-                )}
-            </div>
+                    {totalPages > 1 && (
+                        <div style={{ padding: '16px 20px', borderTop: '1px solid var(--adm-border)', display: 'flex', justifyContent: 'center', gap: 8 }}>
+                            <button
+                                className="adm-btn adm-btn--ghost adm-btn--sm"
+                                disabled={page === 1}
+                                onClick={() => setPage(p => p - 1)}
+                            >
+                                Anterior
+                            </button>
+                            <span style={{ padding: '4px 12px', fontSize: '.9rem', color: 'var(--adm-muted)' }}>Página {page} de {totalPages}</span>
+                            <button
+                                className="adm-btn adm-btn--ghost adm-btn--sm"
+                                disabled={page === totalPages}
+                                onClick={() => setPage(p => p + 1)}
+                            >
+                                Siguiente
+                            </button>
+                        </div>
+                    )}
+                </div>
             )}
 
             {/* User Create/Edit Modal */}
@@ -812,7 +812,7 @@ export default function AdminUsersPage() {
                                         <label className="adm-label">Tipo de Plan</label>
                                         <div style={{ display: 'flex', gap: '.5rem' }}>
                                             <button type="button" className={`adm-btn ${endUserPlanFilter === 'normal' ? 'adm-btn--primary' : 'adm-btn--ghost'}`} style={{ flex: 1, padding: '.4rem', fontSize: '.8rem' }} onClick={() => { setEndUserPlanFilter('normal'); setEndUserForm(f => ({ ...f, planId: '' })); }}>
-                                                📦 Normal
+                                                Normal
                                             </button>
                                             {activePlans.some(p => p.isPromo && !p.isDemo) && (
                                                 <button type="button" className={`adm-btn ${endUserPlanFilter === 'promo' ? 'adm-btn--primary' : 'adm-btn--ghost'}`} style={{ flex: 1, padding: '.4rem', fontSize: '.8rem' }} onClick={() => { setEndUserPlanFilter('promo'); setEndUserForm(f => ({ ...f, planId: '' })); }}>
