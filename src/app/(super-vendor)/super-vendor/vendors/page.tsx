@@ -27,7 +27,7 @@ export default function SuperVendorVendorsPage() {
 
     // Edit Vendor State
     const [showEdit, setShowEdit] = useState<any | null>(null);
-    const [editForm, setEditForm] = useState({ name: '', username: '', phone: '' });
+    const [editForm, setEditForm] = useState({ name: '', username: '', phone: '', password: '' });
     const [isEditing, setIsEditing] = useState(false);
 
     const fetchVendors = useCallback(async () => {
@@ -97,19 +97,29 @@ export default function SuperVendorVendorsPage() {
         if (!showEdit) return;
         setIsEditing(true);
         try {
+            const payload: any = {
+                name: editForm.name,
+                username: editForm.username,
+                phone: editForm.phone
+            };
+            if (editForm.password.trim().length >= 6) {
+                payload.password = editForm.password;
+            }
+
             const r = await resellerFetch(`${API_ROUTES.RESELLER.LIST}/${showEdit.id}`, {
                 method: 'PATCH',
-                body: JSON.stringify(editForm)
+                body: JSON.stringify(payload)
             });
             const j = await r.json();
+            
             if (j.success || r.ok) {
                 setShowEdit(null);
                 fetchVendors();
             } else {
                 alert(j.error || 'Error al actualizar vendedor');
             }
-        } catch (err) {
-            alert('Error de conexión');
+        } catch (err: any) {
+            alert('Error de conexión: ' + err.message);
         } finally {
             setIsEditing(false);
         }
@@ -216,7 +226,7 @@ export default function SuperVendorVendorsPage() {
                                     <td>
                                         <div className="adm-table-actions justify-center">
                                             <button className="adm-icon-btn" onClick={() => { setShowCredits(v.id); setSelectedPackageId(''); setPkgTab('NORMAL'); }} title="Asignar Paquete"><Send size={14} /></button>
-                                            <button className="adm-icon-btn" onClick={() => { setShowEdit(v); setEditForm({ name: v.name || '', username: v.username || '', phone: v.phone || '' }); }} title="Editar Vendedor"><Edit3 size={14} /></button>
+                                            <button className="adm-icon-btn" onClick={() => { setShowEdit(v); setEditForm({ name: v.name || '', username: v.username || '', phone: v.phone || '', password: '' }); }} title="Editar Vendedor"><Edit3 size={14} /></button>
                                             <button className="adm-icon-btn" onClick={() => { setShowResetPwd({ id: v.id, name: v.name }); setNewPwd(''); }} title="Cambiar Contraseña"><Key size={14} /></button>
                                             <button className="adm-icon-btn" onClick={() => handleToggle(v.id, v.isActive)} title={v.isActive ? 'Desactivar' : 'Activar'}>{v.isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}</button>
                                             <button className="adm-icon-btn adm-icon-btn--danger" onClick={() => handleDelete(v.id, v.name)} title="Eliminar"><Trash2 size={14} /></button>
@@ -405,6 +415,10 @@ export default function SuperVendorVendorsPage() {
                             <div className="adm-field">
                                 <label className="adm-label">Nº de teléfono</label>
                                 <input className="adm-input" value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} required placeholder="Ej: 1122334455" />
+                            </div>
+                            <div className="adm-field">
+                                <label className="adm-label">Nueva Contraseña (opcional)</label>
+                                <input className="adm-input" type="password" value={editForm.password} onChange={e => setEditForm(f => ({ ...f, password: e.target.value }))} placeholder="Dejar en blanco para no cambiar" minLength={6} />
                             </div>
                             <div style={{ display: 'flex', gap: '.5rem', justifyContent: 'flex-end', marginTop: '.5rem' }}>
                                 <button type="button" className="adm-btn adm-btn--ghost" onClick={() => setShowEdit(null)}>Cancelar</button>
