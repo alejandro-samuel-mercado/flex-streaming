@@ -27,6 +27,14 @@ export default function SuperVendorVendorsPage() {
         catch (e) { console.error(e); } finally { setLoading(false); }
     }, []);
 
+    const fetchPackages = useCallback(async () => {
+        try {
+            const r = await resellerFetch(API_ROUTES.CREDIT_PACKAGES.ALL);
+            const j = await r.json();
+            if (j.success) setPackages(j.data);
+        } catch (e) { console.error(e); }
+    }, []);
+
     const fetchCredits = useCallback(async () => {
         try {
             const r = await resellerFetch(API_ROUTES.AUTH.ME);
