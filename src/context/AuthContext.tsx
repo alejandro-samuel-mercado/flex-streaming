@@ -26,7 +26,7 @@ interface AuthUser {
 interface AuthContextType {
     user: AuthUser | null;
     loading: boolean;
-    login: (accessToken: string, refreshToken: string) => void;
+    login: (accessToken: string, refreshToken: string, userData?: AuthUser) => void;
     logout: () => void;
     refreshUser: () => Promise<void>;
 }
@@ -75,11 +75,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         fetchUser();
     }, [fetchUser]);
 
-    const login = (accessToken: string, refreshToken: string) => {
+    const login = (accessToken: string, refreshToken: string, userData?: AuthUser) => {
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
         document.cookie = `accessToken=${accessToken}; path=/; max-age=${8 * 3600}; SameSite=Lax`;
-        fetchUser();
+        
+        if (userData) {
+            setUser(userData);
+            setLoading(false);
+        } else {
+            fetchUser();
+        }
     };
 
     const logout = () => {

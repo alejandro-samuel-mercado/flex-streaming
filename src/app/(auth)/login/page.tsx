@@ -49,8 +49,26 @@ function LoginContent() {
             const result = await response.json();
             if (!result.success) throw new Error(result.error ?? 'Error al iniciar sesión');
 
-            login(result.data.accessToken, result.data.refreshToken);
-            router.push(redirectUrl);
+            const user = result.data.user;
+            const allowedAdminRoles = ['ADMIN', 'VENDOR', 'SUPER_VENDOR'];
+            
+            login(result.data.accessToken, result.data.refreshToken, user);
+
+            if (user && allowedAdminRoles.includes(user.role)) {
+                // It's an admin/vendor logging in from the public page
+                localStorage.setItem('adminToken', result.data.accessToken);
+                localStorage.setItem('adminRefreshToken', result.data.refreshToken);
+                document.cookie = `adminToken=${result.data.accessToken}; path=/; max-age=${8 * 3600}; SameSite=Lax`;
+                
+                let adminRedirect = '/admin';
+                if (user.role === 'VENDOR') adminRedirect = '/vendor';
+                if (user.role === 'SUPER_VENDOR') adminRedirect = '/super-vendor';
+                
+                // Use location.href for a clean state when moving to admin panel
+                window.location.href = adminRedirect;
+            } else {
+                router.push(redirectUrl);
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error inesperado');
         } finally {
