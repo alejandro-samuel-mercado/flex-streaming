@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Coins, Send, ToggleLeft, ToggleRight, UserPlus, Trash2, Key, Users, UserCheck } from 'lucide-react';
+import { Coins, Send, ToggleLeft, ToggleRight, UserPlus, Trash2, Key, Users, UserCheck, Edit3 } from 'lucide-react';
 import { resellerFetch } from '@/lib/reseller-api';
 import { API_ROUTES } from '@/lib/api-routes';
 import type { ResellerVendor } from '@/types/reseller.types';
@@ -21,6 +21,14 @@ export default function SuperVendorVendorsPage() {
     const [selectedPackageId, setSelectedPackageId] = useState<string>('');
     const [myCredits, setMyCredits] = useState<number | null>(null);
     const [form, setForm] = useState({ phone: '', username: '', name: '', password: '', packageId: '' });
+    
+    // Package Tab State
+    const [pkgTab, setPkgTab] = useState<'NORMAL' | 'PROMO'>('NORMAL');
+
+    // Edit Vendor State
+    const [showEdit, setShowEdit] = useState<any | null>(null);
+    const [editForm, setEditForm] = useState({ name: '', username: '', phone: '' });
+    const [isEditing, setIsEditing] = useState(false);
 
     const fetchVendors = useCallback(async () => {
         try { const r = await resellerFetch(API_ROUTES.RESELLER.LIST); const j = await r.json(); if (j.success) setVendors(j.data); }
@@ -82,6 +90,29 @@ export default function SuperVendorVendorsPage() {
     const handleToggle = async (id: string, active: boolean) => {
         await resellerFetch(API_ROUTES.RESELLER.STATUS(id), { method: 'PATCH', body: JSON.stringify({ isActive: !active }) });
         fetchVendors();
+    };
+
+    const handleEditVendor = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!showEdit) return;
+        setIsEditing(true);
+        try {
+            const r = await resellerFetch(`${API_ROUTES.RESELLER.LIST}/${showEdit.id}`, {
+                method: 'PATCH',
+                body: JSON.stringify(editForm)
+            });
+            const j = await r.json();
+            if (j.success || r.ok) {
+                setShowEdit(null);
+                fetchVendors();
+            } else {
+                alert(j.error || 'Error al actualizar vendedor');
+            }
+        } catch (err) {
+            alert('Error de conexión');
+        } finally {
+            setIsEditing(false);
+        }
     };
     const handleDelete = async (id: string, name: string) => {
         showModal({
@@ -184,7 +215,8 @@ export default function SuperVendorVendorsPage() {
                                     </td>
                                     <td>
                                         <div className="adm-table-actions justify-center">
-                                            <button className="adm-icon-btn" onClick={() => { setShowCredits(v.id); setSelectedPackageId(packages[0]?.id || ''); }} title="Asignar Paquete"><Send size={14} /></button>
+                                            <button className="adm-icon-btn" onClick={() => { setShowCredits(v.id); setSelectedPackageId(''); setPkgTab('NORMAL'); }} title="Asignar Paquete"><Send size={14} /></button>
+                                            <button className="adm-icon-btn" onClick={() => { setShowEdit(v); setEditForm({ name: v.name || '', username: v.username || '', phone: v.phone || '' }); }} title="Editar Vendedor"><Edit3 size={14} /></button>
                                             <button className="adm-icon-btn" onClick={() => { setShowResetPwd({ id: v.id, name: v.name }); setNewPwd(''); }} title="Cambiar Contraseña"><Key size={14} /></button>
                                             <button className="adm-icon-btn" onClick={() => handleToggle(v.id, v.isActive)} title={v.isActive ? 'Desactivar' : 'Activar'}>{v.isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}</button>
                                             <button className="adm-icon-btn adm-icon-btn--danger" onClick={() => handleDelete(v.id, v.name)} title="Eliminar"><Trash2 size={14} /></button>
@@ -224,14 +256,25 @@ export default function SuperVendorVendorsPage() {
                                 <input className="adm-input" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required minLength={6} placeholder="Mínimo 6 caracteres" />
                             </div>
 
-                            {/* Selector de paquete — cards */}
+                            {/* Selector de paquete — cards con Tabs */}
                             <div className="adm-field">
                                 <label className="adm-label">Paquete Inicial de Créditos</label>
+                                
+                                {/* Visual Tabs */}
+                                <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '10px', marginBottom: '10px' }}>
+                                    <button type="button" onClick={() => setPkgTab('NORMAL')} style={{ flex: 1, padding: '6px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '.75rem', fontWeight: 600, background: pkgTab === 'NORMAL' ? 'rgba(167,139,250,0.2)' : 'transparent', color: pkgTab === 'NORMAL' ? '#a78bfa' : 'var(--adm-muted)' }}>
+                                        📦 Normal
+                                    </button>
+                                    <button type="button" onClick={() => setPkgTab('PROMO')} style={{ flex: 1, padding: '6px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '.75rem', fontWeight: 600, background: pkgTab === 'PROMO' ? 'rgba(234,179,8,0.2)' : 'transparent', color: pkgTab === 'PROMO' ? '#facc15' : 'var(--adm-muted)' }}>
+                                        🔥 Promoción
+                                    </button>
+                                </div>
+
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem', maxHeight: 220, overflowY: 'auto', paddingRight: '.25rem' }}>
-                                    {packages.length === 0 && (
-                                        <p className="adm-table-muted" style={{ fontSize: '.82rem', textAlign: 'center', padding: '.5rem' }}>No hay paquetes disponibles</p>
+                                    {packages.filter(p => pkgTab === 'PROMO' ? p.isPromo : !p.isPromo).length === 0 && (
+                                        <p className="adm-table-muted" style={{ fontSize: '.82rem', textAlign: 'center', padding: '1rem' }}>No hay paquetes en esta categoría</p>
                                     )}
-                                    {packages.map((pkg: any) => (
+                                    {packages.filter(p => pkgTab === 'PROMO' ? p.isPromo : !p.isPromo).map((pkg: any) => (
                                         <button
                                             key={pkg.id}
                                             type="button"
@@ -247,8 +290,11 @@ export default function SuperVendorVendorsPage() {
                                             }}
                                         >
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <strong style={{ fontSize: '.88rem', color: 'white' }}>{pkg.name}</strong>
-                                                <span style={{ fontSize: '.82rem', fontWeight: 700, color: '#facc15' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                    <strong style={{ fontSize: '.88rem', color: 'white' }}>{pkg.name}</strong>
+                                                    {pkg.isPromo && <span style={{ fontSize: '0.65rem', background: 'rgba(234,179,8,0.2)', color: '#facc15', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>PROMO</span>}
+                                                </div>
+                                                <span style={{ fontSize: '.82rem', fontWeight: 700, color: pkg.isPromo ? '#facc15' : '#a78bfa' }}>
                                                     {pkg.baseCredits + (pkg.bonusCredits || 0)} créditos
                                                 </span>
                                             </div>
@@ -283,21 +329,90 @@ export default function SuperVendorVendorsPage() {
             {/* ── Modal: Asignar Créditos ── */}
             {showCredits && (
                 <div className="adm-modal-overlay" onClick={() => setShowCredits(null)}>
-                    <div className="adm-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 340 }}>
+                    <div className="adm-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 400 }}>
                         <h2 style={{ margin: '0 0 1rem', fontSize: '1.05rem' }}>Asignar Paquete</h2>
+                        
                         <div className="adm-field">
                             <label className="adm-label">Seleccionar Paquete</label>
-                            <CustomSelect
-                                options={packages.map(pkg => ({ id: pkg.id, name: `${pkg.name} (${pkg.baseCredits} cr.)` }))}
-                                value={selectedPackageId}
-                                onChange={val => setSelectedPackageId(val as string)}
-                                placeholder="Elegir paquete de créditos..."
-                            />
+                            
+                            {/* Visual Tabs */}
+                            <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '10px', marginBottom: '10px' }}>
+                                <button type="button" onClick={() => setPkgTab('NORMAL')} style={{ flex: 1, padding: '6px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '.75rem', fontWeight: 600, background: pkgTab === 'NORMAL' ? 'rgba(167,139,250,0.2)' : 'transparent', color: pkgTab === 'NORMAL' ? '#a78bfa' : 'var(--adm-muted)' }}>
+                                    📦 Normal
+                                </button>
+                                <button type="button" onClick={() => setPkgTab('PROMO')} style={{ flex: 1, padding: '6px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '.75rem', fontWeight: 600, background: pkgTab === 'PROMO' ? 'rgba(234,179,8,0.2)' : 'transparent', color: pkgTab === 'PROMO' ? '#facc15' : 'var(--adm-muted)' }}>
+                                    🔥 Promoción
+                                </button>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem', maxHeight: 220, overflowY: 'auto', paddingRight: '.25rem' }}>
+                                {packages.filter(p => pkgTab === 'PROMO' ? p.isPromo : !p.isPromo).length === 0 && (
+                                    <p className="adm-table-muted" style={{ fontSize: '.82rem', textAlign: 'center', padding: '1rem' }}>No hay paquetes en esta categoría</p>
+                                )}
+                                {packages.filter(p => pkgTab === 'PROMO' ? p.isPromo : !p.isPromo).map((pkg: any) => (
+                                    <button
+                                        key={pkg.id}
+                                        type="button"
+                                        onClick={() => setSelectedPackageId(pkg.id)}
+                                        style={{
+                                            padding: '.6rem .85rem',
+                                            cursor: 'pointer',
+                                            textAlign: 'left',
+                                            border: selectedPackageId === pkg.id ? '2px solid #a78bfa' : '1px solid rgba(255,255,255,.08)',
+                                            borderRadius: '10px',
+                                            background: selectedPackageId === pkg.id ? 'rgba(167,139,250,0.08)' : 'rgba(255,255,255,0.02)',
+                                            transition: 'all .2s',
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                <strong style={{ fontSize: '.88rem', color: 'white' }}>{pkg.name}</strong>
+                                                {pkg.isPromo && <span style={{ fontSize: '0.65rem', background: 'rgba(234,179,8,0.2)', color: '#facc15', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>PROMO</span>}
+                                            </div>
+                                            <span style={{ fontSize: '.82rem', fontWeight: 700, color: pkg.isPromo ? '#facc15' : '#a78bfa' }}>
+                                                {pkg.baseCredits + (pkg.bonusCredits || 0)} créditos
+                                            </span>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
+
                         <div style={{ display: 'flex', gap: '.5rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
                             <button className="adm-btn adm-btn--ghost" onClick={() => setShowCredits(null)}>Cancelar</button>
                             <button className="adm-btn adm-btn--primary" onClick={handleCredits} disabled={!selectedPackageId}>Asignar</button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Modal: Editar Vendedor ── */}
+            {showEdit && (
+                <div className="adm-modal-overlay" onClick={() => setShowEdit(null)}>
+                    <div className="adm-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 400 }}>
+                        <div className="adm-modal-header" style={{ padding: 0, border: 'none', marginBottom: '1.25rem' }}>
+                            <h2 className="adm-modal-title" style={{ fontSize: '1.1rem' }}>Editar Vendedor</h2>
+                        </div>
+                        <form onSubmit={handleEditVendor} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div className="adm-field">
+                                <label className="adm-label">Nombre</label>
+                                <input className="adm-input" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} required placeholder="Nombre completo" />
+                            </div>
+                            <div className="adm-field">
+                                <label className="adm-label">Usuario</label>
+                                <input className="adm-input" value={editForm.username} onChange={e => setEditForm(f => ({ ...f, username: e.target.value }))} required placeholder="Nombre de usuario" />
+                            </div>
+                            <div className="adm-field">
+                                <label className="adm-label">Nº de teléfono</label>
+                                <input className="adm-input" value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} required placeholder="Ej: 1122334455" />
+                            </div>
+                            <div style={{ display: 'flex', gap: '.5rem', justifyContent: 'flex-end', marginTop: '.5rem' }}>
+                                <button type="button" className="adm-btn adm-btn--ghost" onClick={() => setShowEdit(null)}>Cancelar</button>
+                                <button type="submit" className="adm-btn adm-btn--primary" disabled={isEditing}>
+                                    {isEditing ? 'Guardando...' : 'Guardar Cambios'}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

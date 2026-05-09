@@ -121,27 +121,57 @@ export default function AdminFilesPage() {
         setImportResult(null); setError(null);
 
         try {
-            const payload = selectedFiles.map(f => ({
-                filePath: f.filePath,
-                contentType: f.contentType,
-                ...(f.episode ? { episode: f.episode } : {})
-            }));
-
-            const res = await adminFetch(API_ROUTES.MEDIA_SCANNER.IMPORT, {
-                method: 'POST',
-                body: JSON.stringify({ files: payload })
-            });
-            const json = await res.json();
-
-            if (res.ok && json.success) {
-                setImportResult(json.data.summary);
-                setFiles(prev => prev.filter(f => !selected.has(f.filePath)));
-                setSelected(new Set());
-            } else {
-                setError(json.error || 'Error al importar');
+            const CHUNK_SIZE = 100;
+            const chunks = [];
+            for (let i = 0; i < selectedFiles.length; i += CHUNK_SIZE) {
+                chunks.push(selectedFiles.slice(i, i + CHUNK_SIZE));
             }
-        } catch (err) {
-            setError('Error de conexión durante la importación');
+
+            let success = 0;
+            let withTMDB = 0;
+            let incomplete = 0;
+            let errors = 0;
+            const importedPaths = new Set<string>();
+
+            for (let i = 0; i < chunks.length; i++) {
+                const chunk = chunks[i];
+                const payload = chunk.map(f => ({
+                    filePath: f.filePath,
+                    contentType: f.contentType,
+                    ...(f.episode ? { episode: f.episode } : {})
+                }));
+
+                const res = await adminFetch(API_ROUTES.MEDIA_SCANNER.IMPORT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ files: payload })
+                });
+                const json = await res.json();
+
+                if (res.ok && json.success) {
+                    const s = json.data.summary;
+                    success += s.success;
+                    withTMDB += s.withTMDB;
+                    incomplete += s.incomplete;
+                    errors += s.errors;
+                    
+                    // Mark these as imported
+                    chunk.forEach(f => importedPaths.add(f.filePath));
+                    
+                    setImportProgress({ 
+                        current: Math.min((i + 1) * CHUNK_SIZE, selectedFiles.length), 
+                        total: selectedFiles.length 
+                    });
+                } else {
+                    throw new Error(json.error || `Error en lote ${i + 1}`);
+                }
+            }
+
+            setImportResult({ total: selectedFiles.length, success, withTMDB, incomplete, errors });
+            setFiles(prev => prev.filter(f => !importedPaths.has(f.filePath)));
+            setSelected(new Set());
+        } catch (err: any) {
+            setError(err.message || 'Error de conexión durante la importación');
         } finally {
             setImporting(false); setImportProgress(null);
         }
