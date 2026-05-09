@@ -67,7 +67,7 @@ function LoginContent() {
                 // Use location.href for a clean state when moving to admin panel
                 window.location.href = adminRedirect;
             } else {
-                router.push(redirectUrl);
+                window.location.href = redirectUrl;
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error inesperado');
