@@ -366,8 +366,7 @@ export default function AdminUsersPage() {
                                                 </td>
                                                 <td style={{ textAlign: 'center' }}>
                                                     <div className="flex flex-col items-center justify-center">
-                                                        {user.username ? <span style={{ color: '#a78bfa', fontWeight: 600 }}>@{user.username}</span> : <span style={{ color: '#a78bfa', fontWeight: 600 }}>-</span>}
-                                                        <span style={{ fontSize: '.8rem', color: 'var(--adm-muted)' }}>{user.phone}</span>
+                                                        <span style={{ color: '#a78bfa', fontWeight: 600 }}>{user.username || '-'}</span>
                                                     </div>
                                                 </td>
                                                 <td style={{ textAlign: 'center' }}>
@@ -405,8 +404,7 @@ export default function AdminUsersPage() {
                                                                 {user._count?.memberships > 0 && <Crown size={14} color="#fbbf24" />}
                                                             </div>
                                                             <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                                                                {user.username && <span style={{ color: '#60a5fa', fontWeight: 600 }}>@{user.username}</span>}
-                                                                {user.phone}
+                                                                <span style={{ color: '#60a5fa', fontWeight: 600 }}>{user.username || '-'}</span>
                                                             </div>
                                                         </div>
                                                     </div>

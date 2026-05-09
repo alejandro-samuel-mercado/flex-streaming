@@ -162,8 +162,7 @@ export default function SuperVendorVendorsPage() {
                                     </td>
                                     <td style={{ textAlign: 'center' }}>
                                         <div className="flex flex-col items-center justify-center">
-                                            <span className="adm-table-user-email">@{v.username || '-'}</span>
-                                            <span className="adm-table-user-email opacity-60 text-xs">{v.phone}</span>
+                                            <span className="adm-table-user-email">{v.username || '-'}</span>
                                         </div>
                                     </td>
                                     <td style={{ textAlign: 'center' }}>
