@@ -126,12 +126,12 @@ export default function BackupPage() {
         }
     };
 
-    const handleSaveSettings = async () => {
+    const handleSaveSettings = async (overriddenSettings?: BackupSettings) => {
         setSavingSettings(true);
         try {
             const res = await adminFetch(API_ROUTES.BACKUP.SETTINGS, {
                 method: 'PUT',
-                body: JSON.stringify(settings),
+                body: JSON.stringify(overriddenSettings || settings),
             });
             const data = await res.json();
             if (data.success) {
@@ -249,13 +249,17 @@ export default function BackupPage() {
                     <div className="flex flex-col !gap-2">
                         <label className="adm-label">Activar backups automáticos</label>
                         <button
-                            onClick={() => setSettings(s => ({ ...s, enabled: !s.enabled }))}
+                            onClick={() => {
+                                const newVal = !settings.enabled;
+                                setSettings(s => ({ ...s, enabled: newVal }));
+                                handleSaveSettings({ ...settings, enabled: newVal });
+                            }}
                             className={`flex items-center !gap-3 !px-4 !py-3 rounded-xl border font-bold text-sm transition-all w-fit ${settings.enabled ? 'bg-primary/20 border-primary/40 text-primary' : 'bg-white/5 border-white/10 text-gray-400'}`}
                         >
                             <div className={`w-10 h-5 rounded-full relative transition-all ${settings.enabled ? 'bg-primary' : 'bg-white/10'}`}>
                                 <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${settings.enabled ? 'left-5' : 'left-0.5'}`} />
                             </div>
-                            {settings.enabled ? 'Activado' : 'Desactivado'}
+                            <span>{settings.enabled ? 'Activado' : 'Desactivado'}</span>
                         </button>
                     </div>
 
@@ -377,7 +381,7 @@ export default function BackupPage() {
                                                 {/* Merge Import */}
                                                 <button
                                                     onClick={() => setConfirmModal({ filename: backup.filename, mode: 'merge' })}
-                                                    disabled={!importing}
+                                                    disabled={!!importing}
                                                     className="flex items-center !gap-1.5 text-xs !px-3 !py-1.5 rounded-lg bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 transition-all font-bold disabled:opacity-50"
                                                     title="Importar (merge — no borra datos)"
                                                 >
@@ -387,7 +391,7 @@ export default function BackupPage() {
                                                 {/* Replace Import */}
                                                 <button
                                                     onClick={() => setConfirmModal({ filename: backup.filename, mode: 'replace' })}
-                                                    disabled={!importing}
+                                                    disabled={!!importing}
                                                     className="flex items-center !gap-1.5 text-xs !px-3 !py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:bg-orange-500/20 transition-all font-bold disabled:opacity-50"
                                                     title="Restaurar completo (borra todo primero)"
                                                 >
