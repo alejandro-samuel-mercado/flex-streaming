@@ -151,7 +151,7 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [] 
                                                         >
                                                             <span className="nav-cinema-popup-icon">{getContentTypeIcon(type, 16)}</span>
                                                             <span className="nav-cinema-popup-label">{getContentTypeLabel(type)}</span>
-                                                            <span className="nav-cinema-popup-count">{ct?.count || 0}</span>
+
                                                         </Link>
                                                     );
                                                 })}

@@ -831,7 +831,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                             style={{
                                                 position: 'absolute',
                                                 top: 20,
-                                                right: 20,
+                                                left: 20,
                                                 zIndex: 1000001,
                                                 background: 'rgba(255,255,255,0.1)',
                                                 border: 'none',
@@ -852,26 +852,27 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                             src={activeVideo.url}
                                             title={activeVideo.title}
                                             poster={resolveImageUrl(data?.thumbnails?.find(t => t.type === 'BACKDROP')?.url) || undefined}
-                                            onShowEpisodes={data?.type !== 'MOVIE' ? () => setShowEpisodes(v => !v) : undefined}
+                                            onShowEpisodes={(data?.type && data.type !== 'MOVIE') ? () => setShowEpisodes(v => !v) : undefined}
                                         />
 
                                         {/* Episode Sidebar Panel - Admin Version */}
                                         {showEpisodes && (
                                             <div style={{
-                                                position: 'absolute',
+                                                position: 'fixed',
                                                 top: 0,
                                                 bottom: 0,
                                                 right: 0,
                                                 width: '100%',
-                                                maxWidth: '380px',
-                                                background: 'rgba(5, 8, 28, 0.95)',
-                                                backdropFilter: 'blur(20px)',
+                                                maxWidth: '400px',
+                                                background: '#05081c',
                                                 borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
-                                                zIndex: 1000000,
-                                                padding: '30px',
+                                                zIndex: 2000000,
+                                                padding: '40px 30px',
                                                 overflowY: 'auto',
                                                 color: 'white',
-                                                boxShadow: '-10px 0 30px rgba(0,0,0,0.5)'
+                                                boxShadow: '-20px 0 50px rgba(0,0,0,0.9)',
+                                                display: 'flex',
+                                                flexDirection: 'column'
                                             }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
                                                     <h2 style={{ fontSize: '1.5rem', fontWeight: 900, textTransform: 'uppercase', fontStyle: 'italic' }}>Episodios</h2>

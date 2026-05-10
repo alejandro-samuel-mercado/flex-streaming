@@ -563,10 +563,10 @@ export default function VideoPlayer({ src, title, poster, initialTime = 0, exter
                         {onShowEpisodes && (
                             <button
                                 onClick={(e) => { e.stopPropagation(); onShowEpisodes(); }}
-                                className="flex items-center gap-2 bg-black/30 backdrop-blur-md border border-white/10 px-4 py-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 hover:border-white/30 transition-all text-sm font-bold"
+                                className="flex items-center gap-2 bg-purple-600/90 hover:bg-purple-500 backdrop-blur-md border border-white/20 px-5 py-2.5 rounded-full text-white shadow-lg transition-all text-sm font-black uppercase tracking-wider"
                                 title="Lista de episodios"
                             >
-                                <List size={16} /> Episodios
+                                <List size={18} strokeWidth={3} /> Episodios
                             </button>
                         )}
                     </div>
