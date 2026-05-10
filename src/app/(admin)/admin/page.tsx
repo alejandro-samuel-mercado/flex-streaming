@@ -103,7 +103,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 flex items-center gap-3">
+        <div className="!mb-6 !p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 flex items-center !gap-3">
             <AlertTriangle size={18} />
             {error}
         </div>
@@ -146,7 +146,7 @@ export default function AdminDashboardPage() {
             <tbody>
               {activities.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="text-center py-6 text-[var(--adm-muted)]">No hay actividad reciente</td>
+                  <td colSpan={4} className="text-center !py-6 text-[var(--adm-muted)]">No hay actividad reciente</td>
                 </tr>
               )}
               {activities.map((row: any, i: number) => (
@@ -179,7 +179,7 @@ export default function AdminDashboardPage() {
           </div>
           <div className="adm-top-list">
             {(data?.topContent || []).length === 0 && (
-              <div className="text-center py-6 text-[var(--adm-muted)] text-sm">Sin datos suficientes</div>
+              <div className="text-center !py-6 text-[var(--adm-muted)] text-sm">Sin datos suficientes</div>
             )}
             {(data?.topContent || []).map((item: any, i: number) => (
               <div key={i} className="adm-top-item">

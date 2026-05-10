@@ -137,6 +137,15 @@ export default function FilmDetailPage() {
 
     return (
         <main style={{ minHeight: '100vh', background: '#030612', color: 'white', position: 'relative' }}>
+            <style dangerouslySetInnerHTML={{ __html: `
+                .film-hero-content { padding: 180px 7% 100px 7% !important; gap: 24px !important; }
+                .film-section { padding: 40px 7% 0 !important; }
+                .film-meta-bar { display: flex !important; align-items: center !important; gap: 20px !important; margin-bottom: 32px !important; }
+                .film-action-buttons { display: flex !important; align-items: center !important; gap: 16px !important; }
+                .film-detail-grid { display: grid !important; grid-template-columns: 220px 1fr !important; gap: 48px !important; margin-bottom: 64px !important; }
+                .film-info-item { padding: 16px 20px !important; margin-bottom: 6px !important; }
+                .adm-page, .adm-card, .adm-header { padding: 24px !important; gap: 24px !important; margin-bottom: 24px !important; }
+            `}} />
             <TrailerModal url={content.trailerUrl || ''} isOpen={isTrailerOpen} onClose={() => setIsTrailerOpen(false)} />
 
             {/* ═══ HERO BANNER ═══ */}
@@ -153,10 +162,10 @@ export default function FilmDetailPage() {
                 </div>
 
                 {/* Hero Content */}
-                <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', paddingLeft: '7%', paddingRight: '7%', paddingBottom: 100, paddingTop: 180, flex: 1, justifyContent: 'flex-end' }}>
+                <div className="film-hero-content" style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', paddingLeft: '7%', paddingRight: '7%', paddingBottom: 100, paddingTop: 180, flex: 1, justifyContent: 'flex-end' }}>
                     <div style={{ maxWidth: '900px' }}>
                         {/* Badges */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 24 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 24 }} className="film-action-buttons">
                             {content.featured && (
                                 <span style={{ background: 'linear-gradient(135deg, #FF6B00, #FF0055)', color: 'white', padding: '4px 12px', fontSize: 11, fontWeight: 900, borderRadius: 4, letterSpacing: 2, textTransform: 'uppercase' }}>TOP 10</span>
                             )}
@@ -173,7 +182,7 @@ export default function FilmDetailPage() {
                         </h1>
 
                         {/* Meta bar */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 20, color: '#d1d5db', fontSize: 15, fontWeight: 700, marginBottom: 32, flexWrap: 'wrap' }}>
+                        <div className="film-meta-bar" style={{ display: 'flex', alignItems: 'center', gap: 20, color: '#d1d5db', fontSize: 15, fontWeight: 700, marginBottom: 32, flexWrap: 'wrap' }}>
                             {content.releaseYear && <span style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 10px', borderRadius: 4, color: 'white' }}>{content.releaseYear}</span>}
                             {content.ageRating && <span style={{ border: '2px solid rgba(255,255,255,0.4)', padding: '2px 8px', borderRadius: 4, fontSize: 12, color: 'white' }}>{content.ageRating.code}</span>}
                             {content.duration && !isSeries && <span>{content.duration} min</span>}
@@ -201,7 +210,7 @@ export default function FilmDetailPage() {
                         </div>
 
                         {/* Action Buttons */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                        <div className="film-action-buttons" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                             {canPlay ? (
                                 <Link href={`/watch/${id}`} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 48px', background: 'linear-gradient(135deg, #00E5FF, #0099AA)', color: 'black', fontWeight: 900, borderRadius: 12, textDecoration: 'none', fontSize: 15, boxShadow: '0 10px 30px rgba(0,229,255,0.4)', transition: 'all 0.3s' }}>
                                     <Play size={22} fill="black" /> REPRODUCIR
@@ -298,10 +307,10 @@ export default function FilmDetailPage() {
             )}
 
             {/* ═══ MAIN CONTENT AREA ═══ */}
-            <section style={{ padding: '60px 7% 0', position: 'relative', zIndex: 10 }}>
+            <section className="film-section" style={{ padding: '60px 7% 0', position: 'relative', zIndex: 10 }}>
 
                 {/* ── Info Grid: Poster + Details ── */}
-                <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 48, marginBottom: 64 }}>
+                <div className="film-detail-grid" style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 48, marginBottom: 64 }}>
                     {/* Poster */}
                     {posterUrl && (
                         <div style={{ borderRadius: 16, overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.08)', aspectRatio: '2/3' }}>

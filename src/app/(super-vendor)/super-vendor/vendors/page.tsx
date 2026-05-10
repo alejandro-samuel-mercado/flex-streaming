@@ -169,7 +169,7 @@ export default function SuperVendorVendorsPage() {
 
             <div className="adm-table-card">
                 <div className="adm-table-card-header">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center !gap-3">
                         <div className="adm-card-icon"><Users size={18} /></div>
                         <h2 className="adm-table-card-title">Vendedores Gestionados</h2>
                     </div>
@@ -215,7 +215,7 @@ export default function SuperVendorVendorsPage() {
                                         </div>
                                     </td>
                                     <td className="adm-table-muted">
-                                        <div className="flex items-center justify-center gap-2">
+                                        <div className="flex items-center justify-center !gap-2">
                                             <UserCheck size={14} className="opacity-40" />
                                             {v._count.managedEndUsers}
                                         </div>

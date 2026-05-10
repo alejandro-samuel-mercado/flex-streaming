@@ -156,7 +156,7 @@ export default function BackupPage() {
         <div className="adm-page">
             {/* Toast */}
             {toast && (
-                <div className={`fixed top-6 right-6 z-[200] flex items-center gap-3 px-5 py-3 rounded-2xl font-bold text-sm shadow-2xl animate-in slide-in-from-right duration-300 ${toast.type === 'success' ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300' : 'bg-red-500/20 border border-red-500/40 text-red-300'}`}>
+                <div className={`fixed top-6 right-6 z-[200] flex items-center !!gap-3 !!px-5 !!py-3 rounded-2xl font-bold text-sm shadow-2xl animate-in slide-in-from-right duration-300 ${toast.type === 'success' ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300' : 'bg-red-500/20 border border-red-500/40 text-red-300'}`}>
                     {toast.type === 'success' ? <CheckCircle size={16} /> : <AlertTriangle size={16} />}
                     {toast.msg}
                 </div>
@@ -164,35 +164,35 @@ export default function BackupPage() {
 
             {/* Confirm Modal */}
             {confirmModal && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[100] flex items-center justify-center p-4" onClick={() => setConfirmModal(null)}>
-                    <div className="adm-card max-w-md w-full p-8 animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center gap-3 mb-6">
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[100] flex items-center justify-center !!p-4" onClick={() => setConfirmModal(null)}>
+                    <div className="adm-card max-w-md w-full !!p-8 animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center !!gap-3 !!mb-6">
                             {confirmModal.mode === 'replace'
                                 ? <AlertTriangle size={24} className="text-orange-400" />
                                 : <Database size={24} className="text-primary" />
                             }
-                            <h3 className="adm-section-title !mb-0">
+                            <h3 className="adm-section-title !!!mb-0">
                                 {confirmModal.mode === 'replace' ? 'Restauración completa' : 'Importación inteligente'}
                             </h3>
                         </div>
-                        <p className="text-gray-400 text-sm mb-2">
+                        <p className="text-gray-400 text-sm !!mb-2">
                             Archivo: <span className="text-white font-bold font-mono text-xs">{confirmModal.filename}</span>
                         </p>
                         {confirmModal.mode === 'replace' ? (
-                            <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 mb-6 text-sm text-orange-300">
+                            <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl !!p-4 !!mb-6 text-sm text-orange-300">
                                 ⚠️ <strong>Modo reemplazo:</strong> Borrará y reemplazará todos los datos de la base de datos con los del backup. Los datos actuales se perderán.
                             </div>
                         ) : (
-                            <div className="bg-primary/10 border border-primary/30 rounded-xl p-4 mb-6 text-sm text-primary">
+                            <div className="bg-primary/10 border border-primary/30 rounded-xl !!p-4 !!mb-6 text-sm text-primary">
                                 🔄 <strong>Modo merge:</strong> Actualiza lo que cambió y agrega lo nuevo. No borra datos existentes que no estén en el backup.
                             </div>
                         )}
-                        <div className="flex gap-3">
+                        <div className="flex !!gap-3">
                             <button onClick={() => setConfirmModal(null)} className="adm-btn-secondary flex-1">Cancelar</button>
                             <button
                                 onClick={() => handleImport(confirmModal.filename, confirmModal.mode)}
                                 disabled={!!importing}
-                                className={`flex-1 adm-btn flex items-center justify-center gap-2 ${confirmModal.mode === 'replace' ? 'bg-orange-500 hover:bg-orange-600' : ''}`}
+                                className={`flex-1 adm-btn flex items-center justify-center !!gap-2 ${confirmModal.mode === 'replace' ? 'bg-orange-500 hover:bg-orange-600' : ''}`}
                             >
                                 {importing ? <Loader2 size={16} className="animate-spin" /> : <RotateCcw size={16} />}
                                 Confirmar
@@ -208,7 +208,7 @@ export default function BackupPage() {
                     <h1 className="adm-title">Copias de Seguridad</h1>
                     <p className="adm-subtitle">Exporta, programa y restaura la base de datos de forma segura</p>
                 </div>
-                <button onClick={handleCreate} disabled={creating} className="adm-btn flex items-center gap-2">
+                <button onClick={handleCreate} disabled={creating} className="adm-btn flex items-center !!gap-2">
                     {creating ? <Loader2 size={16} className="animate-spin" /> : <Database size={16} />}
                     {creating ? 'Creando...' : 'Crear Backup Ahora'}
                 </button>
@@ -217,40 +217,40 @@ export default function BackupPage() {
             {/* Stats Row */}
             <div className="adm-stats-grid">
                 <div className="adm-stat-card">
-                    <HardDrive size={22} className="text-primary mb-2" />
+                    <HardDrive size={22} className="text-primary !!mb-2" />
                     <div className="adm-stat-value">{backups.length}</div>
                     <div className="adm-stat-label">Backups disponibles</div>
                 </div>
                 <div className="adm-stat-card">
-                    <Calendar size={22} className="text-emerald-400 mb-2" />
+                    <Calendar size={22} className="text-emerald-400 !!mb-2" />
                     <div className="adm-stat-value text-sm">{settings.lastRun ? formatDate(settings.lastRun) : '—'}</div>
                     <div className="adm-stat-label">Último backup</div>
                 </div>
                 <div className="adm-stat-card">
-                    <Clock size={22} className="text-blue-400 mb-2" />
+                    <Clock size={22} className="text-blue-400 !!mb-2" />
                     <div className="adm-stat-value">{settings.enabled ? `Cada ${settings.intervalHours}h` : 'Desactivado'}</div>
                     <div className="adm-stat-label">Programación automática</div>
                 </div>
                 <div className="adm-stat-card">
-                    <Shield size={22} className="text-purple-400 mb-2" />
+                    <Shield size={22} className="text-purple-400 !!mb-2" />
                     <div className="adm-stat-value">{settings.retentionCount}</div>
                     <div className="adm-stat-label">Backups a retener</div>
                 </div>
             </div>
 
             {/* Auto-backup Settings */}
-            <div className="adm-card p-6 mb-6">
-                <div className="flex items-center gap-3 mb-6">
+            <div className="adm-card !!p-6 !!mb-6">
+                <div className="flex items-center !!gap-3 !!mb-6">
                     <Settings size={18} className="text-primary" />
-                    <h2 className="adm-section-title !mb-0">Configuración Automática</h2>
+                    <h2 className="adm-section-title !!!mb-0">Configuración Automática</h2>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 !!gap-6 !!mb-6">
                     {/* Toggle */}
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col !!gap-2">
                         <label className="adm-label">Activar backups automáticos</label>
                         <button
                             onClick={() => setSettings(s => ({ ...s, enabled: !s.enabled }))}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl border font-bold text-sm transition-all w-fit ${settings.enabled ? 'bg-primary/20 border-primary/40 text-primary' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                            className={`flex items-center !!gap-3 !!px-4 !!py-3 rounded-xl border font-bold text-sm transition-all w-fit ${settings.enabled ? 'bg-primary/20 border-primary/40 text-primary' : 'bg-white/5 border-white/10 text-gray-400'}`}
                         >
                             <div className={`w-10 h-5 rounded-full relative transition-all ${settings.enabled ? 'bg-primary' : 'bg-white/10'}`}>
                                 <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${settings.enabled ? 'left-5' : 'left-0.5'}`} />
@@ -260,7 +260,7 @@ export default function BackupPage() {
                     </div>
 
                     {/* Interval */}
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col !!gap-2">
                         <label className="adm-label">Intervalo</label>
                         <select
                             value={settings.intervalHours}
@@ -276,7 +276,7 @@ export default function BackupPage() {
                     </div>
 
                     {/* Retention */}
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col !!gap-2">
                         <label className="adm-label">Máximo de backups a guardar</label>
                         <select
                             value={settings.retentionCount}
@@ -289,7 +289,7 @@ export default function BackupPage() {
                         </select>
                     </div>
                 </div>
-                <button onClick={handleSaveSettings} disabled={savingSettings} className="adm-btn flex items-center gap-2">
+                <button onClick={handleSaveSettings} disabled={savingSettings} className="adm-btn flex items-center !!gap-2">
                     {savingSettings ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
                     {savingSettings ? 'Guardando...' : 'Guardar Configuración'}
                 </button>
@@ -297,17 +297,17 @@ export default function BackupPage() {
 
             {/* Import Result */}
             {importResult && (
-                <div className="adm-card p-6 mb-6 border-emerald-500/30">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
+                <div className="adm-card !!p-6 !!mb-6 border-emerald-500/30">
+                    <div className="flex items-center justify-between !!mb-4">
+                        <div className="flex items-center !!gap-3">
                             <CheckCircle size={18} className="text-emerald-400" />
-                            <h2 className="adm-section-title !mb-0 text-emerald-400">Resultado de la importación ({importResult.mode})</h2>
+                            <h2 className="adm-section-title !!!mb-0 text-emerald-400">Resultado de la importación ({importResult.mode})</h2>
                         </div>
                         <button onClick={() => setImportResult(null)} className="text-gray-400 hover:text-white"><X size={18} /></button>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-4 !!gap-3">
                         {Object.entries(importResult.results).map(([table, { upserted, errors }]) => (
-                            <div key={table} className={`p-3 rounded-xl border text-sm ${errors > 0 ? 'bg-orange-500/10 border-orange-500/20' : 'bg-white/3 border-white/5'}`}>
+                            <div key={table} className={`!!p-3 rounded-xl border text-sm ${errors > 0 ? 'bg-orange-500/10 border-orange-500/20' : 'bg-white/3 border-white/5'}`}>
                                 <div className="font-bold text-white capitalize">{table.replace(/([A-Z])/g, ' $1')}</div>
                                 <div className="text-emerald-400">{upserted} registros</div>
                                 {errors > 0 && <div className="text-orange-400">{errors} errores</div>}
@@ -319,19 +319,19 @@ export default function BackupPage() {
 
             {/* Backups List */}
             <div className="adm-card overflow-hidden">
-                <div className="p-6 border-b border-white/5 flex items-center justify-between">
-                    <h2 className="adm-section-title !mb-0">Backups Disponibles</h2>
-                    <button onClick={loadData} className="adm-btn-secondary flex items-center gap-2 text-sm">
+                <div className="!!p-6 border-b border-white/5 flex items-center justify-between">
+                    <h2 className="adm-section-title !!!mb-0">Backups Disponibles</h2>
+                    <button onClick={loadData} className="adm-btn-secondary flex items-center !!gap-2 text-sm">
                         <RefreshCw size={14} /> Actualizar
                     </button>
                 </div>
 
                 {loading ? (
-                    <div className="flex items-center justify-center py-16 gap-3 text-gray-400">
+                    <div className="flex items-center justify-center !!py-16 !!gap-3 text-gray-400">
                         <Loader2 size={24} className="animate-spin" /> Cargando backups...
                     </div>
                 ) : backups.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-16 gap-4 text-gray-400">
+                    <div className="flex flex-col items-center justify-center !!py-16 !!gap-4 text-gray-400">
                         <Database size={48} className="opacity-20" />
                         <p className="text-lg font-bold">No hay backups todavía</p>
                         <p className="text-sm">Crea tu primer backup con el botón de arriba</p>
@@ -353,7 +353,7 @@ export default function BackupPage() {
                                     <tr key={backup.filename}>
                                         <td>
                                             <div className="font-mono text-xs text-gray-300">{backup.filename}</div>
-                                            <div className="text-[10px] text-gray-500 mt-0.5">v{backup.version}</div>
+                                            <div className="text-[10px] text-gray-500 !mt-0.5">v{backup.version}</div>
                                         </td>
                                         <td className="text-sm text-gray-300">{formatDate(backup.createdAt)}</td>
                                         <td className="text-sm font-bold">{backup.sizeMB} MB</td>
@@ -364,12 +364,12 @@ export default function BackupPage() {
                                             </div>
                                         </td>
                                         <td>
-                                            <div className="flex items-center gap-2 flex-wrap">
+                                            <div className="flex items-center !!gap-2 flex-wrap">
                                                 {/* Download */}
                                                 <a
                                                     href={API_ROUTES.BACKUP.DOWNLOAD(backup.filename)}
                                                     download={backup.filename}
-                                                    className="adm-btn-secondary flex items-center gap-1.5 text-xs px-3 py-1.5"
+                                                    className="adm-btn-secondary flex items-center !!gap-1.5 text-xs !!px-3 !!py-1.5"
                                                     title="Descargar"
                                                 >
                                                     <Download size={12} /> Descargar
@@ -378,7 +378,7 @@ export default function BackupPage() {
                                                 <button
                                                     onClick={() => setConfirmModal({ filename: backup.filename, mode: 'merge' })}
                                                     disabled={!!importing}
-                                                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 transition-all font-bold disabled:opacity-50"
+                                                    className="flex items-center !!gap-1.5 text-xs !!px-3 !!py-1.5 rounded-lg bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 transition-all font-bold disabled:opacity-50"
                                                     title="Importar (merge — no borra datos)"
                                                 >
                                                     {importing === backup.filename ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
@@ -388,7 +388,7 @@ export default function BackupPage() {
                                                 <button
                                                     onClick={() => setConfirmModal({ filename: backup.filename, mode: 'replace' })}
                                                     disabled={!!importing}
-                                                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:bg-orange-500/20 transition-all font-bold disabled:opacity-50"
+                                                    className="flex items-center !!gap-1.5 text-xs !!px-3 !!py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:bg-orange-500/20 transition-all font-bold disabled:opacity-50"
                                                     title="Restaurar completo (borra todo primero)"
                                                 >
                                                     <RotateCcw size={12} /> Restaurar
@@ -397,7 +397,7 @@ export default function BackupPage() {
                                                 <button
                                                     onClick={() => handleDelete(backup.filename)}
                                                     disabled={deleting === backup.filename}
-                                                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-all font-bold disabled:opacity-50"
+                                                    className="flex items-center !!gap-1.5 text-xs !!px-3 !!py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-all font-bold disabled:opacity-50"
                                                     title="Eliminar backup"
                                                 >
                                                     {deleting === backup.filename ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}

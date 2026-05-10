@@ -415,7 +415,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
     if (loading) return (
         <div className="adm-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh' }}>
             <div style={{ textAlign: 'center', color: 'var(--adm-muted)' }}>
-                <Loader2 className="animate-spin mb-4" size={32} style={{ margin: '0 auto' }} />
+                <Loader2 className="animate-spin !mb-4" size={32} style={{ margin: '0 auto' }} />
                 <p>Cargando información del contenido...</p>
             </div>
         </div>
@@ -426,7 +426,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
             <div className="adm-table-card" style={{ padding: '40px', textAlign: 'center' }}>
                 <AlertCircle size={48} color="#f87171" style={{ margin: '0 auto 16px' }} />
                 <h2 className="adm-page-title">{error}</h2>
-                <button onClick={() => router.back()} className="adm-btn adm-btn--ghost mt-4">
+                <button onClick={() => router.back()} className="adm-btn adm-btn--ghost !mt-4">
                     <ChevronLeft size={16} /> Volver
                 </button>
             </div>
@@ -863,7 +863,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                     <div style={{ textAlign: 'center', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: 12 }}>
                                         <AlertTriangle size={24} style={{ color: 'var(--adm-muted)', marginBottom: 8, margin: '0 auto' }} />
                                         <p style={{ fontSize: '.85rem', color: 'var(--adm-muted)' }}>{data?.type === 'MOVIE' ? 'No hay videos asociados.' : 'No hay videos directos (sin episodio).'}</p>
-                                        <Link href="/admin/upload" className="adm-btn adm-btn--ghost adm-btn--sm mt-3" style={{ fontSize: '.75rem' }}>
+                                        <Link href="/admin/upload" className="adm-btn adm-btn--ghost adm-btn--sm !mt-3" style={{ fontSize: '.75rem' }}>
                                             Ir a Subidas
                                         </Link>
                                     </div>

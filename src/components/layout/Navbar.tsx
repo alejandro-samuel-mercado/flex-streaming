@@ -47,6 +47,9 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [] 
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
 
+    const [fetchedPlatforms, setFetchedPlatforms] = useState<NavPlatform[]>([]);
+    const [fetchedGenres, setFetchedGenres] = useState<NavGenre[]>([]);
+
     const searchInputRef = useRef<HTMLInputElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -92,6 +95,35 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [] 
         const timeoutId = setTimeout(fetchResults, 400);
         return () => clearTimeout(timeoutId);
     }, [searchQuery]);
+
+    // Fetch Nav Data if missing
+    useEffect(() => {
+        const fetchNavData = async () => {
+            try {
+                const [platformsRes, genresRes] = await Promise.all([
+                    fetch(API_ROUTES.PLATFORMS.LIST),
+                    fetch(API_ROUTES.CATEGORIES.GENRES)
+                ]);
+                
+                const [pData, gData] = await Promise.all([
+                    platformsRes.json(),
+                    genresRes.json()
+                ]);
+
+                if (pData.success) setFetchedPlatforms(pData.data);
+                if (gData.success) setFetchedGenres(gData.data);
+            } catch (err) {
+                console.error('Error fetching navbar data:', err);
+            }
+        };
+
+        if (platforms.length === 0 || genres.length === 0) {
+            fetchNavData();
+        }
+    }, [platforms.length, genres.length]);
+
+    const displayPlatforms = platforms.length > 0 ? platforms : fetchedPlatforms;
+    const displayGenres = genres.length > 0 ? genres : fetchedGenres;
 
     const openDropdown = (name: string) => {
         if (dropdownTimeoutRef.current) clearTimeout(dropdownTimeoutRef.current);
@@ -174,7 +206,7 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [] 
                                     {activeDropdown === 'plataformas' && (
                                         <div className="nav-cinema-popup" onMouseEnter={keepDropdown} onMouseLeave={closeDropdown}>
                                             <div className="nav-cinema-popup-grid nav-cinema-popup-grid--platforms">
-                                                {platforms.map(p => (
+                                                {displayPlatforms.map(p => (
                                                     <Link
                                                         key={p.id}
                                                         href={`/explorar?platformId=${p.id}`}
@@ -207,7 +239,7 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [] 
                                     {activeDropdown === 'generos' && (
                                         <div className="nav-cinema-popup" onMouseEnter={keepDropdown} onMouseLeave={closeDropdown}>
                                             <div className="nav-cinema-popup-grid nav-cinema-popup-grid--genres">
-                                                {genres.map(g => (
+                                                {displayGenres.map(g => (
                                                     <Link
                                                         key={g.id}
                                                         href={`/explorar?genreId=${g.id}`}

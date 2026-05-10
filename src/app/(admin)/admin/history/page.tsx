@@ -81,7 +81,7 @@ export default function AdminHistoryPage() {
 
       <div className="adm-table-card">
         {loading ? (
-          <div className="flex justify-center py-20">
+          <div className="flex justify-center !py-20">
             <Loader2 className="animate-spin text-[var(--color-primary)]" size={32} />
           </div>
         ) : (
@@ -127,13 +127,13 @@ export default function AdminHistoryPage() {
                       )}
                     </td>
                     <td>
-                       <span className="adm-badge adm-badge--gray inline-flex items-center gap-1">
+                       <span className="adm-badge adm-badge--gray inline-flex items-center !gap-1">
                           {c?.type === 'SERIES' ? <Tv size={12}/> : <Film size={12}/>}
                           {c?.type || 'N/A'}
                        </span>
                     </td>
                     <td>
-                        <div className="flex flex-col gap-1 w-24">
+                        <div className="flex flex-col !gap-1 w-24">
                             <div className="flex justify-between text-[10px] text-gray-400 font-mono">
                                 <span>{formatTime(h.progress)}</span>
                                 <span>{formatTime(h.duration)}</span>
@@ -149,7 +149,7 @@ export default function AdminHistoryPage() {
                       </span>
                     </td>
                     <td className="adm-table-muted">
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center !gap-1">
                            <Clock size={12} className="opacity-50"/>
                            {new Date(h.updatedAt).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                         </div>
@@ -159,7 +159,7 @@ export default function AdminHistoryPage() {
               })}
               {history.length === 0 && (
                 <tr>
-                   <td colSpan={6} className="text-center py-12 text-gray-500">No hay registros de reproducción aún.</td>
+                   <td colSpan={6} className="text-center !py-12 text-gray-500">No hay registros de reproducción aún.</td>
                 </tr>
               )}
             </tbody>

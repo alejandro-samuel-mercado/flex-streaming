@@ -342,7 +342,7 @@ export default function VideoPlayer({
                     </div>
                     <div className="text-center animate-pulse">
 
-                        <div className="flex items-center gap-4 text-[10px] font-mono text-white/50">
+                        <div className="flex items-center !gap-4 text-[10px] font-mono text-white/50">
                             {loadingStats.loaded > 0 && <span>{(loadingStats.loaded / 1024 / 1024).toFixed(1)}MB cargados</span>}
                             {loadingStats.speed > 0 && <span className="text-purple-400">{loadingStats.speed.toFixed(1)} Mbps</span>}
                         </div>
@@ -360,8 +360,8 @@ export default function VideoPlayer({
             )}
 
             {/* Top Bar */}
-            <div className={`absolute top-0 left-0 right-0 p-8 flex items-center justify-between transition-all duration-700 z-[110] ${isControlsVisible && !isLocked ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10 pointer-events-none'}`}>
-                <div className="flex items-center gap-6">
+            <div className={`absolute top-0 left-0 right-0 !p-8 flex items-center justify-between transition-all duration-700 z-[110] ${isControlsVisible && !isLocked ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10 pointer-events-none'}`}>
+                <div className="flex items-center !gap-6">
                     <button onClick={(e) => { e.stopPropagation(); if (onBack) onBack(); else router.back(); }} className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-all">
                         <ArrowLeft size={24} />
                     </button>
@@ -371,7 +371,7 @@ export default function VideoPlayer({
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center !gap-4">
                     {(hasNextEpisode || hasPrevEpisode) && (
                         <div className="flex bg-black/40 backdrop-blur-xl rounded-full border border-white/10 p-1">
                             {hasPrevEpisode && (
@@ -404,7 +404,7 @@ export default function VideoPlayer({
             {/* Center Controls */}
             {!isLocked && isControlsVisible && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
-                    <div className="flex items-center gap-12 pointer-events-auto">
+                    <div className="flex items-center !gap-12 pointer-events-auto">
                         <button onClick={(e) => { e.stopPropagation(); skip(-10); }} className="text-white/40 hover:text-white transition-all hover:scale-110">
                             <RotateCcw size={40} />
                         </button>
@@ -419,8 +419,8 @@ export default function VideoPlayer({
             )}
 
             {/* Bottom Controls */}
-            <div className={`absolute bottom-0 left-0 right-0 p-8 transition-all duration-500 bg-gradient-to-t from-black/90 to-transparent z-[110] ${isControlsVisible && !isLocked ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`} onClick={e => e.stopPropagation()}>
-                <div className="flex flex-col gap-4">
+            <div className={`absolute bottom-0 left-0 right-0 !p-8 transition-all duration-500 bg-gradient-to-t from-black/90 to-transparent z-[110] ${isControlsVisible && !isLocked ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`} onClick={e => e.stopPropagation()}>
+                <div className="flex flex-col !gap-4">
                     {/* Progress Bar */}
                     <div className="relative h-1.5 w-full bg-white/10 rounded-full overflow-hidden group/progress cursor-pointer">
                         <div className="absolute top-0 left-0 h-full bg-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.5)] transition-all" style={{ width: `${progress}%` }} />
@@ -428,11 +428,11 @@ export default function VideoPlayer({
                     </div>
 
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-8">
+                        <div className="flex items-center !gap-8">
                             <div className="text-xs font-mono text-white/50">
                                 <span className="text-white font-bold">{formatTime(currentTime)}</span> / {formatTime(duration)}
                             </div>
-                            <div className="flex items-center gap-4 group/vol">
+                            <div className="flex items-center !gap-4 group/vol">
                                 <button onClick={() => setIsMuted(!isMuted)} className="text-white/40 hover:text-white transition-colors">
                                     {isMuted || volume === 0 ? <VolumeX size={24} /> : <Volume2 size={24} />}
                                 </button>
@@ -440,13 +440,13 @@ export default function VideoPlayer({
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-6">
+                        <div className="flex items-center !gap-6">
                             {/* Menus like Quality, Audio, etc would go here */}
-                            <button onClick={() => setIsAudioMenuOpen(!isAudioMenuOpen)} className="flex flex-col items-center gap-1 text-white/40 hover:text-white transition-colors">
+                            <button onClick={() => setIsAudioMenuOpen(!isAudioMenuOpen)} className="flex flex-col items-center !gap-1 text-white/40 hover:text-white transition-colors">
                                 <Headphones size={20} />
                                 <span className="text-[8px] font-black uppercase">Audio</span>
                             </button>
-                            <button onClick={() => setIsSubtitleMenuOpen(!isSubtitleMenuOpen)} className="flex flex-col items-center gap-1 text-white/40 hover:text-white transition-colors">
+                            <button onClick={() => setIsSubtitleMenuOpen(!isSubtitleMenuOpen)} className="flex flex-col items-center !gap-1 text-white/40 hover:text-white transition-colors">
                                 <MessageSquare size={20} />
                                 <span className="text-[8px] font-black uppercase">Subs</span>
                             </button>
@@ -460,18 +460,18 @@ export default function VideoPlayer({
 
             {/* Internal Sidebar */}
             {showEpisodesSidebar && episodes.length > 0 && (
-                <div className="absolute inset-y-0 right-0 w-full max-w-[400px] bg-black/95 backdrop-blur-3xl border-l border-white/10 z-[200] p-10 overflow-y-auto shadow-2xl animate-in slide-in-from-right duration-500" onClick={e => e.stopPropagation()}>
-                    <div className="flex justify-between items-center mb-10">
+                <div className="absolute inset-y-0 right-0 w-full max-w-[400px] bg-black/95 backdrop-blur-3xl border-l border-white/10 z-[200] !p-10 overflow-y-auto shadow-2xl animate-in slide-in-from-right duration-500" onClick={e => e.stopPropagation()}>
+                    <div className="flex justify-between items-center !mb-10">
                         <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">Episodios</h2>
-                        <button onClick={() => setShowEpisodesSidebar(false)} className="text-white/40 hover:text-white p-2">
+                        <button onClick={() => setShowEpisodesSidebar(false)} className="text-white/40 hover:text-white !p-2">
                             <X size={28} />
                         </button>
                     </div>
-                    <div className="flex flex-col gap-8">
+                    <div className="flex flex-col !gap-8">
                         {episodes.map((s: any) => (
                             <div key={s.id}>
-                                <h3 className="text-[10px] font-black text-purple-400 uppercase tracking-[4px] mb-4 opacity-60 border-b border-purple-500/20 pb-2">Temporada {s.number}</h3>
-                                <div className="flex flex-col gap-3">
+                                <h3 className="text-[10px] font-black text-purple-400 uppercase tracking-[4px] !mb-4 opacity-60 border-b border-purple-500/20 pb-2">Temporada {s.number}</h3>
+                                <div className="flex flex-col !gap-3">
                                     {s.episodes?.map((e: any) => (
                                         <button
                                             key={e.id}

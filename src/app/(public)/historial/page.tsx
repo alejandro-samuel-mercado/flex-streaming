@@ -46,7 +46,7 @@ export default function HistorialPage() {
         <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-[#FF6B00]/10 via-[#0A0A0F]/80 to-[#0A0A0F] pointer-events-none" />
 
         <div className="relative pt-32 max-w-[1600px] mx-auto w-full" style={{ paddingLeft: '6vw', paddingRight: '6vw', paddingBottom: '20vh' }}>
-          <div className="mb-12">
+          <div className="!mb-12">
             <h1 className="text-6xl font-bold tracking-tighter text-white" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
               Mi Historial
             </h1>
@@ -56,7 +56,7 @@ export default function HistorialPage() {
           </div>
 
           {loading ? (
-            <div className="flex justify-center items-center py-32">
+            <div className="flex justify-center items-center !py-32">
               <Loader2 className="animate-spin text-[var(--color-primary)]" size={48} />
             </div>
           ) : history.length > 0 ? (
@@ -77,7 +77,7 @@ export default function HistorialPage() {
                          <div className="h-full bg-[var(--color-primary)]" style={{ width: `${(item.progress / Math.max(item.duration, 1)) * 100}%` }} />
                       </div>
                     </div>
-                    <div className="mt-3 flex flex-col gap-1 px-1">
+                    <div className="mt-3 flex flex-col !gap-1 !px-1">
                       <h3 className="font-bold text-sm text-gray-300 line-clamp-1 group-hover:text-white transition-colors">{c.translations?.[0]?.title}</h3>
                     </div>
                   </Link>
@@ -85,10 +85,10 @@ export default function HistorialPage() {
               })}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-32 text-gray-400 border border-gray-800/50 rounded-lg bg-black/20 backdrop-blur-md">
-              <h2 className="text-xl font-medium text-white mb-2">Aún no hay actividad.</h2>
+            <div className="flex flex-col items-center justify-center !py-32 text-gray-400 border border-gray-800/50 rounded-lg bg-black/20 backdrop-blur-md">
+              <h2 className="text-xl font-medium text-white !mb-2">Aún no hay actividad.</h2>
               <p>El historial de lo que veas aparecerá aquí.</p>
-              <Link href="/explorar" className="mt-6 bg-[var(--color-primary)] text-black px-6 py-2 rounded font-bold hover:scale-105 transition">
+              <Link href="/explorar" className="mt-6 bg-[var(--color-primary)] text-black !px-6 !py-2 rounded font-bold hover:scale-105 transition">
                 Descubrir contenido
               </Link>
             </div>

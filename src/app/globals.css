@@ -3369,16 +3369,16 @@ body {
 }
 
 .nav-cinema-popup--profile {
-    min-width: 220px;
-    right: 0;
-    left: auto;
-    transform: none;
+    min-width: 220px !important;
+    right: -40px !important; /* Move it closer to the screen edge */
+    left: auto !important;
+    transform: none !important;
 }
 
 .nav-cinema-popup--profile::before {
-    left: auto;
-    right: 12px;
-    transform: rotate(45deg);
+    left: auto !important;
+    right: 52px !important; /* Re-center arrow over the icon */
+    transform: rotate(45deg) !important;
 }
 
 .nav-cinema-popup-user {

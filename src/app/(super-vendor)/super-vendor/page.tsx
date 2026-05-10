@@ -87,7 +87,7 @@ export default function SuperVendorDashboard() {
             </div>
 
             {error && (
-                <div className="adm-alert adm-alert--error mb-6">
+                <div className="adm-alert adm-alert--error !mb-6">
                     <AlertTriangle size={18} />
                     <div className="adm-alert-content">
                         <div className="adm-alert-title">Error de Conexión</div>
@@ -131,7 +131,7 @@ export default function SuperVendorDashboard() {
                 {/* Recent Vendors */}
                 <div className="adm-table-card" style={{ flex: 3 }}>
                     <div className="adm-table-card-header">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center !gap-3">
                             <div className="adm-card-icon"><Users size={18} /></div>
                             <h2 className="adm-table-card-title">Vendedores Recientes</h2>
                         </div>
@@ -175,7 +175,7 @@ export default function SuperVendorDashboard() {
                                             </div>
                                         </td>
                                         <td className="adm-table-muted">
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center !gap-2">
                                                 <UserCheck size={14} className="opacity-40" />
                                                 {v._count?.managedEndUsers ?? 0}
                                             </div>
@@ -195,12 +195,12 @@ export default function SuperVendorDashboard() {
                 {/* Quick Actions */}
                 <div className="adm-table-card" style={{ flex: 2 }}>
                     <div className="adm-table-card-header">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center !gap-3">
                             <div className="adm-card-icon accent"><Zap size={18} /></div>
                             <h2 className="adm-table-card-title">Acciones Rápidas</h2>
                         </div>
                     </div>
-                    <div className="p-5 flex flex-col gap-4">
+                    <div className="!p-5 flex flex-col !gap-4">
                         <Link href="/super-vendor/vendors" className="adm-quick-action-card group">
                             <div className="adm-quick-action-icon" style={{ background: 'var(--adm-accent)15', color: 'var(--adm-accent)' }}>
                                 <Users size={20} />
@@ -231,7 +231,7 @@ export default function SuperVendorDashboard() {
                                     {stats.credits} <span className="adm-balance-unit">créditos</span>
                                 </div>
                                 <p className="adm-balance-desc">Utiliza tus créditos para cargar planes a tus vendedores o clientes directos.</p>
-                                <div className="mt-4">
+                                <div className="!mt-4">
                                     <button className="adm-btn adm-btn--white adm-btn--sm" onClick={() => setShowHistoryModal(true)}>Ver movimientos</button>
                                 </div>
                             </div>
