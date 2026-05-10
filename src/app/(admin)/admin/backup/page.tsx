@@ -293,7 +293,7 @@ export default function BackupPage() {
                         </select>
                     </div>
                 </div>
-                <button onClick={handleSaveSettings} disabled={savingSettings} className="adm-btn flex items-center !gap-2">
+                <button onClick={() => handleSaveSettings()} disabled={savingSettings} className="adm-btn flex items-center !gap-2">
                     {savingSettings ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
                     {savingSettings ? 'Guardando...' : 'Guardar Configuración'}
                 </button>
