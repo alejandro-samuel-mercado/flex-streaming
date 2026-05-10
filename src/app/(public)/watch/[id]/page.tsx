@@ -288,6 +288,13 @@ export default function WatchPage() {
                 onShowEpisodes={allEpisodes.length > 0 ? () => setShowEpisodes(v => !v) : undefined}
             />
 
+            {/* Debug indicator */}
+            {showEpisodes && (
+                <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[3000] bg-primary text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-2xl animate-bounce">
+                    Panel de episodios activo
+                </div>
+            )}
+
             {/* Back button */}
             <div className="absolute top-8 left-8 z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <button onClick={() => router.back()} className="flex items-center gap-2 text-white/70 hover:text-white font-bold transition-all">
@@ -298,7 +305,7 @@ export default function WatchPage() {
             {/* Episode Sidebar Panel */}
             {showEpisodes && (
                 <div 
-                    className="absolute inset-y-0 right-0 w-full max-w-sm bg-black/95 backdrop-blur-2xl border-l border-white/10 z-[200] p-8 overflow-y-auto shadow-[-20px_0_40px_rgba(0,0,0,0.8)] transition-all duration-300 ease-out"
+                    className="absolute inset-y-0 right-0 w-full max-w-sm bg-black/95 backdrop-blur-3xl border-l border-white/10 z-[2000] p-8 overflow-y-auto shadow-[-30px_0_60px_rgba(0,0,0,0.9)] transition-all duration-500 ease-out animate-in slide-in-from-right"
                     style={{ right: 0 }}
                 >
                     <div className="flex justify-between items-center mb-8">
@@ -320,8 +327,11 @@ export default function WatchPage() {
                                                 setShowEpisodes(false);
                                                 router.push(`/watch/${id}?episodeId=${e.id}`);
                                             }}
-                                            className={`flex items-center gap-4 p-3 rounded-2xl transition-all text-left group/ep ${e.id === currentEpisode?.id ? 'bg-primary/20 ring-1 ring-primary/40' : 'hover:bg-white/5'}`}
-                                        >
+                                            className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 text-left ${
+                                                currentEpisode?.id === e.id 
+                                                    ? 'bg-primary/20 border-primary/40 shadow-[0_0_20px_rgba(var(--color-primary-rgb),0.1)]' 
+                                                    : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/20'
+                                            }`}>
                                             <div className="relative w-28 aspect-video rounded-xl overflow-hidden bg-white/5 flex-shrink-0">
                                                 {e.thumbnails?.[0]?.url ? (
                                                     <img src={resolveImageUrl(e.thumbnails[0].url)} className="w-full h-full object-cover opacity-50 group-hover/ep:opacity-80 transition-opacity" alt="" />

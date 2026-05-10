@@ -826,8 +826,14 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                 {/* Embedded Player Overlay */}
                                 {activeVideo && typeof window !== 'undefined' && createPortal(
                                     <div style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'black' }}>
+                                        {/* Debug indicator */}
+                                        {showEpisodes && (
+                                            <div style={{ position: 'fixed', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 3000000, background: '#7c3aed', color: 'white', padding: '4px 12px', borderRadius: 'full', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                                Panel de episodios activo
+                                            </div>
+                                        )}
                                         <button 
-                                            onClick={() => setActiveVideo(null)}
+                                            onClick={() => { setActiveVideo(null); setShowEpisodes(false); }}
                                             style={{
                                                 position: 'absolute',
                                                 top: 20,
@@ -881,7 +887,13 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                     </button>
                                                 </div>
 
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', flex: 1 }}>
+                                                    {(!data?.seasons || data.seasons.length === 0) && (
+                                                        <div style={{ textAlign: 'center', opacity: 0.5, padding: '40px 0' }}>
+                                                            <AlertTriangle size={32} style={{ margin: '0 auto 10px' }} />
+                                                            <p>No hay episodios disponibles para este contenido.</p>
+                                                        </div>
+                                                    )}
                                                     {data?.seasons?.map((s: any) => (
                                                         <div key={s.id}>
                                                             <h3 style={{ fontSize: '10px', fontWeight: 900, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '15px', opacity: 0.8, borderBottom: '1px solid rgba(124, 58, 237, 0.2)', paddingBottom: '8px' }}>Temporada {s.number}</h3>
@@ -919,8 +931,8 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                                                 gap: '15px',
                                                                                 padding: '12px',
                                                                                 borderRadius: '16px',
-                                                                                background: e.id === activeVideo.title.includes(`E${e.number}`) ? 'rgba(124, 58, 237, 0.15)' : 'rgba(255,255,255,0.03)',
-                                                                                border: e.id === activeVideo.title.includes(`E${e.number}`) ? '1px solid rgba(124, 58, 237, 0.3)' : '1px solid rgba(255,255,255,0.05)',
+                                                                                background: activeVideo.title.includes(`T${s.number}E${e.number}`) ? 'rgba(124, 58, 237, 0.15)' : 'rgba(255,255,255,0.03)',
+                                                                                border: activeVideo.title.includes(`T${s.number}E${e.number}`) ? '1px solid rgba(124, 58, 237, 0.3)' : '1px solid rgba(255,255,255,0.05)',
                                                                                 cursor: isReady ? 'pointer' : 'not-allowed',
                                                                                 textAlign: 'left',
                                                                                 opacity: isReady ? 1 : 0.4,
