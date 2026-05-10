@@ -209,16 +209,17 @@ export default function VideoPlayer({
         }
     }, [initialTime, src]);
 
-    // Debounce loading overlay to prevent flickering
+    // Debounce loading overlay to prevent flickering and deadlocks
     useEffect(() => {
         let timeout: NodeJS.Timeout;
-        if (isBuffering || (currentTime === 0 && !isPlaying)) {
+        // Only show loading if buffering while playing, or during the very first metadata load
+        if (isBuffering) {
             timeout = setTimeout(() => setShowLoading(true), 300);
         } else {
             setShowLoading(false);
         }
         return () => clearTimeout(timeout);
-    }, [isBuffering, currentTime, isPlaying]);
+    }, [isBuffering]);
 
     const togglePlay = () => {
         if (isLocked) return;
@@ -319,11 +320,13 @@ export default function VideoPlayer({
                 onEnded={() => onEnded?.()}
                 onWaiting={() => setIsBuffering(true)}
                 onPlaying={() => setIsBuffering(false)}
+                onCanPlay={() => setIsBuffering(false)}
+                onLoadedData={() => setIsBuffering(false)}
             />
 
             {/* Cinematic Loading Overlay */}
             {showLoading && (
-                <div className="absolute inset-0 z-[150] flex flex-col items-center justify-center bg-black/60 backdrop-blur-md transition-all duration-500">
+                <div className="absolute inset-0 z-[150] flex flex-col items-center justify-center bg-black/60 backdrop-blur-md transition-all duration-500 pointer-events-none">
                     <div className="relative w-24 h-24 mb-6">
                         <div className="absolute inset-0 rounded-full border-4 border-white/5" />
                         <div className="absolute inset-0 rounded-full border-4 border-t-purple-500 animate-spin shadow-[0_0_20px_rgba(168,85,247,0.5)]" />
