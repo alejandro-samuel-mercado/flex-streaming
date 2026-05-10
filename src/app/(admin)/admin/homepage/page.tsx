@@ -221,7 +221,7 @@ export default function AdminHomepageConfigPage() {
     );
 
     return (
-        <div className="!max-w-6xl !mx-auto !p-6 !mt-20">
+        <div className="!mx-auto !p-2 ">
             <div className="!flex !flex-col md:!flex-row !justify-between !items-start md:!items-center !mb-8 !gap-4">
                 <div>
                     <h1 className="!text-3xl !font-black !text-white !tracking-tight">Gestión de Web</h1>

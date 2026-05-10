@@ -56,9 +56,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const result = await res.json();
             if (result.success && result.data) {
                 setUser(result.data);
-                // Ensure profile ID is set for history/favorites if not present
-                if (result.data.profiles?.length > 0 && !localStorage.getItem('profileId')) {
-                    localStorage.setItem('profileId', result.data.profiles[0].id);
+                // Ensure profile ID is set and valid for history/favorites
+                if (result.data.profiles?.length > 0) {
+                    const storedProfileId = localStorage.getItem('profileId');
+                    const isValidProfile = result.data.profiles.some((p: any) => p.id === storedProfileId);
+                    
+                    if (!storedProfileId || !isValidProfile) {
+                        localStorage.setItem('profileId', result.data.profiles[0].id);
+                    }
                 }
             } else {
                 // Token might be expired

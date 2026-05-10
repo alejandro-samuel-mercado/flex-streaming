@@ -70,7 +70,8 @@ export default function FilmComments({ contentId }: { contentId: string }) {
                 setNewRating(0);
                 fetchReviews();
             } else {
-                alert('Error al publicar el comentario.');
+                const json = await res.json();
+                alert(json.error || 'Error al publicar el comentario.');
             }
         } catch (err) {
             console.error(err);
@@ -108,7 +109,8 @@ export default function FilmComments({ contentId }: { contentId: string }) {
                 setReplyingTo(null);
                 fetchReviews();
             } else {
-                alert('Error al publicar respuesta.');
+                const json = await res.json();
+                alert(json.error || 'Error al publicar respuesta.');
             }
         } catch (err) {
             console.error(err);

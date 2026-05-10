@@ -456,9 +456,11 @@ export default function FilmDetailPage() {
             </section>
 
             {/* ── Comments ── */}
-            <div style={{ padding: '0 7%', position: 'relative', zIndex: 10 }}>
-                <FilmComments contentId={id as string} />
-            </div>
+            {canPlay && (
+                <div style={{ padding: '0 7%', position: 'relative', zIndex: 10 }}>
+                    <FilmComments contentId={id as string} />
+                </div>
+            )}
 
             {/* ── Related Content Rows ── */}
             <div style={{ padding: '48px 7% 120px', position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '48px' }}>

@@ -61,7 +61,8 @@ export default function VideoPlayer({
     const [activeCues, setActiveCues] = useState<SubtitleCue[]>([]);
     const [currentCue, setCurrentCue] = useState<SubtitleCue | null>(null);
 
-    const hlsRef = useRef<Hls | null>(null);
+    const hlsRef = useRef<any>(null);
+    const hasSavedInitialProgressRef = useRef(false);
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastProgressTimeRef = useRef<number>(0);
     const lastTimeUpdateRef = useRef<number>(0);
@@ -227,7 +228,15 @@ export default function VideoPlayer({
         if (isLocked) return;
         if (videoRef.current) {
             if (isPlaying) videoRef.current.pause();
-            else videoRef.current.play();
+            else {
+                videoRef.current.play();
+                // Initial progress save
+                if (!hasSavedInitialProgressRef.current && onProgressUpdate) {
+                    hasSavedInitialProgressRef.current = true;
+                    onProgressUpdate(videoRef.current.currentTime, videoRef.current.duration);
+                    lastProgressTimeRef.current = Date.now();
+                }
+            }
             setIsPlaying(!isPlaying);
         }
     };
