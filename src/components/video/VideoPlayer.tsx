@@ -190,6 +190,8 @@ export default function VideoPlayer({
             video.removeEventListener('loadedmetadata', handleLoadedMetadata);
             if (hls) hls.destroy();
             initialTimeSetRef.current = false;
+            setIsBuffering(true); // Show loading for next source
+            setShowLoading(true);
         };
     }, [src]);
 
@@ -312,6 +314,7 @@ export default function VideoPlayer({
             <video
                 ref={videoRef}
                 poster={poster}
+                autoPlay
                 crossOrigin="anonymous"
                 className="w-full h-full object-contain pointer-events-none"
                 onTimeUpdate={handleTimeUpdate}
@@ -320,7 +323,10 @@ export default function VideoPlayer({
                 onEnded={() => onEnded?.()}
                 onWaiting={() => setIsBuffering(true)}
                 onPlaying={() => setIsBuffering(false)}
-                onCanPlay={() => setIsBuffering(false)}
+                onCanPlay={() => {
+                    setIsBuffering(false);
+                    videoRef.current?.play().catch(() => {}); // Try to force play if autoplay blocked
+                }}
                 onLoadedData={() => setIsBuffering(false)}
             />
 
