@@ -827,145 +827,34 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                 {/* Embedded Player Overlay */}
                                 {activeVideo && typeof window !== 'undefined' && createPortal(
                                     <div style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'black' }}>
-                                        {/* Debug indicator & Counter */}
-                                        {showEpisodes && (
-                                            <div style={{ position: 'fixed !important' as any, top: '20px !important' as any, left: '50% !important' as any, transform: 'translateX(-50%) !important' as any, zIndex: '99999999 !important' as any, background: '#7c3aed !important' as any, color: 'white !important' as any, padding: '10px 20px !important' as any, borderRadius: '50px !important' as any, fontSize: '14px !important' as any, fontWeight: '900 !important' as any, textTransform: 'uppercase' as any, boxShadow: '0 0 30px rgba(124, 58, 237, 0.5) !important' as any, pointerEvents: 'none' as any }}>
-                                                Panel Activo (Clics: {debugCount})
-                                            </div>
-                                        )}
-                                        <button 
-                                            onClick={() => { setActiveVideo(null); setShowEpisodes(false); }}
-                                            style={{
-                                                position: 'absolute',
-                                                top: 20,
-                                                left: 20,
-                                                zIndex: 1000001,
-                                                background: 'rgba(255,255,255,0.1)',
-                                                border: 'none',
-                                                borderRadius: '50%',
-                                                width: 44,
-                                                height: 44,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                color: 'white',
-                                                cursor: 'pointer',
-                                                backdropFilter: 'blur(10px)',
-                                                pointerEvents: 'auto'
-                                            }}
-                                        >
-                                            <X size={24} />
-                                        </button>
                                         <VideoPlayer
                                             src={activeVideo.url}
                                             title={activeVideo.title}
                                             poster={resolveImageUrl(data?.thumbnails?.find(t => t.type === 'BACKDROP')?.url) || undefined}
-                                            onShowEpisodes={(data?.type && data.type !== 'MOVIE') ? () => {
-                                                console.log('DEBUG: Toggling episodes');
-                                                setShowEpisodes(v => !v);
-                                                setDebugCount(c => c + 1);
-                                            } : undefined}
+                                            episodes={data?.seasons || []}
+                                            onBack={() => setActiveVideo(null)}
+                                            onEpisodeSelect={async (episodeId) => {
+                                                try {
+                                                    const res = await adminFetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
+                                                        method: 'POST',
+                                                        body: JSON.stringify({ contentId: id, episodeId })
+                                                    });
+                                                    const resJson = await res.json();
+                                                    if (resJson.success && resJson.data) {
+                                                        const ep = data?.seasons?.flatMap(s => s.episodes || []).find(e => e.id === episodeId);
+                                                        const season = data?.seasons?.find(s => s.episodes?.some((e: any) => e.id === episodeId));
+                                                        
+                                                        const streamUrl = `${API_ORIGIN}/api/stream/hls/${resJson.data.videoFileId}/master.m3u8?token=${resJson.data.token}`;
+                                                        setActiveVideo({
+                                                            url: streamUrl,
+                                                            title: `${data?.translations?.find(t => t.lang === 'es')?.title || data?.originalTitle || 'Serie'} - T${season?.number || ''}E${ep?.number || ''}`
+                                                        });
+                                                    }
+                                                } catch (err) {
+                                                    console.error('Error switching episode:', err);
+                                                }
+                                            }}
                                         />
-
-                                        {/* Episode Sidebar Panel - Admin Version */}
-                                        {showEpisodes && (
-                                            <div style={{
-                                                position: 'fixed !important' as any,
-                                                top: '0 !important' as any,
-                                                bottom: '0 !important' as any,
-                                                right: '0 !important' as any,
-                                                width: '100% !important' as any,
-                                                maxWidth: '400px !important' as any,
-                                                background: '#05081c !important' as any,
-                                                borderLeft: '1px solid rgba(255, 255, 255, 0.1) !important' as any,
-                                                zIndex: '9999999 !important' as any,
-                                                padding: '40px 30px !important' as any,
-                                                overflowY: 'auto' as any,
-                                                color: 'white !important' as any,
-                                                boxShadow: '-20px 0 50px rgba(0,0,0,0.9) !important' as any,
-                                                display: 'flex !important' as any,
-                                                flexDirection: 'column' as any,
-                                                pointerEvents: 'auto !important' as any,
-                                                visibility: 'visible !important' as any,
-                                                opacity: '1 !important' as any
-                                            }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-                                                    <h2 style={{ fontSize: '1.5rem', fontWeight: 900, textTransform: 'uppercase', fontStyle: 'italic' }}>Episodios</h2>
-                                                    <button onClick={() => setShowEpisodes(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
-                                                        <X size={24} />
-                                                    </button>
-                                                </div>
-
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', flex: 1 }}>
-                                                    {(!data?.seasons || data.seasons.length === 0) && (
-                                                        <div style={{ textAlign: 'center', opacity: 0.5, padding: '40px 0' }}>
-                                                            <AlertTriangle size={32} style={{ margin: '0 auto 10px' }} />
-                                                            <p>No hay episodios disponibles para este contenido.</p>
-                                                        </div>
-                                                    )}
-                                                    {data?.seasons?.map((s: any) => (
-                                                        <div key={s.id}>
-                                                            <h3 style={{ fontSize: '10px', fontWeight: 900, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '15px', opacity: 0.8, borderBottom: '1px solid rgba(124, 58, 237, 0.2)', paddingBottom: '8px' }}>Temporada {s.number}</h3>
-                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                                                {s.episodes?.map((e: any) => {
-                                                                    const video = e.videoFiles?.[0];
-                                                                    const isReady = video?.status === 'COMPLETED';
-                                                                    return (
-                                                                        <button
-                                                                            key={e.id}
-                                                                            disabled={!isReady}
-                                                                            onClick={async () => {
-                                                                                if (!isReady) return;
-                                                                                try {
-                                                                                    const res = await adminFetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
-                                                                                        method: 'POST',
-                                                                                        body: JSON.stringify({ contentId: id, episodeId: e.id })
-                                                                                    });
-                                                                                    const resJson = await res.json();
-                                                                                    if (resJson.success && resJson.data) {
-                                                                                        const streamUrl = `${API_ORIGIN}/api/stream/hls/${resJson.data.videoFileId}/${resJson.data.videoFileId === video.id ? (video.masterPlaylist?.split('/').pop() || 'master.m3u8') : 'master.m3u8'}?token=${resJson.data.token}`;
-                                                                                        setActiveVideo({
-                                                                                            url: streamUrl,
-                                                                                            title: `${data?.translations?.find(t => t.lang === 'es')?.title || data?.originalTitle || 'Serie'} - T${s.number}E${e.number}`
-                                                                                        });
-                                                                                        setShowEpisodes(false);
-                                                                                    }
-                                                                                } catch (err) {
-                                                                                    console.error(err);
-                                                                                }
-                                                                            }}
-                                                                            style={{
-                                                                                display: 'flex',
-                                                                                alignItems: 'center',
-                                                                                gap: '15px',
-                                                                                padding: '12px',
-                                                                                borderRadius: '16px',
-                                                                                background: activeVideo.title.includes(`T${s.number}E${e.number}`) ? 'rgba(124, 58, 237, 0.15)' : 'rgba(255,255,255,0.03)',
-                                                                                border: activeVideo.title.includes(`T${s.number}E${e.number}`) ? '1px solid rgba(124, 58, 237, 0.3)' : '1px solid rgba(255,255,255,0.05)',
-                                                                                cursor: isReady ? 'pointer' : 'not-allowed',
-                                                                                textAlign: 'left',
-                                                                                opacity: isReady ? 1 : 0.4,
-                                                                                width: '100%'
-                                                                            }}
-                                                                        >
-                                                                            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(124, 58, 237, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7c3aed', fontSize: '0.75rem', fontWeight: 800, flexShrink: 0 }}>
-                                                                                {e.number}
-                                                                            </div>
-                                                                            <div style={{ flex: 1, minWidth: 0 }}>
-                                                                                <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'white', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                                                    {e.translations?.[0]?.title || `Episodio ${e.number}`}
-                                                                                </p>
-                                                                                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>{e.duration || '??'} MIN</span>
-                                                                            </div>
-                                                                        </button>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
                                     </div>,
                                     document.body
                                 )}
