@@ -28,11 +28,11 @@ interface VideoPlayerProps {
     onBack?: () => void;
 }
 
-export default function VideoPlayer({ 
-    src, title, poster, initialTime = 0, externalSubtitles = [], 
-    onProgressUpdate, onEnded, onNextEpisode, onPrevEpisode, 
-    hasNextEpisode, hasPrevEpisode, onShowEpisodes, 
-    episodes = [], onEpisodeSelect, onBack 
+export default function VideoPlayer({
+    src, title, poster, initialTime = 0, externalSubtitles = [],
+    onProgressUpdate, onEnded, onNextEpisode, onPrevEpisode,
+    hasNextEpisode, hasPrevEpisode, onShowEpisodes,
+    episodes = [], onEpisodeSelect, onBack
 }: VideoPlayerProps) {
     const router = useRouter();
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -60,7 +60,7 @@ export default function VideoPlayer({
     // Custom Subtitles State
     const [activeCues, setActiveCues] = useState<SubtitleCue[]>([]);
     const [currentCue, setCurrentCue] = useState<SubtitleCue | null>(null);
-    
+
     const hlsRef = useRef<Hls | null>(null);
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastProgressTimeRef = useRef<number>(0);
@@ -69,6 +69,7 @@ export default function VideoPlayer({
     const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
     const [isBuffering, setIsBuffering] = useState(true);
+    const [showLoading, setShowLoading] = useState(true);
     const [loadingStats, setLoadingStats] = useState({ loaded: 0, total: 0, speed: 0 });
 
     useEffect(() => {
@@ -82,7 +83,7 @@ export default function VideoPlayer({
         };
         const releaseWakeLock = async () => {
             if (wakeLockRef.current) {
-                try { await wakeLockRef.current.release(); } catch {}
+                try { await wakeLockRef.current.release(); } catch { }
                 wakeLockRef.current = null;
             }
         };
@@ -138,7 +139,7 @@ export default function VideoPlayer({
                             newUrl.searchParams.set('token', token);
                             xhr.open('GET', newUrl.toString(), true);
                         }
-                    } catch {}
+                    } catch { }
                 }
             });
             hlsRef.current = hls;
@@ -159,19 +160,19 @@ export default function VideoPlayer({
             });
 
             hls.on(Hls.Events.FRAG_LOADED, (_event, data) => {
-                    const stats = (data as any).stats;
-                    if (stats) {
-                        setLoadingStats(prev => ({
-                            loaded: prev.loaded + stats.loaded,
-                            total: stats.total,
-                            speed: stats.bw / 1024 / 1024
-                        }));
-                    }
+                const stats = (data as any).stats;
+                if (stats) {
+                    setLoadingStats(prev => ({
+                        loaded: prev.loaded + stats.loaded,
+                        total: stats.total,
+                        speed: stats.bw / 1024 / 1024
+                    }));
+                }
             });
 
             hls.on(Hls.Events.BUFFER_APPENDING as any, () => setIsBuffering(true));
             hls.on(Hls.Events.BUFFER_APPENDED as any, () => setIsBuffering(false));
-            
+
             hls.on(Hls.Events.ERROR, (_event, data) => {
                 if (data.fatal) {
                     switch (data.type) {
@@ -207,6 +208,17 @@ export default function VideoPlayer({
             return () => video.removeEventListener('loadedmetadata', handleCanPlay);
         }
     }, [initialTime, src]);
+
+    // Debounce loading overlay to prevent flickering
+    useEffect(() => {
+        let timeout: NodeJS.Timeout;
+        if (isBuffering || (currentTime === 0 && !isPlaying)) {
+            timeout = setTimeout(() => setShowLoading(true), 300);
+        } else {
+            setShowLoading(false);
+        }
+        return () => clearTimeout(timeout);
+    }, [isBuffering, currentTime, isPlaying]);
 
     const togglePlay = () => {
         if (isLocked) return;
@@ -254,7 +266,7 @@ export default function VideoPlayer({
                     const res = await fetch(track.url);
                     const text = await res.text();
                     setActiveCues(parseVTT(text));
-                } catch {}
+                } catch { }
             } else setActiveCues([]);
         };
         loadSubtitle();
@@ -291,7 +303,7 @@ export default function VideoPlayer({
     };
 
     return (
-        <div 
+        <div
             className={`player-container bg-black relative w-full h-full overflow-hidden group/player ${isControlsVisible ? 'controls-visible' : ''}`}
             onMouseMove={handleMouseMove}
             onClick={togglePlay}
@@ -310,7 +322,7 @@ export default function VideoPlayer({
             />
 
             {/* Cinematic Loading Overlay */}
-            {(isBuffering || (currentTime === 0 && isPlaying === false)) && (
+            {showLoading && (
                 <div className="absolute inset-0 z-[150] flex flex-col items-center justify-center bg-black/60 backdrop-blur-md transition-all duration-500">
                     <div className="relative w-24 h-24 mb-6">
                         <div className="absolute inset-0 rounded-full border-4 border-white/5" />
@@ -320,7 +332,7 @@ export default function VideoPlayer({
                         </div>
                     </div>
                     <div className="text-center animate-pulse">
-                        <p className="text-sm font-black text-white uppercase tracking-[0.3em] mb-2">Cargando experiencia</p>
+
                         <div className="flex items-center gap-4 text-[10px] font-mono text-white/50">
                             {loadingStats.loaded > 0 && <span>{(loadingStats.loaded / 1024 / 1024).toFixed(1)}MB cargados</span>}
                             {loadingStats.speed > 0 && <span className="text-purple-400">{loadingStats.speed.toFixed(1)} Mbps</span>}
@@ -366,9 +378,9 @@ export default function VideoPlayer({
                         </div>
                     )}
                     {(onShowEpisodes || (episodes.length > 0)) && (
-                        <button 
-                            onClick={(e) => { 
-                                e.stopPropagation(); 
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
                                 if (onShowEpisodes) onShowEpisodes();
                                 else setShowEpisodesSidebar(true);
                             }}
@@ -405,7 +417,7 @@ export default function VideoPlayer({
                         <div className="absolute top-0 left-0 h-full bg-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.5)] transition-all" style={{ width: `${progress}%` }} />
                         <input type="range" min="0" max="100" value={progress} onChange={handleSeek} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-8">
                             <div className="text-xs font-mono text-white/50">
@@ -452,7 +464,7 @@ export default function VideoPlayer({
                                 <h3 className="text-[10px] font-black text-purple-400 uppercase tracking-[4px] mb-4 opacity-60 border-b border-purple-500/20 pb-2">Temporada {s.number}</h3>
                                 <div className="flex flex-col gap-3">
                                     {s.episodes?.map((e: any) => (
-                                        <button 
+                                        <button
                                             key={e.id}
                                             onClick={() => {
                                                 setShowEpisodesSidebar(false);

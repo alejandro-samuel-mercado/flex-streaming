@@ -56,6 +56,7 @@ export default function WatchPage() {
     // 1. Fetch content metadata
     useEffect(() => {
         const fetchContent = async () => {
+            setInitialTime(0);
             try {
                 const res = await fetch(`${API_ROUTES.CONTENT.BASE}/${id}`, { cache: 'no-store' });
                 if (!res.ok) throw new Error('No se pudo cargar el contenido');
