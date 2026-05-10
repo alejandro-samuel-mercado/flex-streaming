@@ -106,6 +106,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
     const [trailerFile, setTrailerFile] = useState<File | null>(null);
     const [uploadingSubtitle, setUploadingSubtitle] = useState<string | null>(null); // videoFileId
     const [showEpisodes, setShowEpisodes] = useState(false);
+    const [debugCount, setDebugCount] = useState(0);
 
     const [data, setData] = useState<ContentData | null>(null);
     const [allPlatforms, setAllPlatforms] = useState<{ id: string; name: string }[]>([]);
@@ -826,10 +827,10 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                 {/* Embedded Player Overlay */}
                                 {activeVideo && typeof window !== 'undefined' && createPortal(
                                     <div style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'black' }}>
-                                        {/* Debug indicator */}
+                                        {/* Debug indicator & Counter */}
                                         {showEpisodes && (
-                                            <div style={{ position: 'fixed', top: 10, left: '50%', transform: 'translateX(-50%)', zIndex: 3000000, background: '#7c3aed', color: 'white', padding: '4px 12px', borderRadius: 'full', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                                                Panel de episodios activo
+                                            <div style={{ position: 'fixed !important' as any, top: '20px !important' as any, left: '50% !important' as any, transform: 'translateX(-50%) !important' as any, zIndex: '99999999 !important' as any, background: '#7c3aed !important' as any, color: 'white !important' as any, padding: '10px 20px !important' as any, borderRadius: '50px !important' as any, fontSize: '14px !important' as any, fontWeight: '900 !important' as any, textTransform: 'uppercase' as any, boxShadow: '0 0 30px rgba(124, 58, 237, 0.5) !important' as any, pointerEvents: 'none' as any }}>
+                                                Panel Activo (Clics: {debugCount})
                                             </div>
                                         )}
                                         <button 
@@ -849,7 +850,8 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                 justifyContent: 'center',
                                                 color: 'white',
                                                 cursor: 'pointer',
-                                                backdropFilter: 'blur(10px)'
+                                                backdropFilter: 'blur(10px)',
+                                                pointerEvents: 'auto'
                                             }}
                                         >
                                             <X size={24} />
@@ -858,27 +860,34 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                             src={activeVideo.url}
                                             title={activeVideo.title}
                                             poster={resolveImageUrl(data?.thumbnails?.find(t => t.type === 'BACKDROP')?.url) || undefined}
-                                            onShowEpisodes={(data?.type && data.type !== 'MOVIE') ? () => setShowEpisodes(v => !v) : undefined}
+                                            onShowEpisodes={(data?.type && data.type !== 'MOVIE') ? () => {
+                                                console.log('DEBUG: Toggling episodes');
+                                                setShowEpisodes(v => !v);
+                                                setDebugCount(c => c + 1);
+                                            } : undefined}
                                         />
 
                                         {/* Episode Sidebar Panel - Admin Version */}
                                         {showEpisodes && (
                                             <div style={{
-                                                position: 'fixed',
-                                                top: 0,
-                                                bottom: 0,
-                                                right: 0,
-                                                width: '100%',
-                                                maxWidth: '400px',
-                                                background: '#05081c',
-                                                borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
-                                                zIndex: 2000000,
-                                                padding: '40px 30px',
-                                                overflowY: 'auto',
-                                                color: 'white',
-                                                boxShadow: '-20px 0 50px rgba(0,0,0,0.9)',
-                                                display: 'flex',
-                                                flexDirection: 'column'
+                                                position: 'fixed !important' as any,
+                                                top: '0 !important' as any,
+                                                bottom: '0 !important' as any,
+                                                right: '0 !important' as any,
+                                                width: '100% !important' as any,
+                                                maxWidth: '400px !important' as any,
+                                                background: '#05081c !important' as any,
+                                                borderLeft: '1px solid rgba(255, 255, 255, 0.1) !important' as any,
+                                                zIndex: '9999999 !important' as any,
+                                                padding: '40px 30px !important' as any,
+                                                overflowY: 'auto' as any,
+                                                color: 'white !important' as any,
+                                                boxShadow: '-20px 0 50px rgba(0,0,0,0.9) !important' as any,
+                                                display: 'flex !important' as any,
+                                                flexDirection: 'column' as any,
+                                                pointerEvents: 'auto !important' as any,
+                                                visibility: 'visible !important' as any,
+                                                opacity: '1 !important' as any
                                             }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
                                                     <h2 style={{ fontSize: '1.5rem', fontWeight: 900, textTransform: 'uppercase', fontStyle: 'italic' }}>Episodios</h2>
