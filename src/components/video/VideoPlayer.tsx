@@ -242,7 +242,7 @@ export default function VideoPlayer({
             setDuration(v.duration);
             setProgress((v.currentTime / v.duration) * 100);
         }
-        if (onProgressUpdate && now - lastProgressTimeRef.current > 10000) {
+        if (onProgressUpdate && now - lastProgressTimeRef.current > 5000) {
             lastProgressTimeRef.current = now;
             onProgressUpdate(v.currentTime, v.duration);
         }
@@ -251,7 +251,17 @@ export default function VideoPlayer({
     const skip = (seconds: number) => {
         if (isLocked || !videoRef.current) return;
         videoRef.current.currentTime += seconds;
+        // Save immediately after skip
+        if (onProgressUpdate) onProgressUpdate(videoRef.current.currentTime, videoRef.current.duration);
     };
+
+    useEffect(() => {
+        return () => {
+            if (videoRef.current && onProgressUpdate) {
+                onProgressUpdate(videoRef.current.currentTime, videoRef.current.duration);
+            }
+        };
+    }, []);
 
     const formatTime = (time: number) => {
         if (isNaN(time)) return '00:00';

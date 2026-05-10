@@ -82,11 +82,37 @@ export default function FilmDetailPage() {
         if (authUser) checkFav();
     }, [id, authUser]);
 
+    useEffect(() => {
+        const checkLike = async () => {
+            const token = localStorage.getItem('accessToken');
+            const profileId = localStorage.getItem('profileId');
+            if (!token || !profileId) return;
+
+            try {
+                const res = await fetch(API_ROUTES.LIKES.CHECK(id), {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'x-profile-id': profileId
+                    }
+                });
+                const json = await res.json();
+                if (json.success) setIsLiked(json.data.isLiked);
+            } catch (err) { console.error(err); }
+        };
+        if (authUser) checkLike();
+    }, [id, authUser]);
+
     const handleToggleFavorite = async () => {
         const token = localStorage.getItem('accessToken');
         const profileId = localStorage.getItem('profileId');
-        if (!token || !profileId) {
-            alert('Inicia sesión para guardar en tu lista');
+        
+        if (!token) {
+            alert('Debes iniciar sesión para guardar favoritos.');
+            return;
+        }
+
+        if (!profileId) {
+            alert('Por favor, selecciona un perfil primero.');
             return;
         }
 
@@ -102,6 +128,33 @@ export default function FilmDetailPage() {
             });
             const json = await res.json();
             if (json.success) setIsFavorited(json.data.favorited);
+        } catch (err) { console.error(err); }
+    };
+
+    const handleToggleLike = async () => {
+        const token = localStorage.getItem('accessToken');
+        const profileId = localStorage.getItem('profileId');
+        if (!token) {
+            alert('Debes iniciar sesión para dar me gusta.');
+            return;
+        }
+        if (!profileId) {
+            alert('Por favor, selecciona un perfil primero.');
+            return;
+        }
+
+        try {
+            const res = await fetch(API_ROUTES.LIKES.TOGGLE, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'x-profile-id': profileId
+                },
+                body: JSON.stringify({ contentId: id })
+            });
+            const json = await res.json();
+            if (json.success) setIsLiked(json.data.liked);
         } catch (err) { console.error(err); }
     };
 
@@ -123,10 +176,11 @@ export default function FilmDetailPage() {
     const posterUrl = resolveImageUrl(poster);
     const hasEpisodesWithVideo = seasons.some((s: any) =>
         s.episodes?.some((e: any) =>
-            e.videoFiles && e.videoFiles.length > 0
+            e.videoFiles && e.videoFiles.some((v: any) => v.status === 'COMPLETED')
         )
     );
-    const canPlay = content.status === 'READY' || content.status === 'ACTIVE' || hasEpisodesWithVideo || (content.videoFiles && content.videoFiles.length > 0);
+    const hasDirectVideo = content.videoFiles && content.videoFiles.some((v: any) => v.status === 'COMPLETED');
+    const canPlay = (content.status === 'READY' || content.status === 'ACTIVE') && (hasEpisodesWithVideo || hasDirectVideo);
     const formatMoney = (n: any) => {
         if (!n || n === '0' || n === 0) return null;
         const num = Number(n);
@@ -232,8 +286,8 @@ export default function FilmDetailPage() {
                             >
                                 {isFavorited ? <Check size={26} /> : <Plus size={26} />}
                             </button>
-                            <button
-                                onClick={() => setIsLiked(!isLiked)}
+                             <button
+                                onClick={handleToggleLike}
                                 style={{ width: 56, height: 56, borderRadius: '50%', border: isLiked ? '1px solid #00E5FF' : '1px solid rgba(0,229,255,0.3)', background: isLiked ? 'rgba(0,229,255,0.1)' : 'rgba(8,13,36,0.6)', backdropFilter: 'blur(20px)', color: isLiked ? '#00E5FF' : 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' }}
                                 title="Me gusta"
                             >

@@ -74,6 +74,11 @@ export const API_ROUTES = {
         LIST: `${API_BASE_URL}/favorites`,
         TOGGLE: `${API_BASE_URL}/favorites/toggle`,
     },
+    LIKES: {
+        BASE: `${API_BASE_URL}/likes`,
+        TOGGLE: `${API_BASE_URL}/likes/toggle`,
+        CHECK: (id: string) => `${API_BASE_URL}/likes/check/${id}`,
+    },
     HISTORY: {
         BASE: `${API_BASE_URL}/history`,
         LIST: `${API_BASE_URL}/history`,
