@@ -183,12 +183,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             </button>
 
                             {notifOpen && (
-                                <div className="absolute!  !top-full !right-0 !!mt-3 !w-80 !bg-[#0A0A0F] !border !border-white/10 !shadow-2xl !rounded-xl  animate-in fade-in slide-in-from-top-2" style={{ zIndex: "99999 !important" }}>
-                                    <div className="!!p-4 !border-b !border-white/10 !flex !justify-between !items-center !bg-[#141414]">
+                                <div className="!absolute !top-full !right-0 !mt-3 !w-80 !bg-[#0A0A0F] !border !border-white/10 !shadow-2xl !rounded-xl animate-in fade-in slide-in-from-top-2" style={{ zIndex: 99999 }}>
+                                    <div className="!p-4 !border-b !border-white/10 !flex !justify-between !items-center !bg-[#141414]">
                                         <h3 className="!font-bold !text-white !text-sm !m-0">Notificaciones</h3>
                                         {unreadCount > 0 && (
                                             <button
-                                                className="!text-xs !text-[var(--color-primary)] hover:!underline !bg-transparent !border-none !!p-0 !cursor-pointer"
+                                                className="!text-xs !text-[var(--color-primary)] hover:!underline !bg-transparent !border-none !p-0 !cursor-pointer"
                                                 onClick={() => setUnreadCount(0)}
                                             >
                                                 Marcar leídas
@@ -197,17 +197,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     </div>
                                     <div className="!max-h-[300px] !overflow-y-auto !bg-[#0A0A0F]">
                                         {loadingNotifs ? (
-                                            <div className="!!p-6 !flex !justify-center"><Loader2 className="animate-spin text-[var(--color-primary)]" size={20} /></div>
+                                            <div className="!p-6 !flex !justify-center"><Loader2 className="!animate-spin !text-[var(--color-primary)]" size={20} /></div>
                                         ) : notifs.length === 0 ? (
-                                            <div className="!!p-6 !text-center !text-[var(--adm-muted)] !text-sm">
+                                            <div className="!p-6 !text-center !text-[var(--adm-muted)] !text-sm">
                                                 No hay notificaciones recientes.
                                             </div>
                                         ) : (
                                             notifs.map((n: any, idx: number) => (
-                                                <div key={idx} className="!!p-4 !border-b !border-white/5 hover:!bg-white/5 !transition-colors !cursor-pointer !flex !!gap-3 !items-start">
-                                                    <div className={`!!mt-0.5 !w-2 !h-2 !rounded-full ${n.status === 'COMPLETED' ? '!bg-green-400' : n.status === 'FAILED' ? '!bg-red-400' : '!bg-blue-400'}`} />
+                                                <div key={idx} className="!p-4 !border-b !border-white/5 hover:!bg-white/5 !transition-colors !cursor-pointer !flex !gap-3 !items-start">
+                                                    <div className={`!mt-0.5 !w-2 !h-2 !rounded-full ${n.status === 'COMPLETED' ? '!bg-green-400' : n.status === 'FAILED' ? '!bg-red-400' : '!bg-blue-400'}`} />
                                                     <div className="!flex-1">
-                                                        <p className="!text-xs !text-white !font-medium !!mb-1 !m-0">{n.name}</p>
+                                                        <p className="!text-xs !text-white !font-medium !mb-1 !m-0">{n.name}</p>
                                                         <p className="!text-[10px] !text-[var(--adm-muted)] !uppercase !m-0">{n.status} • {n.time}</p>
                                                     </div>
                                                 </div>

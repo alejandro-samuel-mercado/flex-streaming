@@ -221,14 +221,14 @@ export default function AdminHomepageConfigPage() {
     );
 
     return (
-        <div className="!max-w-6xl !mx-auto !!p-6">
-            <div className="!flex !flex-col md:!flex-row !justify-between !items-start md:!items-center !!mb-8 !!gap-4">
+        <div className="!max-w-6xl !mx-auto !p-6 !mt-20">
+            <div className="!flex !flex-col md:!flex-row !justify-between !items-start md:!items-center !mb-8 !gap-4">
                 <div>
                     <h1 className="!text-3xl !font-black !text-white !tracking-tight">Gestión de Web</h1>
-                    <p className="!text-[var(--adm-muted)] !!mt-1">Personaliza la portada, el banner principal y preguntas frecuentes</p>
+                    <p className="!text-[var(--adm-muted)] !mt-1">Personaliza la portada, el banner principal y preguntas frecuentes</p>
                 </div>
                 <button
-                    className="!flex !items-center !!gap-2 !bg-[var(--color-primary)] !text-black !!px-6 !!py-2.5 !rounded-xl !font-bold hover:!bg-[var(--color-primary-hover)] !transition-all disabled:!opacity-50"
+                    className="!flex !items-center !gap-2 !bg-[var(--color-primary)] !text-black !px-6 !py-2.5 !rounded-xl !font-bold hover:!bg-[var(--color-primary-hover)] !transition-all disabled:!opacity-50"
                     onClick={handleSave}
                     disabled={saving}
                 >
@@ -238,53 +238,53 @@ export default function AdminHomepageConfigPage() {
             </div>
 
             {success && (
-                <div className="!!mb-6 !!p-4 !bg-green-500/10 !border !border-green-500/30 !rounded-xl !text-green-400 !flex !items-center !!gap-3">
+                <div className="!mb-6 !p-4 !bg-green-500/10 !border !border-green-500/30 !rounded-xl !text-green-400 !flex !items-center !gap-3">
                     <CheckCircle2 size={18} />
                     Configuración guardada correctamente.
                 </div>
             )}
 
             {error && (
-                <div className="!!mb-6 !!p-4 !bg-red-500/10 !border !border-red-500/30 !rounded-xl !text-red-400 !flex !items-center !!gap-3">
+                <div className="!mb-6 !p-4 !bg-red-500/10 !border !border-red-500/30 !rounded-xl !text-red-400 !flex !items-center !gap-3">
                     <AlertCircle size={18} />
                     {error}
                 </div>
             )}
 
             {/* Custom Tabs */}
-            <div className="!flex !!gap-2 !!mb-6 !border-b !border-white/10 !pb-4 !overflow-x-auto">
+            <div className="!flex !gap-2 !mb-6 !border-b !border-white/10 !pb-4 !overflow-x-auto">
                 <button
                     onClick={() => setActiveTab('portada')}
-                    className={`!flex !items-center !!gap-2 !!px-4 !!py-2.5 !rounded-xl !font-bold !text-sm !transition-all !whitespace-nowrap ${activeTab === 'portada' ? '!bg-white/10 !text-white' : '!text-[var(--adm-muted)] hover:!bg-white/5 hover:!text-white'}`}
+                    className={`!flex !items-center !gap-2 !px-4 !py-2.5 !rounded-xl !font-bold !text-sm !transition-all !whitespace-nowrap ${activeTab === 'portada' ? '!bg-white/10 !text-white' : '!text-[var(--adm-muted)] hover:!bg-white/5 hover:!text-white'}`}
                 >
                     <ImageIcon size={16} /> Portada Principal
                 </button>
                 <button
                     onClick={() => setActiveTab('faq')}
-                    className={`!flex !items-center !!gap-2 !!px-4 !!py-2.5 !rounded-xl !font-bold !text-sm !transition-all !whitespace-nowrap ${activeTab === 'faq' ? '!bg-white/10 !text-white' : '!text-[var(--adm-muted)] hover:!bg-white/5 hover:!text-white'}`}
+                    className={`!flex !items-center !gap-2 !px-4 !py-2.5 !rounded-xl !font-bold !text-sm !transition-all !whitespace-nowrap ${activeTab === 'faq' ? '!bg-white/10 !text-white' : '!text-[var(--adm-muted)] hover:!bg-white/5 hover:!text-white'}`}
                 >
                     <HelpCircle size={16} /> Preguntas Frecuentes
                 </button>
             </div>
             <div className="!bg-[#0f1532] !border !border-white/10 !rounded-2xl !overflow-hidden !animate-in !fade-in !slide-in-from-bottom-2 !mb-8!">
-                <div className="!bg-[#141b3d] !!px-6 !!py-4 !border-b !border-white/10 !flex !items-center !!gap-3">
+                <div className="!bg-[#141b3d] !px-6 !py-4 !border-b !border-white/10 !flex !items-center !gap-3">
                     <Settings className="!text-[var(--color-primary)]" size={20} />
                     <h2 className="!font-bold !text-white !text-lg !m-0">Ajustes Globales de Portada</h2>
                 </div>
-                <div className="!!p-6">
-                    <div className="!!mb-6">
-                        <label className="!block !text-sm !font-bold !!mb-2 !text-white">Items Máximos en Banner</label>
+                <div className="!p-6">
+                    <div className="!mb-6">
+                        <label className="!block !text-sm !font-bold !mb-2 !text-white">Items Máximos en Banner</label>
                         <input
                             type="number"
-                            className="!w-full !bg-white/5 !border !border-white/10 !rounded-xl !!px-4 !!py-3 !text-white focus:!border-[var(--color-primary)] !outline-none !transition-all"
+                            className="!w-full !bg-white/5 !border !border-white/10 !rounded-xl !px-4 !py-3 !text-white focus:!border-[var(--color-primary)] !outline-none !transition-all"
                             value={settings.home_banner_limit}
                             onChange={(e) => setSettings({ ...settings, home_banner_limit: e.target.value })}
                         />
-                        <p className="!text-[10px] !uppercase !text-[var(--adm-muted)] !!mt-2 !m-0">Cuántas diapositivas mostrar en la portada principal.</p>
+                        <p className="!text-[10px] !uppercase !text-[var(--adm-muted)] !mt-2 !m-0">Cuántas diapositivas mostrar en la portada principal.</p>
                     </div>
 
-                    <div className="!!mt-8 !!p-4 !bg-white/5 !border !border-[var(--color-primary)]/20 !rounded-xl">
-                        <h3 className="!text-xs !font-bold !uppercase !tracking-wider !text-[var(--color-primary)] !!mb-2 !flex !items-center !!gap-2 !m-0">
+                    <div className="!mt-8 !p-4 !bg-white/5 !border !border-[var(--color-primary)]/20 !rounded-xl">
+                        <h3 className="!text-xs !font-bold !uppercase !tracking-wider !text-[var(--color-primary)] !mb-2 !flex !items-center !gap-2 !m-0">
                             <CheckCircle2 size={14} /> Tip de Optimización
                         </h3>
                         <p className="!text-xs !text-[var(--adm-muted)] !leading-relaxed !m-0">
@@ -297,28 +297,28 @@ export default function AdminHomepageConfigPage() {
             {activeTab === 'portada' && (
                 <div className="!space-y-6 !animate-in !fade-in !slide-in-from-bottom-2">
                     <div className="!bg-[#0f1532] !border !border-white/10 !rounded-2xl !overflow-hidden">
-                        <div className="!bg-[#141b3d] !!px-6 !!py-4 !border-b !border-white/10 !flex !items-center !!gap-3">
+                        <div className="!bg-[#141b3d] !px-6 !py-4 !border-b !border-white/10 !flex !items-center !gap-3">
                             <Layout className="!text-[var(--color-primary)]" size={20} />
                             <h2 className="!font-bold !text-white !text-lg !m-0">Estrategia del Hero Banner</h2>
                         </div>
-                        <div className="!!p-6">
-                            <div className="!grid !grid-cols-1 md:!grid-cols-2 !!gap-4">
+                        <div className="!p-6">
+                            <div className="!grid !grid-cols-1 md:!grid-cols-2 !gap-4">
                                 {strategies.map((s) => (
                                     <div
                                         key={s.id}
-                                        className={`!!p-5 !rounded-2xl !border-2 !transition-all !cursor-pointer !flex !!gap-4 ${settings.home_banner_strategy === s.id
+                                        className={`!p-5 !rounded-2xl !border-2 !transition-all !cursor-pointer !flex !gap-4 ${settings.home_banner_strategy === s.id
                                             ? '!border-[var(--color-primary)] !bg-[var(--color-primary)]/10'
                                             : '!border-white/5 !bg-white/5 hover:!border-white/10'
                                             }`}
                                         onClick={() => setSettings({ ...settings, home_banner_strategy: s.id })}
                                     >
-                                        <div className="!!mt-1">{s.icon}</div>
+                                        <div className="!mt-1">{s.icon}</div>
                                         <div>
                                             <h3 className={`!font-black !text-sm !uppercase !tracking-wider !m-0 ${settings.home_banner_strategy === s.id ? '!text-[var(--color-primary)]' : '!text-white'
                                                 }`}>
                                                 {s.name}
                                             </h3>
-                                            <p className="!text-xs !text-[var(--adm-muted)] !!mt-2 !leading-relaxed !m-0">
+                                            <p className="!text-xs !text-[var(--adm-muted)] !mt-2 !leading-relaxed !m-0">
                                                 {s.desc}
                                             </p>
                                         </div>
@@ -330,18 +330,18 @@ export default function AdminHomepageConfigPage() {
 
                     {(settings.home_banner_strategy === 'MANUAL' || settings.home_banner_strategy === 'COMBINED') && (
                         <div className="!bg-[#0f1532] !border !border-white/10 !rounded-2xl !overflow-hidden">
-                            <div className="!bg-[#141b3d] !!px-6 !!py-4 !border-b !border-white/10 !flex !items-center !!gap-3">
+                            <div className="!bg-[#141b3d] !px-6 !py-4 !border-b !border-white/10 !flex !items-center !gap-3">
                                 <Star className="!text-[var(--color-primary)]" size={20} />
                                 <h2 className="!font-bold !text-white !text-lg !m-0">Gestión de Lista Manual</h2>
                             </div>
-                            <div className="!!p-6">
-                                <div className="!relative !!mb-6">
-                                    <div className="!flex !items-center !!gap-3 !bg-white/5 !border !border-white/10 !rounded-xl !!px-4 !!py-3 focus-within:!border-[var(--color-primary)] !transition-all">
+                            <div className="!p-6">
+                                <div className="!relative !mb-6">
+                                    <div className="!flex !items-center !gap-3 !bg-white/5 !border !border-white/10 !rounded-xl !px-4 !py-3 focus-within:!border-[var(--color-primary)] !transition-all">
                                         <Search size={18} className="!text-[var(--adm-muted)]" />
                                         <input
                                             type="text"
                                             placeholder="Buscar películas o series para añadir..."
-                                            className="!bg-transparent !border-none !outline-none !flex-1 !text-sm !text-white !!p-0"
+                                            className="!bg-transparent !border-none !outline-none !flex-1 !text-sm !text-white !p-0"
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                         />
@@ -349,11 +349,11 @@ export default function AdminHomepageConfigPage() {
                                     </div>
 
                                     {searchResults.length > 0 && (
-                                        <div className="!absolute !top-full !left-0 !right-0 !!mt-2 !bg-[#1a1e2e] !border !border-white/10 !rounded-xl !shadow-2xl !z-[100] !max-h-72 !overflow-y-auto">
+                                        <div className="!absolute !top-full !left-0 !right-0 !mt-2 !bg-[#1a1e2e] !border !border-white/10 !rounded-xl !shadow-2xl !z-[100] !max-h-72 !overflow-y-auto">
                                             {searchResults.map(item => (
                                                 <button
                                                     key={item.id}
-                                                    className="!w-full !flex !items-center !!gap-4 !!p-3 hover:!bg-white/5 !text-left !transition-all !border-b !border-white/5 last:!border-none"
+                                                    className="!w-full !flex !items-center !gap-4 !p-3 hover:!bg-white/5 !text-left !transition-all !border-b !border-white/5 last:!border-none"
                                                     onClick={() => addItem(item)}
                                                 >
                                                     <div className="!w-10 !h-14 !bg-white/10 !rounded !overflow-hidden !flex-shrink-0">
@@ -365,9 +365,9 @@ export default function AdminHomepageConfigPage() {
                                                     </div>
                                                     <div className="!flex-1">
                                                         <h4 className="!text-sm !font-bold !text-white !m-0">{item.translations[0]?.title}</h4>
-                                                        <p className="!text-[10px] !uppercase !text-[var(--adm-muted)] !m-0 !!mt-1">{item.type} • {item.releaseYear}</p>
+                                                        <p className="!text-[10px] !uppercase !text-[var(--adm-muted)] !m-0 !mt-1">{item.type} • {item.releaseYear}</p>
                                                     </div>
-                                                    <div className="!bg-[var(--color-primary)] !text-black !rounded-full !!p-1">
+                                                    <div className="!bg-[var(--color-primary)] !text-black !rounded-full !p-1">
                                                         <Plus size={14} />
                                                     </div>
                                                 </button>
@@ -378,15 +378,15 @@ export default function AdminHomepageConfigPage() {
 
                                 <div className="!space-y-3">
                                     {selectedItems.length === 0 ? (
-                                        <div className="!text-center !!py-10 !border-2 !border-dashed !border-white/5 !rounded-2xl">
+                                        <div className="!text-center !py-10 !border-2 !border-dashed !border-white/5 !rounded-2xl">
                                             <p className="!text-sm !text-[var(--adm-muted)] !m-0">No hay películas seleccionadas. Usa el buscador de arriba.</p>
                                         </div>
                                     ) : (
                                         selectedItems.map((item, index) => (
-                                            <div key={item.id} className="!flex !items-center !!gap-4 !bg-white/5 !border !border-white/10 !!p-3 !rounded-xl group hover:!border-white/20 !transition-all">
-                                                <div className="!flex !flex-col !!gap-1">
-                                                    <button onClick={() => moveItem(index, 'up')} disabled={index === 0} className="!text-[var(--adm-muted)] hover:!text-white disabled:!opacity-0 !bg-transparent !border-none !!p-0"><ChevronUp size={16} /></button>
-                                                    <button onClick={() => moveItem(index, 'down')} disabled={index === selectedItems.length - 1} className="!text-[var(--adm-muted)] hover:!text-white disabled:!opacity-0 !bg-transparent !border-none !!p-0"><ChevronDown size={16} /></button>
+                                            <div key={item.id} className="!flex !items-center !gap-4 !bg-white/5 !border !border-white/10 !p-3 !rounded-xl group hover:!border-white/20 !transition-all">
+                                                <div className="!flex !flex-col !gap-1">
+                                                    <button onClick={() => moveItem(index, 'up')} disabled={index === 0} className="!text-[var(--adm-muted)] hover:!text-white disabled:!opacity-0 !bg-transparent !border-none !p-0"><ChevronUp size={16} /></button>
+                                                    <button onClick={() => moveItem(index, 'down')} disabled={index === selectedItems.length - 1} className="!text-[var(--adm-muted)] hover:!text-white disabled:!opacity-0 !bg-transparent !border-none !p-0"><ChevronDown size={16} /></button>
                                                 </div>
                                                 <div className="!w-12 !h-16 !bg-white/10 !rounded !overflow-hidden !flex-shrink-0">
                                                     <img
@@ -397,11 +397,11 @@ export default function AdminHomepageConfigPage() {
                                                 </div>
                                                 <div className="!flex-1">
                                                     <h4 className="!text-sm !font-bold !text-white !m-0">{item.translations[0]?.title}</h4>
-                                                    <p className="!text-[10px] !uppercase !text-[var(--adm-muted)] !m-0 !!mt-1">{getContentTypeLabel(item.type)} • {item.releaseYear}</p>
+                                                    <p className="!text-[10px] !uppercase !text-[var(--adm-muted)] !m-0 !mt-1">{getContentTypeLabel(item.type)} • {item.releaseYear}</p>
                                                 </div>
                                                 <button
                                                     onClick={() => removeItem(item.id)}
-                                                    className="!!p-2 !text-red-400 !opacity-0 group-hover:!opacity-100 !transition-all hover:!bg-red-400/10 !rounded-lg !border-none"
+                                                    className="!p-2 !text-red-400 !opacity-0 group-hover:!opacity-100 !transition-all hover:!bg-red-400/10 !rounded-lg !border-none"
                                                 >
                                                     <Trash2 size={18} />
                                                 </button>
@@ -421,52 +421,52 @@ export default function AdminHomepageConfigPage() {
             {/* Tab Content: FAQ */}
             {activeTab === 'faq' && (
                 <div className="!bg-[#0f1532] !border !border-white/10 !rounded-2xl !overflow-hidden !animate-in !fade-in !slide-in-from-bottom-2">
-                    <div className="!bg-[#141b3d] !!px-6 !!py-4 !border-b !border-white/10 !flex !items-center !justify-between">
-                        <div className="!flex !items-center !!gap-3">
+                    <div className="!bg-[#141b3d] !px-6 !py-4 !border-b !border-white/10 !flex !items-center !justify-between">
+                        <div className="!flex !items-center !gap-3">
                             <HelpCircle className="!text-[var(--color-primary)]" size={20} />
                             <h2 className="!font-bold !text-white !text-lg !m-0">Preguntas Frecuentes (FAQ)</h2>
                         </div>
-                        <button onClick={addFaq} className="!flex !items-center !!gap-2 !bg-white/10 hover:!bg-white/20 !text-white !!px-3 !!py-1.5 !rounded-lg !text-xs !font-bold !transition-all !border-none">
+                        <button onClick={addFaq} className="!flex !items-center !gap-2 !bg-white/10 hover:!bg-white/20 !text-white !px-3 !py-1.5 !rounded-lg !text-xs !font-bold !transition-all !border-none">
                             <Plus size={14} /> Añadir Pregunta
                         </button>
                     </div>
-                    <div className="!!p-6">
+                    <div className="!p-6">
                         {faqItems.length === 0 ? (
-                            <div className="!text-center !!py-12 !border-2 !border-dashed !border-white/5 !rounded-2xl">
-                                <HelpCircle size={40} className="!mx-auto !text-[var(--adm-muted)] !opacity-50 !!mb-4" />
-                                <p className="!text-sm !text-[var(--adm-muted)] !!mb-4 !m-0">No hay preguntas frecuentes configuradas en la portada.</p>
-                                <button onClick={addFaq} className="!bg-[var(--color-primary)] !text-black !!px-4 !!py-2 !rounded-lg !font-bold !text-sm !border-none">
+                            <div className="!text-center !py-12 !border-2 !border-dashed !border-white/5 !rounded-2xl">
+                                <HelpCircle size={40} className="!mx-auto !text-[var(--adm-muted)] !opacity-50 !mb-4" />
+                                <p className="!text-sm !text-[var(--adm-muted)] !mb-4 !m-0">No hay preguntas frecuentes configuradas en la portada.</p>
+                                <button onClick={addFaq} className="!bg-[var(--color-primary)] !text-black !px-4 !py-2 !rounded-lg !font-bold !text-sm !border-none">
                                     Agregar mi primera pregunta
                                 </button>
                             </div>
                         ) : (
                             <div className="!space-y-4">
                                 {faqItems.map((faq, idx) => (
-                                    <div key={idx} className="!bg-[#141b3d] !border !border-white/10 !rounded-xl !!p-5 !relative group">
+                                    <div key={idx} className="!bg-[#141b3d] !border !border-white/10 !rounded-xl !p-5 !relative group">
                                         <button
                                             onClick={() => removeFaq(idx)}
-                                            className="!absolute !top-4 !right-4 !text-red-400 !opacity-50 hover:!opacity-100 !bg-red-400/10 !!p-2 !rounded-lg !transition-all !border-none"
+                                            className="!absolute !top-4 !right-4 !text-red-400 !opacity-50 hover:!opacity-100 !bg-red-400/10 !p-2 !rounded-lg !transition-all !border-none"
                                             title="Eliminar pregunta"
                                         >
                                             <Trash2 size={16} />
                                         </button>
                                         <div className="!space-y-4 !pr-12">
                                             <div>
-                                                <label className="!block !text-xs !font-bold !text-[var(--color-primary)] !uppercase !tracking-wider !!mb-2">Pregunta</label>
+                                                <label className="!block !text-xs !font-bold !text-[var(--color-primary)] !uppercase !tracking-wider !mb-2">Pregunta</label>
                                                 <input
                                                     type="text"
                                                     value={faq.question}
                                                     onChange={(e) => updateFaq(idx, 'question', e.target.value)}
-                                                    className="!w-full !bg-black/20 !border !border-white/10 !rounded-lg !!px-4 !!py-3 !text-sm !text-white focus:!border-[var(--color-primary)] !outline-none !transition-all"
+                                                    className="!w-full !bg-black/20 !border !border-white/10 !rounded-lg !px-4 !py-3 !text-sm !text-white focus:!border-[var(--color-primary)] !outline-none !transition-all"
                                                     placeholder="Ej: ¿Qué incluye la membresía Premium?"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="!block !text-xs !font-bold !text-[var(--color-primary)] !uppercase !tracking-wider !!mb-2">Respuesta</label>
+                                                <label className="!block !text-xs !font-bold !text-[var(--color-primary)] !uppercase !tracking-wider !mb-2">Respuesta</label>
                                                 <textarea
                                                     value={faq.answer}
                                                     onChange={(e) => updateFaq(idx, 'answer', e.target.value)}
-                                                    className="!w-full !bg-black/20 !border !border-white/10 !rounded-lg !!px-4 !!py-3 !text-sm !text-white focus:!border-[var(--color-primary)] !outline-none !min-h-[100px] !transition-all"
+                                                    className="!w-full !bg-black/20 !border !border-white/10 !rounded-lg !px-4 !py-3 !text-sm !text-white focus:!border-[var(--color-primary)] !outline-none !min-h-[100px] !transition-all"
                                                     placeholder="Ej: Acceso ilimitado a películas y series en calidad 4K UHD sin interrupciones..."
                                                 />
                                             </div>

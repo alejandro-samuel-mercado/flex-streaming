@@ -12,9 +12,9 @@ export default function FavoritosPage() {
 
   useEffect(() => {
     const fetchFavorites = async () => {
-      const token = localStorage.getItem('token');
-      const profileId = localStorage.getItem('currentProfileId');
-      if (!token || !profileId) {
+      const accessToken = localStorage.getItem('accessToken');
+      const profileId = localStorage.getItem('profileId');
+      if (!accessToken || !profileId) {
         // If not logged in, fetch from localStorage
         const localFavorites = JSON.parse(localStorage.getItem('localFavorites') || '[]');
         if (localFavorites.length === 0) {
@@ -39,7 +39,7 @@ export default function FavoritosPage() {
       try {
         const res = await fetch(API_ROUTES.FAVORITES.BASE, {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${accessToken}`,
             'X-Profile-Id': profileId
           }
         });
@@ -62,7 +62,7 @@ export default function FavoritosPage() {
       <div className="min-h-screen bg-[#0A0A0F] text-white pb-16 relative">
         <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-purple-900/10 via-[#0A0A0F]/80 to-[#0A0A0F] pointer-events-none" />
 
-        <div className="relative pt-32 max-w-[1600px] mx-auto w-full" style={{ paddingLeft: '6vw', paddingRight: '6vw', paddingBottom: '20vh' }}>
+        <div className="relative !pt-48 max-w-[1600px] mx-auto w-full" style={{ paddingLeft: '6vw', paddingRight: '6vw', paddingBottom: '20vh' }}>
           <div className="!mb-12">
             <h1 className="text-6xl font-bold tracking-tighter text-white" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
               Mis Favoritos

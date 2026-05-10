@@ -551,7 +551,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                         placeholder="Ej: https://youtube.com/watch?v=..."
                                         value={data?.trailerUrl || ''}
                                         onChange={e => setData(d => d ? { ...d, trailerUrl: e.target.value } : null)}
-                                        disabled={!!trailerFile}
+                                        disabled={!trailerFile}
                                         style={{ flex: 1, opacity: trailerFile ? 0.5 : 1 }}
                                     />
                                     <span style={{ color: 'var(--adm-muted)', fontSize: '0.8rem' }}>o</span>

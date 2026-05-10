@@ -342,7 +342,7 @@ export default function NewContentPage() {
                                     placeholder="Ej: https://youtube.com/watch?v=..."
                                     value={formData.trailerUrl}
                                     onChange={e => setFormData({ ...formData, trailerUrl: e.target.value })}
-                                    disabled={!!trailerFile}
+                                    disabled={!trailerFile}
                                     style={{ flex: 1, opacity: trailerFile ? 0.5 : 1 }}
                                 />
                                 <span style={{ color: 'var(--adm-muted)', fontSize: '0.8rem' }}>o</span>
