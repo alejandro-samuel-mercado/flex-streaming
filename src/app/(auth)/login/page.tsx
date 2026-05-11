@@ -143,7 +143,7 @@ function LoginContent() {
                     style={{
                         borderTopColor: 'rgba(0, 229, 255, 0.4)',
                         borderLeftColor: 'rgba(0, 229, 255, 0.2)',
-                        padding: '48px', // Force explicit high padding!
+                        padding: 'clamp(24px, 6vw, 48px)',
                         boxSizing: 'border-box'
                     }}
                 >

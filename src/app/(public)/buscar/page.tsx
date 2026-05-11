@@ -17,7 +17,7 @@ export default function SearchPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-[#0A0A0F] pt-24 text-white flex flex-col relative" style={{ paddingLeft: '6vw', paddingRight: '6vw', paddingBottom: '20vh' }}>
+    <div className="min-h-screen bg-[#0A0A0F] pt-24 text-white flex flex-col relative !px-4 sm:!px-[6vw] !pb-[20vh]">
       {/* Cinematic subtle glow at the top */}
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-[#E50914]/10 via-[#0A0A0F]/80 to-[#0A0A0F] pointer-events-none" />
 

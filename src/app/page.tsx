@@ -278,7 +278,7 @@ export default function HomePage() {
                 {/* 2.5 Continue Watching */}
                 {continueWatching.length > 0 && (
                     <FilmRow
-                        title="⏱️ Continuar viendo"
+                        title="Continuar viendo"
                         subtitle="Retoma donde lo dejaste"
                         items={continueWatching}
                         variant="large"
@@ -308,10 +308,7 @@ export default function HomePage() {
 
 
 
-                {/* 6. Plans */}
-                {!hasPlan && plans.length > 0 && (
-                    <PlanCards plans={plans} whatsappNumber={whatsappNumber} />
-                )}
+
 
                 {/* 7. Collage CTA */}
                 <CollageSection items={allItems} isLoggedIn={isLoggedIn} hasPlan={hasPlan} />

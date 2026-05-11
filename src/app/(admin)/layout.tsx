@@ -30,7 +30,7 @@ const NAV = [
     { href: '/admin/credit-packages', label: 'Paquetes Créditos', icon: Package },
     { href: '/admin/comments', label: 'Comentarios', icon: MessageSquare },
     { href: '/admin/settings', label: 'Configuración', icon: Settings },
-    { href: '/admin/backup', label: 'Copias de Seguridad', icon: Database },
+
 ];
 
 function pageTitle(p: string) {

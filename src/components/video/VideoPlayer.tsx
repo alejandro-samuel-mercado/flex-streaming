@@ -26,13 +26,14 @@ interface VideoPlayerProps {
     episodes?: any[]; // Seasons data
     onEpisodeSelect?: (episodeId: string) => void;
     onBack?: () => void;
+    currentEpisodeId?: string;
 }
 
 export default function VideoPlayer({
     src, title, poster, initialTime = 0, externalSubtitles = [],
     onProgressUpdate, onEnded, onNextEpisode, onPrevEpisode,
     hasNextEpisode, hasPrevEpisode, onShowEpisodes,
-    episodes = [], onEpisodeSelect, onBack
+    episodes = [], onEpisodeSelect, onBack, currentEpisodeId
 }: VideoPlayerProps) {
     const router = useRouter();
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -224,8 +225,26 @@ export default function VideoPlayer({
         return () => clearTimeout(timeout);
     }, [isBuffering]);
 
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.volume = volume;
+        }
+    }, [volume]);
+
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.muted = isMuted;
+        }
+    }, [isMuted]);
+
     const togglePlay = () => {
         if (isLocked) return;
+        if (isAudioMenuOpen || isSubtitleMenuOpen || isQualityMenuOpen) {
+            setIsAudioMenuOpen(false);
+            setIsSubtitleMenuOpen(false);
+            setIsQualityMenuOpen(false);
+            return;
+        }
         if (videoRef.current) {
             if (isPlaying) videoRef.current.pause();
             else {
@@ -344,7 +363,7 @@ export default function VideoPlayer({
                 onPlaying={() => setIsBuffering(false)}
                 onCanPlay={() => {
                     setIsBuffering(false);
-                    videoRef.current?.play().catch(() => {}); // Try to force play if autoplay blocked
+                    videoRef.current?.play().catch(() => { }); // Try to force play if autoplay blocked
                 }}
                 onLoadedData={() => setIsBuffering(false)}
             />
@@ -391,20 +410,6 @@ export default function VideoPlayer({
                 </div>
 
                 <div className="flex items-center !gap-4">
-                    {(hasNextEpisode || hasPrevEpisode) && (
-                        <div className="flex bg-black/40 backdrop-blur-xl rounded-full border border-white/10 p-1">
-                            {hasPrevEpisode && (
-                                <button onClick={(e) => { e.stopPropagation(); onPrevEpisode?.(); }} className="p-2 text-white/50 hover:text-white transition-colors">
-                                    <ChevronLeft size={20} />
-                                </button>
-                            )}
-                            {hasNextEpisode && (
-                                <button onClick={(e) => { e.stopPropagation(); onNextEpisode?.(); }} className="p-2 text-white/50 hover:text-white transition-colors">
-                                    <ChevronRight size={20} />
-                                </button>
-                            )}
-                        </div>
-                    )}
                     {(onShowEpisodes || (episodes.length > 0)) && (
                         <button
                             onClick={(e) => {
@@ -412,7 +417,7 @@ export default function VideoPlayer({
                                 if (onShowEpisodes) onShowEpisodes();
                                 else setShowEpisodesSidebar(true);
                             }}
-                            className="bg-purple-600 hover:bg-purple-500 text-white px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-purple-600/20"
+                            className="flex items-center gap-2 bg-black/40 backdrop-blur-xl border border-white/10 text-white px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-white/10 transition-colors"
                         >
                             <List size={16} /> Episodios
                         </button>
@@ -437,40 +442,134 @@ export default function VideoPlayer({
                 </div>
             )}
 
+            {/* ── Audio Menu ── */}
+            {isAudioMenuOpen && (
+                <div className="absolute bottom-36 !right-8 z-[200] w-72 bg-black/85 backdrop-blur-2xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-between !px-5 !py-3 border-b border-white/10">
+                        <span className="text-xs font-black text-white/60 uppercase tracking-[3px]">Idioma Audio</span>
+                        <button onClick={() => setIsAudioMenuOpen(false)} className="text-white/40 hover:text-white !p-1"><X size={16} /></button>
+                    </div>
+                    <div className="!py-2 max-h-64 overflow-y-auto">
+                        {audioTracks.length === 0 && (
+                            <p className="text-white/30 text-xs text-center !py-5">Sin pistas de audio disponibles</p>
+                        )}
+                        {audioTracks.map((track, i) => (
+                            <button key={i} onClick={() => { if (hlsRef.current) hlsRef.current.audioTrack = i; setCurrentAudio(i); setIsAudioMenuOpen(false); }}
+                                className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentAudio === i ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+                                <span className="font-semibold">{track.name || track.lang || `Pista ${i + 1}`}</span>
+                                {currentAudio === i && <div className="w-2 h-2 rounded-full bg-purple-400" />}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* ── Subtitle Menu ── */}
+            {isSubtitleMenuOpen && (
+                <div className="absolute bottom-36 !right-8 z-[200] w-72 bg-black/85 backdrop-blur-2xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-between !px-5 !py-3 border-b border-white/10">
+                        <span className="text-xs font-black text-white/60 uppercase tracking-[3px]">Subtítulos</span>
+                        <button onClick={() => setIsSubtitleMenuOpen(false)} className="text-white/40 hover:text-white !p-1"><X size={16} /></button>
+                    </div>
+                    <div className="!py-2 max-h-64 overflow-y-auto">
+                        <button onClick={() => { setCurrentSubtitle(-1); setActiveCues([]); setCurrentCue(null); setIsSubtitleMenuOpen(false); }}
+                            className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentSubtitle === -1 ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+                            <span className="font-semibold">Desactivados</span>
+                            {currentSubtitle === -1 && <div className="w-2 h-2 rounded-full bg-purple-400" />}
+                        </button>
+                        {subtitleTracks.map((track, i) => (
+                            <button key={i} onClick={() => {
+                                setCurrentSubtitle(i);
+                                if (track.type === 'HLS' && hlsRef.current) hlsRef.current.subtitleTrack = i;
+                                setIsSubtitleMenuOpen(false);
+                            }}
+                                className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentSubtitle === i ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+                                <span className="font-semibold">{track.name || track.lang || `Subtítulo ${i + 1}`}</span>
+                                {currentSubtitle === i && <div className="w-2 h-2 rounded-full bg-purple-400" />}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Bottom Controls */}
-            <div className={`absolute bottom-0 left-0 right-0 !p-8 transition-all duration-500 bg-gradient-to-t from-black/90 to-transparent z-[110] ${isControlsVisible && !isLocked ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`} onClick={e => e.stopPropagation()}>
-                <div className="flex flex-col !gap-4">
-                    {/* Progress Bar */}
-                    <div className="relative h-1.5 w-full bg-white/10 rounded-full overflow-hidden group/progress cursor-pointer">
-                        <div className="absolute top-0 left-0 h-full bg-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.5)] transition-all" style={{ width: `${progress}%` }} />
-                        <input type="range" min="0" max="100" value={progress} onChange={handleSeek} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+            <div className={`absolute bottom-0 left-0 right-0 transition-all duration-500 bg-gradient-to-t from-black/95 via-black/50 to-transparent z-[110] ${isControlsVisible && !isLocked ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`} onClick={e => e.stopPropagation()}>
+                <div className="flex flex-col !gap-3 !px-4 md:!px-8 !pb-4 md:!pb-8 !pt-8 md:!pt-16">
+
+                    {/* ROW 1 — Progress bar + time */}
+                    <div className="flex items-center !gap-2 md:!gap-4">
+                        <span className="text-[10px] md:text-xs font-mono text-white/60 select-none shrink-0">
+                            <span className="text-white font-bold">{formatTime(currentTime)}</span>
+                            <span className="!mx-1 text-white/30">/</span>
+                            {formatTime(duration)}
+                        </span>
+                        <div className="relative flex-1 h-1.5 bg-white/10 rounded-full cursor-pointer group/progress">
+                            <div className="absolute top-0 left-0 h-full bg-purple-500 shadow-[0_0_14px_rgba(168,85,247,0.7)] rounded-full pointer-events-none" style={{ width: `${progress}%` }} />
+                            <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white shadow-lg opacity-0 group-hover/progress:opacity-100 transition-opacity pointer-events-none" style={{ left: `calc(${progress}% - 8px)` }} />
+                            <input type="range" min="0" max="100" value={progress} onChange={handleSeek} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                        </div>
                     </div>
 
+                    {/* ROW 2 — All buttons */}
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center !gap-8">
-                            <div className="text-xs font-mono text-white/50">
-                                <span className="text-white font-bold">{formatTime(currentTime)}</span> / {formatTime(duration)}
-                            </div>
-                            <div className="flex items-center !gap-4 group/vol">
-                                <button onClick={() => setIsMuted(!isMuted)} className="text-white/40 hover:text-white transition-colors">
-                                    {isMuted || volume === 0 ? <VolumeX size={24} /> : <Volume2 size={24} />}
+
+                        {/* LEFT: Restart · Prev · Next · Volume */}
+                        <div className="flex items-center !gap-4 md:!gap-8">
+                            <button
+                                onClick={(e) => { e.stopPropagation(); if (videoRef.current) videoRef.current.currentTime = 0; }}
+                                title="Reiniciar"
+                                className="text-white/60 hover:text-white transition-all hover:scale-110 hidden sm:block"
+                            >
+                                <RotateCcw size={24} className="hidden md:block" />
+                                <RotateCcw size={18} className="block md:hidden" />
+                            </button>
+
+                            {hasPrevEpisode && (
+                                <button onClick={(e) => { e.stopPropagation(); onPrevEpisode?.(); }} title="Episodio anterior"
+                                    className="text-white/60 hover:text-white transition-all hover:scale-110">
+                                    <ChevronLeft size={32} />
                                 </button>
-                                <input type="range" min="0" max="1" step="0.1" value={volume} onChange={(e) => setVolume(parseFloat(e.target.value))} className="w-0 group-hover/vol:w-24 transition-all accent-purple-500 h-1 bg-white/10 rounded-full" />
+                            )}
+
+                            {hasNextEpisode && (
+                                <button onClick={(e) => { e.stopPropagation(); onNextEpisode?.(); }} title="Siguiente episodio"
+                                    className="text-white/60 hover:text-white transition-all hover:scale-110">
+                                    <ChevronRight size={32} />
+                                </button>
+                            )}
+
+                            <div className="flex items-center group/vol">
+                                <button onClick={() => setIsMuted(!isMuted)} className="text-white/60 hover:text-white transition-all hover:scale-110">
+                                    {isMuted || volume === 0 ? <VolumeX className="w-5 h-5 md:w-7 md:h-7" /> : <Volume2 className="w-5 h-5 md:w-7 md:h-7" />}
+                                </button>
+                                <div className="w-0 overflow-hidden group-hover/vol:w-20 md:group-hover/vol:w-28 group-hover/vol:!ml-4 transition-all duration-300 flex items-center h-8">
+                                    <input
+                                        type="range" min="0" max="1" step="0.05" value={isMuted ? 0 : volume}
+                                        onChange={(e) => { setVolume(parseFloat(e.target.value)); if (isMuted) setIsMuted(false); }}
+                                        className="w-full accent-purple-500 !h-1.5 bg-white/10 rounded-full cursor-pointer"
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        <div className="flex items-center !gap-6">
-                            {/* Menus like Quality, Audio, etc would go here */}
-                            <button onClick={() => setIsAudioMenuOpen(!isAudioMenuOpen)} className="flex flex-col items-center !gap-1 text-white/40 hover:text-white transition-colors">
-                                <Headphones size={20} />
-                                <span className="text-[8px] font-black uppercase">Audio</span>
+                        {/* RIGHT: Audio · Subs · Fullscreen */}
+                        <div className="flex items-center !gap-4 md:!gap-8">
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setIsSubtitleMenuOpen(false); setIsAudioMenuOpen(!isAudioMenuOpen); }}
+                                className={`flex flex-col items-center !gap-1 transition-colors ${isAudioMenuOpen ? 'text-purple-400' : 'text-white/60 hover:text-white'}`}
+                            >
+                                <Headphones className="w-5 h-5 md:w-7 md:h-7" />
+                                <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest hidden sm:block">Audio</span>
                             </button>
-                            <button onClick={() => setIsSubtitleMenuOpen(!isSubtitleMenuOpen)} className="flex flex-col items-center !gap-1 text-white/40 hover:text-white transition-colors">
-                                <MessageSquare size={20} />
-                                <span className="text-[8px] font-black uppercase">Subs</span>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setIsAudioMenuOpen(false); setIsSubtitleMenuOpen(!isSubtitleMenuOpen); }}
+                                className={`flex flex-col items-center !gap-1 transition-colors ${isSubtitleMenuOpen ? 'text-purple-400' : 'text-white/60 hover:text-white'}`}
+                            >
+                                <MessageSquare className="w-5 h-5 md:w-7 md:h-7" />
+                                <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest hidden sm:block">Subs</span>
                             </button>
-                            <button onClick={handleFullscreen} className="text-white/40 hover:text-white transition-colors">
-                                <Maximize2 size={24} />
+                            <button onClick={handleFullscreen} className="text-white/60 hover:text-white transition-all hover:scale-110">
+                                <Maximize2 className="w-5 h-5 md:w-7 md:h-7" />
                             </button>
                         </div>
                     </div>
@@ -479,18 +578,18 @@ export default function VideoPlayer({
 
             {/* Internal Sidebar */}
             {showEpisodesSidebar && episodes.length > 0 && (
-                <div className="absolute inset-y-0 right-0 w-full max-w-[400px] bg-black/95 backdrop-blur-3xl border-l border-white/10 z-[200] !p-10 overflow-y-auto shadow-2xl animate-in slide-in-from-right duration-500" onClick={e => e.stopPropagation()}>
-                    <div className="flex justify-between items-center !mb-10">
-                        <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">Episodios</h2>
+                <div className="absolute inset-y-0 right-0 w-full max-w-[380px] bg-black/65 backdrop-blur-2xl border-l border-white/10 z-[200] !p-8 overflow-y-auto shadow-2xl animate-in slide-in-from-right duration-500" onClick={e => e.stopPropagation()}>
+                    <div className="flex justify-between items-center !mb-8">
+                        <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Episodios</h2>
                         <button onClick={() => setShowEpisodesSidebar(false)} className="text-white/40 hover:text-white !p-2">
-                            <X size={28} />
+                            <X size={24} />
                         </button>
                     </div>
-                    <div className="flex flex-col !gap-8">
+                    <div className="flex flex-col !gap-6">
                         {episodes.map((s: any) => (
                             <div key={s.id}>
-                                <h3 className="text-[10px] font-black text-purple-400 uppercase tracking-[4px] !mb-4 opacity-60 border-b border-purple-500/20 pb-2">Temporada {s.number}</h3>
-                                <div className="flex flex-col !gap-3">
+                                <h3 className="text-[10px] font-black text-purple-400 uppercase tracking-[4px] !mb-3 opacity-60 border-b border-purple-500/20 !pb-2">Temporada {s.number}</h3>
+                                <div className="flex flex-col !gap-2">
                                     {s.episodes?.map((e: any) => (
                                         <button
                                             key={e.id}
@@ -498,12 +597,12 @@ export default function VideoPlayer({
                                                 setShowEpisodesSidebar(false);
                                                 onEpisodeSelect?.(e.id);
                                             }}
-                                            className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center gap-4 ${title?.includes(`E${e.number}`) ? 'bg-purple-500/10 border-purple-500/30' : 'bg-white/5 border-white/5 hover:bg-white/10'}`}
+                                            className={`w-full !p-3 rounded-xl border transition-all text-left flex items-center !gap-3 ${(currentEpisodeId ? currentEpisodeId === e.id : false) ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/5 hover:bg-white/10'}`}
                                         >
-                                            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-xs font-black text-white/40">{e.number}</div>
+                                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${(currentEpisodeId ? currentEpisodeId === e.id : false) ? 'bg-white text-black' : 'bg-white/5 text-white/40'}`}>{e.number}</div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-bold text-white truncate">{e.translations?.[0]?.title || `Episodio ${e.number}`}</p>
-                                                <span className="text-[10px] text-white/30 uppercase">{e.duration || '??'} MIN</span>
+                                                {!!e.duration && <span className="text-[10px] text-white/30 uppercase">{e.duration} min</span>}
                                             </div>
                                         </button>
                                     ))}

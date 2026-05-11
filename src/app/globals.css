@@ -2899,7 +2899,7 @@ body {
 
 @media (max-width: 768px) {
     :root {
-        --page-padding: 5%;
+        --page-padding: 16px;
     }
 
     .hero-cinematic {
@@ -2928,11 +2928,32 @@ body {
     .catalog-container {
         margin-top: -60px;
     }
+
+    .explore-sidebar {
+        width: 100% !important;
+        position: static !important;
+        height: auto !important;
+        border-right: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        padding: 16px !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: 16px !important;
+    }
+
+    .explore-main {
+        padding: 16px !important;
+    }
+
+    .explore-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
 }
 
 @media (max-width: 480px) {
     :root {
-        --page-padding: 4%;
+        --page-padding: 12px;
     }
 
     .hero-cinematic {
@@ -2942,6 +2963,11 @@ body {
 
     .adm-kpi-row {
         grid-template-columns: 1fr;
+    }
+
+    .explore-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
     }
 }
 
@@ -3132,9 +3158,10 @@ body {
 }
 
 .nav-cinema-popup-grid--types {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 4px;
+    min-width: 580px;
 }
 
 .nav-cinema-popup-link {

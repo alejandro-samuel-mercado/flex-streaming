@@ -1,7 +1,9 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Mail, Phone, Globe, ExternalLink, AtSign, Video, MapPin } from 'lucide-react';
+import { API_ROUTES } from '@/lib/api-routes';
 
 interface FooterProps {
     backdropUrl?: string;
@@ -9,6 +11,29 @@ interface FooterProps {
 
 export default function Footer({ backdropUrl }: FooterProps) {
     const bgImage = backdropUrl || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2525&auto=format&fit=crop';
+
+    const [config, setConfig] = useState<Record<string, string>>({});
+
+    useEffect(() => {
+        fetch(API_ROUTES.HOMEPAGE.DATA)
+            .then(res => res.json())
+            .then(json => {
+                if (json.success && json.data.config) {
+                    setConfig(json.data.config);
+                }
+            })
+            .catch(err => console.error('Failed to fetch footer config', err));
+    }, []);
+
+    const siteName = config['SITE_NAME'] || 'Nuba';
+    const email = config['CONTACT_EMAIL'] || 'soporte@nuba.com';
+    const phone = config['CONTACT_PHONE'] || '+54 9 11 0000-0000';
+    const location = config['CONTACT_LOCATION'] || 'Latinoamérica';
+
+    const ig = config['SOCIAL_INSTAGRAM'];
+    const fb = config['SOCIAL_FACEBOOK'];
+    const tw = config['SOCIAL_TWITTER'];
+    const yt = config['SOCIAL_YOUTUBE'];
 
     return (
         <footer className="cinema-footer" id="footer">
@@ -35,7 +60,7 @@ export default function Footer({ backdropUrl }: FooterProps) {
                 <div className="cinema-footer-top">
                     <div className="cinema-footer-brand">
                         <Link href="/" className="cinema-footer-logo">
-                            <img src="/logo-nuba.png" alt="Nuba" className="cinema-footer-logo-img" />
+                            <img src="/logo-nuba.png" alt={siteName} className="cinema-footer-logo-img" />
                         </Link>
                         <p className="cinema-footer-tagline">
                             Tu destino de entretenimiento. Miles de películas, series, animes y más al alcance de un clic.
@@ -56,19 +81,19 @@ export default function Footer({ backdropUrl }: FooterProps) {
                             <Link href="/login" className="cinema-footer-link">Iniciar Sesión</Link>
 
                             <Link href="/favoritos" className="cinema-footer-link">Favoritos</Link>
-                            <a href="#planes" className="cinema-footer-link">Planes</a>
+
                         </div>
 
                         <div className="cinema-footer-col">
                             <h4 className="cinema-footer-col-title">Contacto</h4>
                             <span className="cinema-footer-link cinema-footer-link--info">
-                                <Mail size={14} /> soporte@Nuba.com
+                                <Mail size={14} /> {email}
                             </span>
                             <span className="cinema-footer-link cinema-footer-link--info">
-                                <Phone size={14} /> +54 9 11 0000-0000
+                                <Phone size={14} /> {phone}
                             </span>
                             <span className="cinema-footer-link cinema-footer-link--info">
-                                <MapPin size={14} /> Latinoamérica
+                                <MapPin size={14} /> {location}
                             </span>
                         </div>
                     </div>
@@ -79,14 +104,14 @@ export default function Footer({ backdropUrl }: FooterProps) {
 
                 <div className="cinema-footer-bottom">
                     <div className="cinema-footer-social">
-                        <a href="#" className="cinema-footer-social-btn" aria-label="Instagram"><AtSign size={18} /></a>
-                        <a href="#" className="cinema-footer-social-btn" aria-label="Facebook"><Globe size={18} /></a>
-                        <a href="#" className="cinema-footer-social-btn" aria-label="Twitter"><ExternalLink size={18} /></a>
-                        <a href="#" className="cinema-footer-social-btn" aria-label="YouTube"><Video size={18} /></a>
+                        {ig && <a href={ig} target="_blank" rel="noopener noreferrer" className="cinema-footer-social-btn" aria-label="Instagram"><AtSign size={18} /></a>}
+                        {fb && <a href={fb} target="_blank" rel="noopener noreferrer" className="cinema-footer-social-btn" aria-label="Facebook"><Globe size={18} /></a>}
+                        {tw && <a href={tw} target="_blank" rel="noopener noreferrer" className="cinema-footer-social-btn" aria-label="Twitter"><ExternalLink size={18} /></a>}
+                        {yt && <a href={yt} target="_blank" rel="noopener noreferrer" className="cinema-footer-social-btn" aria-label="YouTube"><Video size={18} /></a>}
                     </div>
 
                     <p className="cinema-footer-copy">
-                        © {new Date().getFullYear()} Nuba. Todos los derechos reservados.
+                        © {new Date().getFullYear()} {siteName}. Todos los derechos reservados.
                     </p>
                 </div>
             </div>

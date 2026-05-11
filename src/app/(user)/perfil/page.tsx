@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
 import { User, Calendar, CreditCard, Clock, Monitor, Settings, LogOut, ChevronRight, Play } from 'lucide-react';
 import Link from 'next/link';
-import { resolveImageUrl } from '@/lib/api-routes';
+import { resolveImageUrl, API_ROUTES } from '@/lib/api-routes';
 
 export default function ProfilePage() {
     const { user, logout, loading } = useAuth();
@@ -16,15 +16,15 @@ export default function ProfilePage() {
         if (user && user.profiles?.[0]) {
             const fetchHistory = async () => {
                 try {
-                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/history`, {
+                    const res = await fetch(API_ROUTES.HISTORY.BASE, {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
                             'X-Profile-Id': localStorage.getItem('profileId') || user.profiles![0].id
                         }
                     });
                     const result = await res.json();
-                    if (result.success) {
-                        setHistory(result.data.history || []);
+                    if (result.success && result.data) {
+                        setHistory(result.data.data || []);
                     }
                 } catch (err) {
                     console.error('Error fetching history:', err);
@@ -49,7 +49,7 @@ export default function ProfilePage() {
 
     const endUser = user.endUserAccount;
     const isInactivePending = endUser?.status === 'INACTIVE' && endUser?.planId;
-    const remainingDays = endUser?.endDate 
+    const remainingDays = endUser?.endDate
         ? Math.max(0, Math.ceil((new Date(endUser.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
         : isInactivePending && endUser?.plan
             ? (endUser.plan.durationDays + (endUser.plan.bonusDays ?? 0))
@@ -58,11 +58,11 @@ export default function ProfilePage() {
     return (
         <div className="!min-h-screen !bg-[#02040A] !text-white !pt-24 !pb-12 !px-4 sm:!px-8">
             <div className="!max-w-6xl !mx-auto">
-                
+
                 {/* Header / User Hero */}
                 <div className="!relative !mb-12 !rounded-[40px] !overflow-hidden !bg-gradient-to-br !from-[#0A0F24] !to-[#02040A] !border !border-white/5 !p-8 sm:!p-12 !shadow-2xl">
                     <div className="!absolute !top-0 !right-0 !w-64 !h-64 !bg-[var(--color-primary)] !opacity-5 !blur-[120px] !-mr-32 !-mt-32"></div>
-                    
+
                     <div className="!flex !flex-col md:!flex-row !items-center !gap-8 !relative !z-10">
                         <div className="!w-32 !h-32 !rounded-full !bg-gradient-to-tr !from-[var(--color-primary)] !to-cyan-400 !flex !items-center !justify-center !text-black !text-5xl !font-black !shadow-[0_0_30px_rgba(0,229,255,0.3)]">
                             {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
@@ -88,34 +88,43 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="!grid !grid-cols-1 lg:!grid-cols-3 !gap-8">
-                    
+
                     {/* Left Column: Plan & Details */}
                     <div className="lg:!col-span-1 !space-y-8">
-                        
+
                         {/* Plan Card */}
                         <div className="!bg-[#0A0F24]/60 !backdrop-blur-xl !border !border-white/5 !rounded-3xl !p-8 !shadow-xl">
                             <div className="!flex !items-center !gap-3 !mb-6">
                                 <div className="!p-2 !bg-purple-500/20 !rounded-lg !text-purple-500"><CreditCard size={20} /></div>
                                 <h3 className="!font-black !uppercase !tracking-widest !text-sm">Suscripción Activa</h3>
                             </div>
-                            
+
                             {endUser?.plan ? (
                                 <>
-                                    <div className="!mb-6">
-                                        <p className="!text-3xl !font-black !text-[var(--color-primary)] !mb-1">{endUser.plan.name}</p>
-                                        <p className="!text-xs !text-gray-400 !font-bold !uppercase !tracking-tighter">Plan de {endUser.plan.durationDays} días</p>
-                                    </div>
-                                    
-                                    <div className="!space-y-4">
-                                        <div className="!flex !justify-between !items-center !py-3 !border-b !border-white/5">
-                                            <span className="!text-gray-400 !text-sm">Días restantes</span>
-                                            <div className="!flex !items-center !gap-2">
-                                                <span className="!font-black !text-xl">{remainingDays}</span>
-                                                {isInactivePending && (
-                                                    <span className="!text-[10px] !font-bold !uppercase !bg-yellow-500/20 !text-yellow-400 !border !border-yellow-500/30 !px-2 !py-0.5 !rounded-full">Pendiente activar</span>
-                                                )}
-                                            </div>
+                                    <div className="!mb-6 !flex !flex-col !items-start">
+                                        <div className="!flex !items-end !gap-2">
+                                            <p className="!text-6xl !font-black !text-[var(--color-primary)] !leading-none">{remainingDays}</p>
+                                            <p className="!text-xl !font-black !text-white !mb-1">días</p>
                                         </div>
+                                        
+                                        <div className="!flex !flex-wrap !items-center !gap-3 !mt-4">
+                                            <p className="!text-xs !text-gray-400 !font-bold !uppercase !tracking-widest">
+                                                Plan: <span className="!text-white">{endUser.plan.name}</span>
+                                            </p>
+                                            
+                                            {remainingDays > (endUser.plan.durationDays + (endUser.plan.bonusDays || 0)) * 1.5 && (
+                                                <span className="!text-[10px] !font-bold !uppercase !bg-[var(--color-primary)]/20 !text-[var(--color-primary)] !border !border-[var(--color-primary)]/30 !px-2 !py-0.5 !rounded-full">
+                                                    Acumulado x{Math.round(remainingDays / (endUser.plan.durationDays + (endUser.plan.bonusDays || 0)))}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {isInactivePending && (
+                                            <span className="!mt-4 !text-[10px] !font-bold !uppercase !bg-yellow-500/20 !text-yellow-400 !border !border-yellow-500/30 !px-3 !py-1 !rounded-full">Pendiente activar</span>
+                                        )}
+                                    </div>
+
+                                    <div className="!space-y-4">
                                         <div className="!flex !justify-between !items-center !py-3 !border-b !border-white/5">
                                             <span className="!text-gray-400 !text-sm">Vence el</span>
                                             <span className="!font-bold !text-sm">
@@ -147,7 +156,7 @@ export default function ProfilePage() {
                             <ul className="!space-y-4">
                                 <li><Link href="/terminos" className="!flex !items-center !justify-between !text-sm hover:!text-[var(--color-primary)] !transition-colors">Términos y Condiciones <ChevronRight size={14} /></Link></li>
                                 <li><Link href="/privacidad" className="!flex !items-center !justify-between !text-sm hover:!text-[var(--color-primary)] !transition-colors">Privacidad <ChevronRight size={14} /></Link></li>
-                                <li><Link href="/ayuda" className="!flex !items-center !justify-between !text-sm hover:!text-[var(--color-primary)] !transition-colors">Centro de Ayuda <ChevronRight size={14} /></Link></li>
+
                             </ul>
                         </div>
                     </div>
@@ -184,7 +193,9 @@ export default function ProfilePage() {
                                                 <div className="!w-full !bg-white/10 !h-1 !rounded-full !overflow-hidden">
                                                     <div className="!bg-[var(--color-primary)] !h-full" style={{ width: `${(item.progress / (item.duration || 1)) * 100}%` }}></div>
                                                 </div>
-                                                <p className="!text-[10px] !text-gray-400 !mt-2">Visto el {new Date(item.lastWatched).toLocaleDateString()}</p>
+                                                 <p className="!text-[10px] !text-gray-400 !mt-2">
+                                                     Visto el {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Recientemente'}
+                                                 </p>
                                             </div>
                                         </Link>
                                     ))}

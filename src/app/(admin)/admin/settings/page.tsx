@@ -288,15 +288,43 @@ export default function AdminSettingsPage() {
                 </div>
 
                 {/* General */}
-                <div className="adm-settings-section">
+                <div className="adm-settings-section" style={{ gridColumn: 'span 2' }}>
                     <div className="adm-settings-section-header">
                         <Globe size={18} className="adm-settings-icon" />
-                        <h2>General</h2>
+                        <h2>General & Footer</h2>
                     </div>
-                    <div className="adm-settings-body">
+                    <div className="adm-settings-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                         <div className="adm-form-row">
                             <label>Nombre del sitio</label>
                             <input className="adm-input" value={settings['SITE_NAME'] || 'Nuba'} onChange={e => setSettings({ ...settings, SITE_NAME: e.target.value })} />
+                        </div>
+                        <div className="adm-form-row">
+                            <label>Email de Contacto</label>
+                            <input className="adm-input" value={settings['CONTACT_EMAIL'] || ''} onChange={e => setSettings({ ...settings, CONTACT_EMAIL: e.target.value })} placeholder="soporte@nuba.com" />
+                        </div>
+                        <div className="adm-form-row">
+                            <label>Teléfono de Contacto</label>
+                            <input className="adm-input" value={settings['CONTACT_PHONE'] || ''} onChange={e => setSettings({ ...settings, CONTACT_PHONE: e.target.value })} placeholder="+54 9 11 0000-0000" />
+                        </div>
+                        <div className="adm-form-row">
+                            <label>Ubicación / Región</label>
+                            <input className="adm-input" value={settings['CONTACT_LOCATION'] || ''} onChange={e => setSettings({ ...settings, CONTACT_LOCATION: e.target.value })} placeholder="Latinoamérica" />
+                        </div>
+                        <div className="adm-form-row">
+                            <label>Enlace Instagram</label>
+                            <input className="adm-input" value={settings['SOCIAL_INSTAGRAM'] || ''} onChange={e => setSettings({ ...settings, SOCIAL_INSTAGRAM: e.target.value })} placeholder="https://instagram.com/..." />
+                        </div>
+                        <div className="adm-form-row">
+                            <label>Enlace Facebook</label>
+                            <input className="adm-input" value={settings['SOCIAL_FACEBOOK'] || ''} onChange={e => setSettings({ ...settings, SOCIAL_FACEBOOK: e.target.value })} placeholder="https://facebook.com/..." />
+                        </div>
+                        <div className="adm-form-row">
+                            <label>Enlace Twitter (X)</label>
+                            <input className="adm-input" value={settings['SOCIAL_TWITTER'] || ''} onChange={e => setSettings({ ...settings, SOCIAL_TWITTER: e.target.value })} placeholder="https://twitter.com/..." />
+                        </div>
+                        <div className="adm-form-row">
+                            <label>Enlace YouTube</label>
+                            <input className="adm-input" value={settings['SOCIAL_YOUTUBE'] || ''} onChange={e => setSettings({ ...settings, SOCIAL_YOUTUBE: e.target.value })} placeholder="https://youtube.com/..." />
                         </div>
                     </div>
                 </div>

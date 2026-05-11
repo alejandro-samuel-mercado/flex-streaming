@@ -45,9 +45,9 @@ export default function HistorialPage() {
             <div className="min-h-screen bg-[#0A0A0F] text-white pb-16 relative">
                 <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-[#FF6B00]/10 via-[#0A0A0F]/80 to-[#0A0A0F] pointer-events-none" />
 
-                <div className="relative !pt-24 max-w-[1600px] mx-auto w-full" style={{ paddingLeft: '6vw', paddingRight: '6vw', paddingBottom: '20vh' }}>
-                    <div className="!mb-12">
-                        <h1 className="text-6xl font-bold tracking-tighter text-white" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
+                <div className="relative !pt-24 max-w-[1600px] mx-auto w-full !px-4 sm:!px-[6vw] !pb-[20vh]">
+                    <div className="!mb-8 md:!mb-12">
+                        <h1 className="text-4xl md:text-6xl font-bold tracking-tighter text-white" style={{ fontFamily: 'Bebas Neue, sans-serif' }}>
                             Mi Historial
                         </h1>
                         <p className="text-gray-400 mt-2 text-sm max-w-lg">

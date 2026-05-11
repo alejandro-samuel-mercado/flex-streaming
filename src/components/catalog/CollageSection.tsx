@@ -47,8 +47,8 @@ export default function CollageSection({ items, isLoggedIn, hasPlan }: CollageSe
 
             {/* CTA Content */}
             <div className="collage-cta">
-                {isLoggedIn && hasPlan ? (
-                    /* Logged in + has plan: Thank you message */
+                {isLoggedIn ? (
+                    /* Logged in: Thank you message / active member */
                     <motion.div
                         className="collage-cta-content"
                         initial={{ opacity: 0, y: 20 }}
@@ -64,35 +64,6 @@ export default function CollageSection({ items, isLoggedIn, hasPlan }: CollageSe
                             Tu apoyo nos permite seguir trayéndote el mejor contenido.
                             Disfruta de todo lo que tenemos para ti.
                         </p>
-                    </motion.div>
-                ) : isLoggedIn && !hasPlan ? (
-                    /* Logged in but no plan: Subscribe CTA */
-                    <motion.div
-                        className="collage-cta-content"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                    >
-                        <div className="collage-icon-wrap">
-                            <Sparkles size={32} />
-                        </div>
-                        <h2 className="collage-cta-title">Desbloquea Todo el Contenido</h2>
-                        <p className="collage-cta-desc">
-                            Miles de películas, series y exclusivos te están esperando.
-                            Únete ahora y vive la experiencia completa.
-                        </p>
-                        <div className="collage-cta-actions">
-                            <a href="#planes" className="collage-cta-btn collage-cta-btn--primary">
-                                <Sparkles size={18} />
-                                Suscribirme Ahora
-                            </a>
-                        </div>
-                        <div className="collage-cta-perks">
-                            <span>✓ Sin contratos</span>
-                            <span>✓ Cancela cuando quieras</span>
-                            <span>✓ Acceso inmediato</span>
-                        </div>
                     </motion.div>
                 ) : (
                     /* Not logged in: Login CTA */
@@ -116,10 +87,10 @@ export default function CollageSection({ items, isLoggedIn, hasPlan }: CollageSe
                                 <LogIn size={18} />
                                 Iniciar Sesión
                             </Link>
-                            <a href="#planes" className="collage-cta-btn collage-cta-btn--secondary">
+                            <Link href="/login" className="collage-cta-btn collage-cta-btn--secondary">
                                 <Sparkles size={18} />
                                 Suscribirme
-                            </a>
+                            </Link>
                         </div>
                     </motion.div>
                 )}

@@ -171,7 +171,7 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [] 
 
                                     {activeDropdown === 'tipo' && (
                                         <div className="nav-cinema-popup" onMouseEnter={keepDropdown} onMouseLeave={closeDropdown}>
-                                            <div className="nav-cinema-popup-grid nav-cinema-popup-grid--types">
+                                            <div className="grid grid-cols-3 gap-2 min-w-[580px] max-w-[80vw]">
                                                 {CONTENT_TYPES_LIST.map(type => {
                                                     const ct = contentTypes.find(c => c.type === type);
                                                     return (

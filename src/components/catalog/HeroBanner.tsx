@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Star, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { getContentTypeLabel } from '@/lib/content-types';
+import { useAuth } from '@/context/AuthContext';
 
 interface HeroSlide {
   id: string;
@@ -24,6 +25,7 @@ interface HeroCarouselProps {
 }
 
 export default function HeroCarousel({ slides }: HeroCarouselProps) {
+  const { user } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -175,10 +177,12 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
                 <Play size={20} fill="white" />
                 Reproducir
               </Link>
-              <a href="#planes" className="hero-btn-subscribe" id="hero-subscribe-btn">
-                <Sparkles size={18} />
-                Suscribirse
-              </a>
+              {!user && (
+                <Link href="/login" className="hero-btn-subscribe" id="hero-subscribe-btn">
+                  <Sparkles size={18} />
+                  Suscribirse
+                </Link>
+              )}
             </div>
           </motion.div>
         </AnimatePresence>

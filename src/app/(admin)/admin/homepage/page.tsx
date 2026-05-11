@@ -228,7 +228,7 @@ export default function AdminHomepageConfigPage() {
                     <p className="!text-[var(--adm-muted)] !mt-1">Personaliza la portada, el banner principal y preguntas frecuentes</p>
                 </div>
                 <button
-                    className="!flex !items-center !gap-2 !bg-[var(--color-primary)] !text-black !px-6 !py-2.5 !rounded-xl !font-bold hover:!bg-[var(--color-primary-hover)] !transition-all disabled:!opacity-50"
+                    className="!flex !items-center !gap-2 !bg-[var(--color-primary)] !text-black !px-6 !py-2.5 !rounded-xl !font-bold hover:!bg-[var(--color-primary-light)] !transition-all disabled:!opacity-50"
                     onClick={handleSave}
                     disabled={saving}
                 >

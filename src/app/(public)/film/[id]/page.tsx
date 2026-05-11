@@ -195,10 +195,23 @@ export default function FilmDetailPage() {
                 .film-hero-content { padding: 180px 7% 100px 7% !important; gap: 24px !important; }
                 .film-section { padding: 40px 7% 0 !important; }
                 .film-meta-bar { display: flex !important; align-items: center !important; gap: 20px !important; margin-bottom: 32px !important; }
-                .film-action-buttons { display: flex !important; align-items: center !important; gap: 16px !important; }
+                .film-action-buttons { display: flex !important; align-items: center !important; gap: 16px !important; flex-wrap: wrap !important; }
                 .film-detail-grid { display: grid !important; grid-template-columns: 220px 1fr !important; gap: 48px !important; margin-bottom: 64px !important; }
                 .film-info-item { padding: 16px 20px !important; margin-bottom: 6px !important; }
                 .adm-page, .adm-card, .adm-header { padding: 24px !important; gap: 24px !important; margin-bottom: 24px !important; }
+                .episode-card:hover { background: rgba(255,255,255,0.06) !important; border-color: rgba(0,229,255,0.2) !important; transform: translateX(4px) !important; }
+                @media (max-width: 768px) {
+                    .film-hero-content { padding: 140px 4% 80px 4% !important; }
+                    .film-section { padding: 24px 4% 0 !important; }
+                    .film-detail-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+                    .film-action-buttons a, .film-action-buttons button:not([style*="width: 56"]) { 
+                        flex: 1 !important; min-width: 120px !important; justify-content: center !important; padding: 12px 20px !important; font-size: 14px !important;
+                    }
+                }
+                @media (max-width: 640px) {
+                    .film-hero-content { padding: 120px 16px 60px !important; }
+                    .film-section { padding: 20px 16px 0 !important; }
+                }
             `}} />
             <TrailerModal url={content.trailerUrl || ''} isOpen={isTrailerOpen} onClose={() => setIsTrailerOpen(false)} />
 
@@ -323,7 +336,7 @@ export default function FilmDetailPage() {
                         )}
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 12 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
                         {(currentSeason?.episodes || []).map((ep: any) => {
                             const epTitle = ep.translations?.[0]?.title || `Episodio ${ep.number}`;
                             const epDesc = ep.translations?.[0]?.description || '';
@@ -457,13 +470,13 @@ export default function FilmDetailPage() {
 
             {/* ── Comments ── */}
             {canPlay && (
-                <div style={{ padding: '0 7%', position: 'relative', zIndex: 10 }}>
+                <div style={{ padding: '0 4%', position: 'relative', zIndex: 10 }}>
                     <FilmComments contentId={id as string} />
                 </div>
             )}
 
             {/* ── Related Content Rows ── */}
-            <div style={{ padding: '48px 7% 120px', position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '48px' }}>
+            <div style={{ padding: '48px 4% 80px', position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '48px' }}>
                 {related.length > 0 && (
                     <div style={{ borderTop: '1px solid rgba(0,229,255,0.1)', paddingTop: 48 }}>
                         <FilmRow

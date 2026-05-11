@@ -287,6 +287,7 @@ export default function WatchPage() {
                 hasNextEpisode={hasNextEpisode}
                 hasPrevEpisode={hasPrevEpisode}
                 episodes={content.seasons || []}
+                currentEpisodeId={currentEpisode?.id}
                 onEpisodeSelect={(episodeId) => {
                     router.push(`/watch/${id}?episodeId=${episodeId}`);
                 }}

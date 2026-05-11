@@ -122,7 +122,7 @@ export default function FilmComments({ contentId }: { contentId: string }) {
     if (loading) return null;
 
     return (
-        <div className="mt-16 pt-10 border-t border-white/10" id="comments">
+        <div className="mt-16 pt-10 border-t border-white/10 max-w-5xl !mx-auto" id="comments ">
             <h3 className="text-2xl font-black my-8! flex items-center gap-3">
                 <MessageSquare className="text-[#00E5FF]" />
                 Comentarios y Valoraciones
@@ -130,10 +130,10 @@ export default function FilmComments({ contentId }: { contentId: string }) {
 
             {/* Comment Form */}
             {authUser && profileId ? (
-                <div className="bg-white/5 rounded-2xl p-6! mb-10 border border-white/10">
-                    <h4 className="font-bold text-lg mb-4">Deja tu valoración</h4>
+                <div className="bg-white/5 rounded-2xl p-6! !mb-10 border border-white/10 ">
+                    <h4 className="font-bold text-lg !mb-4">Deja tu valoración</h4>
                     <form onSubmit={handleSubmit}>
-                        <div className="flex gap-2 mb-4">
+                        <div className="flex gap-2 !mb-4">
                             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(star => (
                                 <Star
                                     key={star}
@@ -147,20 +147,20 @@ export default function FilmComments({ contentId }: { contentId: string }) {
                                     onClick={() => setNewRating(star)}
                                 />
                             ))}
-                            <span className="ml-2 font-bold text-white/50">{newRating > 0 ? `${newRating}/10` : ''}</span>
+                            <span className="!ml-2 font-bold text-white/50">{newRating > 0 ? `${newRating}/10` : ''}</span>
                         </div>
                         <textarea
-                            className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-[#00E5FF] transition-colors resize-none"
+                            className="w-full bg-black/40 border border-white/10 rounded-xl !p-4 text-white focus:outline-none focus:border-[#00E5FF] transition-colors resize-none"
                             rows={3}
                             placeholder="¿Qué te pareció?"
                             value={newBody}
                             onChange={e => setNewBody(e.target.value)}
                         />
-                        <div className="mt-4 flex justify-end">
+                        <div className="!mt-4 flex justify-end">
                             <button
                                 type="submit"
                                 disabled={submitting}
-                                className="px-6 py-2 bg-[#00E5FF] text-black font-bold rounded-lg hover:bg-[#4DEDFF] transition-all disabled:opacity-50 flex items-center gap-2"
+                                className="!px-6 !py-2 bg-[#00E5FF] text-black font-bold rounded-lg hover:bg-[#4DEDFF] transition-all disabled:opacity-50 flex items-center gap-2"
                             >
                                 {submitting ? 'Publicando...' : <><Send size={18} /> Publicar</>}
                             </button>
@@ -181,7 +181,7 @@ export default function FilmComments({ contentId }: { contentId: string }) {
                     <p className="text-white/40 text-center py-10">Aún no hay comentarios. ¡Sé el primero en opinar!</p>
                 ) : (
                     reviews.map((review) => (
-                        <div key={review.id} className="bg-white/5 rounded-xl p-5 border border-white/5">
+                        <div key={review.id} className="bg-white/5 rounded-xl !p-5 border border-white/5">
                             <div className="flex gap-4">
                                 <div className="w-10 h-10 rounded-full bg-[#00E5FF]/20 flex items-center justify-center text-[#00E5FF] font-bold overflow-hidden shrink-0">
                                     {review.profile?.avatar ? (
@@ -191,13 +191,13 @@ export default function FilmComments({ contentId }: { contentId: string }) {
                                     )}
                                 </div>
                                 <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-1">
+                                    <div className="flex items-center gap-3 !mb-1">
                                         <span className="font-bold">{review.profile?.name || 'Usuario'}</span>
                                         <span className="text-xs text-white/40">
                                             {new Date(review.createdAt).toLocaleDateString()}
                                         </span>
                                         {review.rating && (
-                                            <div className="flex items-center gap-1 ml-auto text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded text-xs font-bold">
+                                            <div className="flex items-center gap-1 !ml-auto text-yellow-400 bg-yellow-400/10 !px-2 !py-0.5 rounded text-xs font-bold">
                                                 <Star size={12} fill="currentColor" /> {review.rating}/10
                                             </div>
                                         )}
@@ -215,10 +215,10 @@ export default function FilmComments({ contentId }: { contentId: string }) {
 
                                     {/* Reply Box */}
                                     {replyingTo === review.id && (
-                                        <div className="mt-4 flex gap-2">
+                                        <div className="!mt-4 flex gap-2">
                                             <input
                                                 type="text"
-                                                className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#00E5FF]"
+                                                className="flex-1 bg-black/40 border border-white/10 rounded-lg !px-3 !py-2 text-sm text-white focus:outline-none focus:border-[#00E5FF]"
                                                 placeholder="Escribe una respuesta..."
                                                 value={replyBody}
                                                 onChange={e => setReplyBody(e.target.value)}
@@ -226,7 +226,7 @@ export default function FilmComments({ contentId }: { contentId: string }) {
                                             <button
                                                 onClick={() => handleReplySubmit(review.id)}
                                                 disabled={submittingReply}
-                                                className="bg-[#00E5FF] text-black px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50"
+                                                className="bg-[#00E5FF] text-black !px-4 !py-2 rounded-lg text-sm font-bold disabled:opacity-50"
                                             >
                                                 Enviar
                                             </button>
@@ -235,7 +235,7 @@ export default function FilmComments({ contentId }: { contentId: string }) {
 
                                     {/* Replies List */}
                                     {review.replies && review.replies.length > 0 && (
-                                        <div className="mt-4 pl-4 border-l-2 border-white/10 space-y-4">
+                                        <div className="!mt-4 !pl-4 border-l-2 border-white/10 space-y-4">
                                             {review.replies.map((reply: any) => (
                                                 <div key={reply.id} className="flex gap-3">
                                                     <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold overflow-hidden shrink-0">
@@ -246,7 +246,7 @@ export default function FilmComments({ contentId }: { contentId: string }) {
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <div className="flex items-center gap-2 mb-1">
+                                                        <div className="flex items-center gap-2 !mb-1">
                                                             <span className="font-bold text-sm">{reply.profile?.name || 'Usuario'}</span>
                                                             <span className="text-[10px] text-white/40">
                                                                 {new Date(reply.createdAt).toLocaleDateString()}

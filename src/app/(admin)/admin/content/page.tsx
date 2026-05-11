@@ -342,13 +342,13 @@ export default function AdminContentPage() {
                                                     ▶ Tráiler
                                                 </span>
                                             )}
-                                            
+
                                             {item.type === 'MOVIE' ? (
                                                 (item.videoFiles || []).map((v, i) => {
                                                     const isFailed = v.status === 'FAILED' || v.status === 'ERROR';
                                                     const isProcessing = v.status === 'PROCESSING' || v.status === 'QUEUED';
                                                     const isCompleted = v.status === 'READY' || v.status === 'COMPLETED';
-                                                    
+
                                                     return (
                                                         <div key={i} title={`Video ${i + 1}: ${v.status}`} className="adm-badge" style={{
                                                             background: isFailed ? 'rgba(244, 63, 94, 0.1)' : isCompleted ? 'rgba(74, 222, 128, 0.1)' : 'rgba(167, 139, 250, 0.1)',
@@ -366,13 +366,13 @@ export default function AdminContentPage() {
                                                     {(() => {
                                                         // Priority: item.episodeCount (real count from backend) 
                                                         // Fallback: item.videoFiles (legacy count)
-                                                        const completed = (item as any).episodeCount !== undefined 
-                                                            ? (item as any).episodeCount 
+                                                        const completed = (item as any).episodeCount !== undefined
+                                                            ? (item as any).episodeCount
                                                             : (item.videoFiles?.filter(v => v.status === 'COMPLETED' || v.status === 'READY').length || 0);
-                                                        
+
                                                         const totalVideoFiles = item.videoFiles?.length || 0;
                                                         const failed = item.videoFiles?.filter(v => v.status === 'FAILED' || v.status === 'ERROR').length || 0;
-                                                        
+
                                                         return (
                                                             <>
                                                                 {completed > 0 ? (
@@ -392,7 +392,7 @@ export default function AdminContentPage() {
                                                     })()}
                                                 </div>
                                             )}
-                                            {(!item.videoFiles || item.videoFiles.length === 0) && !item.trailerUrl && <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)' }}>Sin contenido multimedia</span>}
+                                            {(!item.videoFiles || item.videoFiles.length === 0) && !item.trailerUrl && <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)' }}>-</span>}
                                         </div>
                                     </td>
                                     <td>
