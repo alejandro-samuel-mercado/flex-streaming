@@ -13,22 +13,23 @@ export default function Footer({ backdropUrl }: FooterProps) {
     const bgImage = backdropUrl || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=2525&auto=format&fit=crop';
 
     const [config, setConfig] = useState<Record<string, string>>({});
+    const [platforms, setPlatforms] = useState<any[]>([]);
+    const [genres, setGenres] = useState<any[]>([]);
 
     useEffect(() => {
         fetch(API_ROUTES.HOMEPAGE.DATA)
             .then(res => res.json())
             .then(json => {
-                if (json.success && json.data.config) {
-                    setConfig(json.data.config);
+                if (json.success && json.data) {
+                    if (json.data.config) setConfig(json.data.config);
+                    if (json.data.platforms) setPlatforms(json.data.platforms.slice(0, 5));
+                    if (json.data.genres) setGenres(json.data.genres.slice(0, 5));
                 }
             })
             .catch(err => console.error('Failed to fetch footer config', err));
     }, []);
 
     const siteName = config['SITE_NAME'] || 'Nuba';
-    const email = config['CONTACT_EMAIL'] || 'soporte@nuba.com';
-    const phone = config['CONTACT_PHONE'] || '+54 9 11 0000-0000';
-    const location = config['CONTACT_LOCATION'] || 'Latinoamérica';
 
     const ig = config['SOCIAL_INSTAGRAM'];
     const fb = config['SOCIAL_FACEBOOK'];
@@ -79,23 +80,30 @@ export default function Footer({ backdropUrl }: FooterProps) {
                         <div className="cinema-footer-col">
                             <h4 className="cinema-footer-col-title">Cuenta</h4>
                             <Link href="/login" className="cinema-footer-link">Iniciar Sesión</Link>
-
                             <Link href="/favoritos" className="cinema-footer-link">Favoritos</Link>
-
                         </div>
 
-                        <div className="cinema-footer-col">
-                            <h4 className="cinema-footer-col-title">Contacto</h4>
-                            <span className="cinema-footer-link cinema-footer-link--info">
-                                <Mail size={14} /> {email}
-                            </span>
-                            <span className="cinema-footer-link cinema-footer-link--info">
-                                <Phone size={14} /> {phone}
-                            </span>
-                            <span className="cinema-footer-link cinema-footer-link--info">
-                                <MapPin size={14} /> {location}
-                            </span>
-                        </div>
+                        {platforms.length > 0 && (
+                            <div className="cinema-footer-col">
+                                <h4 className="cinema-footer-col-title">Plataformas</h4>
+                                {platforms.map((p: any) => (
+                                    <Link key={p.id} href={`/explorar?platform=${p.slug}`} className="cinema-footer-link">
+                                        {p.name}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+
+                        {genres.length > 0 && (
+                            <div className="cinema-footer-col">
+                                <h4 className="cinema-footer-col-title">Géneros</h4>
+                                {genres.map((g: any) => (
+                                    <Link key={g.id} href={`/explorar?genre=${g.slug}`} className="cinema-footer-link">
+                                        {g.name}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 

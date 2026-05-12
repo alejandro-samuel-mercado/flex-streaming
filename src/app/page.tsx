@@ -11,6 +11,7 @@ import FAQSection from '@/components/catalog/FAQSection';
 import Footer from '@/components/layout/Footer';
 import ParticlesBackground from '@/components/layout/ParticlesBackground';
 import { API_ROUTES, API_ORIGIN, resolveImageUrl } from '@/lib/api-routes';
+import { useAuth } from '@/context/AuthContext';
 
 // ─── Mock data for when DB is empty ──────────────────────────────────────────
 const MOCK_FILMS = [
@@ -75,6 +76,7 @@ interface HomepageData {
     featured: any[];
     trending: any[];
     recent: any[];
+    estrenos: any[];
     freeContent: any[];
     platforms: any[];
     genres: any[];
@@ -111,12 +113,15 @@ function mapContentToFilm(c: any) {
 }
 
 export default function HomePage() {
+    const { user } = useAuth();
+    const isLoggedIn = !!user;
+    const hasPlan = !!user?.endUserAccount?.planId;
+
     const [data, setData] = useState<HomepageData | null>(null);
     const [loading, setLoading] = useState(true);
     const [useMock, setUseMock] = useState(false);
 
     // Auth state and Continue Watching
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [continueWatching, setContinueWatching] = useState<any[]>([]);
 
     useEffect(() => {
@@ -124,7 +129,6 @@ export default function HomePage() {
         const profileId = localStorage.getItem('profileId');
 
         if (token && profileId) {
-            setIsLoggedIn(true);
 
             // Sync Favorites
             const localFavorites = JSON.parse(localStorage.getItem('localFavorites') || '[]');
@@ -192,12 +196,13 @@ export default function HomePage() {
                 setUseMock(true);
                 setLoading(false);
             });
-    }, []);
+    }, [user]);
 
     // Decide data source
     const featured = useMock ? MOCK_FILMS.slice(0, 5) : (data?.featured || []).map(mapContentToFilm).filter((f): f is any => !!f);
     const trending = useMock ? MOCK_FILMS : (data?.trending || []).map(mapContentToFilm).filter((f): f is any => !!f);
     const recent = useMock ? [...MOCK_FILMS].reverse() : (data?.recent || []).map(mapContentToFilm).filter((f): f is any => !!f);
+    const estrenos = useMock ? MOCK_FILMS : (data?.estrenos || []).map(mapContentToFilm).filter((f): f is any => !!f);
     const platforms = useMock ? MOCK_PLATFORMS : (data?.platforms || []);
     const genres = useMock ? MOCK_GENRES : (data?.genres || []);
     const contentTypes = useMock ? MOCK_CONTENT_TYPES : (data?.contentTypes || []);
@@ -222,7 +227,7 @@ export default function HomePage() {
     }));
 
     // Collage items - Deduplicate by ID
-    const combinedItems = [...trending, ...recent];
+    const combinedItems = [...trending, ...recent, ...estrenos];
     const uniqueItemsMap = new Map();
     combinedItems.forEach(item => {
         if (!uniqueItemsMap.has(item.id)) {
@@ -238,9 +243,6 @@ export default function HomePage() {
 
     // Random backdrop for footer
     const footerBackdrop = trending[Math.floor(Math.random() * Math.max(trending.length, 1))]?.backdropUrl || undefined;
-
-    // For now, assume hasPlan is false unless implemented later
-    const hasPlan = false;
 
     if (loading) {
         return (
@@ -296,15 +298,29 @@ export default function HomePage() {
                     exploreUrl="/explorar?sort=popular"
                 />
 
-                {/* 4. Recent / New Releases */}
-                <FilmRow
-                    title="Estrenos"
-                    subtitle="Recién llegados al catálogo"
-                    items={recent}
-                    variant="large"
-                    accentColor="#00D4FF"
-                    exploreUrl="/explorar?sort=recent"
-                />
+                {/* 4. Recién Agregados */}
+                {recent.length > 0 && (
+                    <FilmRow
+                        title="Recién Agregados"
+                        subtitle="Lo último incorporado al catálogo"
+                        items={recent}
+                        variant="large"
+                        accentColor="#FF6B00"
+                        exploreUrl="/explorar?sort=recent"
+                    />
+                )}
+
+                {/* 4.5 Estrenos */}
+                {estrenos.length > 0 && (
+                    <FilmRow
+                        title="Estrenos"
+                        subtitle="Películas y series del momento"
+                        items={estrenos}
+                        variant="large"
+                        accentColor="#00D4FF"
+                        exploreUrl="/explorar?sort=releaseYear"
+                    />
+                )}
 
 
 
