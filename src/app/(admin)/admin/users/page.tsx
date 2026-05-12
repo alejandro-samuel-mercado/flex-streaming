@@ -564,9 +564,10 @@ export default function AdminUsersPage() {
                                             value={formData.role}
                                             onChange={e => setFormData({ ...formData, role: e.target.value })}
                                             disabled={modalMode === 'create' && (activeTab === 'VENDOR' || activeTab === 'ADMIN')}
+                                            style={{ backgroundColor: '#151515', color: '#f3f4f6', borderColor: 'rgba(255,255,255,0.15)', width: '100%' }}
                                         >
-                                            <option value="ADMIN">Administrador</option>
-                                            <option value="SUPER_VENDOR">Super Revendedor</option>
+                                            <option value="ADMIN" style={{ backgroundColor: '#151515', color: '#f3f4f6' }}>Administrador</option>
+                                            <option value="SUPER_VENDOR" style={{ backgroundColor: '#151515', color: '#f3f4f6' }}>Super Revendedor</option>
                                         </select>
                                     </div>
 
@@ -730,10 +731,17 @@ export default function AdminUsersPage() {
                             <p style={{ fontSize: '.85rem', color: 'var(--adm-muted)', marginBottom: 20 }}>Selecciona un paquete para asignar créditos al revendedor.</p>
                             <div className="adm-form-group">
                                 <label className="adm-label">Paquetes Disponibles</label>
-                                <select className="adm-input" value={selectedPkgId} onChange={e => setSelectedPkgId(e.target.value)}>
-                                    <option value="">Elegir paquete...</option>
+                                <select 
+                                    className="adm-input" 
+                                    value={selectedPkgId} 
+                                    onChange={e => setSelectedPkgId(e.target.value)}
+                                    style={{ backgroundColor: '#151515', color: '#f3f4f6', borderColor: 'rgba(255,255,255,0.15)', width: '100%' }}
+                                >
+                                    <option value="" style={{ backgroundColor: '#151515', color: '#9ca3af' }}>Elegir paquete...</option>
                                     {packages.map(pkg => (
-                                        <option key={pkg.id} value={pkg.id}>{pkg.name} — ({pkg.baseCredits + pkg.bonusCredits} créditos)</option>
+                                        <option key={pkg.id} value={pkg.id} style={{ backgroundColor: '#151515', color: '#f3f4f6' }}>
+                                            {pkg.name} — ({pkg.baseCredits + pkg.bonusCredits} créditos)
+                                        </option>
                                     ))}
                                 </select>
                             </div>

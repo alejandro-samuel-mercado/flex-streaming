@@ -12,6 +12,7 @@ export default function SubscriptionPlansPage() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
+    const [activeTab, setActiveTab] = useState<'NORMAL' | 'PROMO' | 'DISABLED'>('NORMAL');
 
     const [form, setForm] = useState({
         name: '',
@@ -56,7 +57,13 @@ export default function SubscriptionPlansPage() {
         setEditingPlan(null);
     };
 
-    const openCreate = () => { resetForm(); setShowModal(true); };
+    const openCreate = () => {
+        resetForm();
+        if (activeTab === 'PROMO') {
+            setForm(f => ({ ...f, isPromo: true }));
+        }
+        setShowModal(true);
+    };
 
     const openEdit = (plan: SubscriptionPlan) => {
         setEditingPlan(plan);
@@ -120,6 +127,15 @@ export default function SubscriptionPlansPage() {
         return null;
     };
 
+    const filteredPlans = plans.filter(p => {
+        if (activeTab === 'DISABLED') return !p.isActive;
+        if (!p.isActive) return false; // In other tabs, only show active ones
+        
+        const isPromoOrDemo = p.isPromo || p.isDemo;
+        if (activeTab === 'NORMAL') return !isPromoOrDemo;
+        return isPromoOrDemo;
+    });
+
     if (loading) return <div className="adm-page"><p>Cargando planes...</p></div>;
 
     return (
@@ -136,8 +152,31 @@ export default function SubscriptionPlansPage() {
                 </div>
             </div>
 
+            {/* Tabs for Normal vs Promo vs Disabled */}
+            <div style={{ display: 'flex', gap: 12, marginBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 16 }}>
+                <button
+                    className={`adm-btn ${activeTab === 'NORMAL' ? 'adm-btn--primary' : 'adm-btn--ghost'}`}
+                    onClick={() => setActiveTab('NORMAL')}
+                >
+                    <Zap size={16} /> Planes Activos
+                </button>
+                <button
+                    className={`adm-btn ${activeTab === 'PROMO' ? 'adm-btn--primary' : 'adm-btn--ghost'}`}
+                    onClick={() => setActiveTab('PROMO')}
+                >
+                    <Gift size={16} /> Promos Activas
+                </button>
+                <button
+                    className={`adm-btn ${activeTab === 'DISABLED' ? 'adm-btn--primary' : 'adm-btn--ghost'}`}
+                    onClick={() => setActiveTab('DISABLED')}
+                    style={{ marginLeft: 'auto' }}
+                >
+                    <ToggleLeft size={16} style={{ color: '#f87171' }} /> Desactivados
+                </button>
+            </div>
+
             <div className="adm-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-                {plans.map(plan => {
+                {filteredPlans.map(plan => {
                     const badge = getBadge(plan);
                     return (
                         <div key={plan.id} className="adm-table-card" style={{ 
@@ -179,20 +218,23 @@ export default function SubscriptionPlansPage() {
                                 <button className="adm-btn adm-btn--ghost" style={{ padding: '.35rem .5rem' }} onClick={() => openEdit(plan)}>
                                     <Pencil size={14} />
                                 </button>
-                                <button className="adm-btn adm-btn--ghost" style={{ padding: '.35rem .5rem', color: '#f87171' }} onClick={() => handleDelete(plan.id, plan.name)}>
-                                    <Trash2 size={14} />
-                                </button>
                             </div>
                         </div>
                     );
                 })}
-                {plans.length === 0 && (
+                {filteredPlans.length === 0 && (
                     <div className="adm-table-card" style={{ padding: '2rem', textAlign: 'center', gridColumn: '1 / -1' }}>
                         <Clock size={32} style={{ opacity: .3, marginBottom: '.5rem' }} />
-                        <p className="adm-table-muted">No hay planes creados aún</p>
-                        <button className="adm-btn adm-btn--primary" style={{ marginTop: '.75rem' }} onClick={openCreate}>
-                            <Plus size={16} /> Crear primer plan
-                        </button>
+                        <p className="adm-table-muted">
+                            {activeTab === 'NORMAL' && 'No hay planes normales activos'}
+                            {activeTab === 'PROMO' && 'No hay promociones ni planes demo activos'}
+                            {activeTab === 'DISABLED' && 'No hay planes desactivados'}
+                        </p>
+                        {activeTab !== 'DISABLED' && (
+                            <button className="adm-btn adm-btn--primary" style={{ marginTop: '.75rem' }} onClick={openCreate}>
+                                <Plus size={16} /> Crear primer plan
+                            </button>
+                        )}
                     </div>
                 )}
             </div>
