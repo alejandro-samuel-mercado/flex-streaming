@@ -153,6 +153,7 @@ export const API_ROUTES = {
     MEDIA_SCANNER: {
         DIRECTORIES: `${API_BASE_URL}/admin/media-scanner/directories`,
         SCAN: `${API_BASE_URL}/admin/media-scanner/scan`,
+        SCAN_RESULT: `${API_BASE_URL}/admin/media-scanner/scan-result`,
         IMPORT: `${API_BASE_URL}/admin/media-scanner/import`,
         STATUS: `${API_BASE_URL}/admin/media-scanner/status`,
         APPLY_TMDB: `${API_BASE_URL}/admin/media-scanner/apply-tmdb`,

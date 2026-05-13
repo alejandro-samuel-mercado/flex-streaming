@@ -55,6 +55,7 @@ export default function AdminFilesPage() {
     const [searchFilter, setSearchFilter] = useState('');
     const [showImported, setShowImported] = useState(false);
     const [typeFilter, setTypeFilter] = useState<'ALL' | 'MOVIE' | 'SERIES'>('ALL');
+    const [autoScanStatus, setAutoScanStatus] = useState<any>(null);
 
     useEffect(() => {
         const load = async () => {
@@ -70,6 +71,7 @@ export default function AdminFilesPage() {
                 if (statusJson.success && statusJson.data) {
                     setMoviePath(statusJson.data.moviePath || statusJson.data.path || '');
                     setSeriesPath(statusJson.data.seriesPath || '');
+                    setAutoScanStatus(statusJson.data);
                 }
             } catch (err) { console.error(err); }
         };
@@ -90,19 +92,47 @@ export default function AdminFilesPage() {
             if (moviePath.trim()) params.set('moviePath', moviePath.trim());
             if (seriesPath.trim()) params.set('seriesPath', seriesPath.trim());
 
-            const res = await adminFetch(`${API_ROUTES.MEDIA_SCANNER.SCAN}?${params.toString()}`);
-            const json = await res.json();
+            // Start async scan — returns immediately
+            const startRes = await adminFetch(`${API_ROUTES.MEDIA_SCANNER.SCAN}?${params.toString()}`);
+            const startJson = await startRes.json();
 
-            if (res.ok && json.success) {
-                setFiles(json.data.files || []);
-                setImportedFiles(json.data.importedFiles || []);
-                setScanned(true);
-            } else {
-                setError(json.error || 'Error al escanear');
+            if (!startRes.ok || !startJson.success) {
+                setError(startJson.error || 'Error al iniciar escaneo');
+                setScanning(false);
+                return;
             }
+
+            // Poll for results every 2 seconds
+            const pollInterval = setInterval(async () => {
+                try {
+                    const pollRes = await adminFetch(API_ROUTES.MEDIA_SCANNER.SCAN_RESULT);
+                    const pollJson = await pollRes.json();
+
+                    if (!pollRes.ok || !pollJson.success) return;
+
+                    const status = pollJson.data?.status;
+
+                    if (status === 'done') {
+                        clearInterval(pollInterval);
+                        setFiles(pollJson.data.files || []);
+                        setImportedFiles(pollJson.data.importedFiles || []);
+                        setScanned(true);
+                        setScanning(false);
+                    } else if (status === 'error') {
+                        clearInterval(pollInterval);
+                        setError(pollJson.data.error || 'Error durante el escaneo');
+                        setScanning(false);
+                    }
+                    // status === 'scanning' → keep polling
+                } catch {
+                    clearInterval(pollInterval);
+                    setError('Error de conexión al obtener resultados');
+                    setScanning(false);
+                }
+            }, 2000);
+
         } catch (err) {
             setError('Error de conexión');
-        } finally {
             setScanning(false);
         }
     }, [moviePath, seriesPath]);
@@ -278,6 +308,36 @@ export default function AdminFilesPage() {
                     )}
                 </div>
             </div>
+
+            {/* Auto-Scanner Status */}
+            {autoScanStatus && (
+                <div className="adm-table-card" style={{ padding: '16px 24px', marginBottom: 20, background: autoScanStatus.enabled ? 'rgba(74,222,128,.05)' : 'rgba(248,113,113,.05)', border: `1px solid ${autoScanStatus.enabled ? 'rgba(74,222,128,.2)' : 'rgba(248,113,113,.2)'}` }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <div style={{ width: 8, height: 8, borderRadius: '50%', background: autoScanStatus.enabled ? '#4ade80' : '#f87171', boxShadow: autoScanStatus.enabled ? '0 0 8px rgba(74,222,128,.5)' : 'none' }} />
+                            <span style={{ fontWeight: 600, fontSize: '0.85rem', color: 'white' }}>
+                                Auto-Scanner: {autoScanStatus.enabled ? 'ACTIVO' : 'DESACTIVADO'}
+                            </span>
+                            {autoScanStatus.enabled && (
+                                <span style={{ fontSize: '0.75rem', color: 'var(--adm-muted)' }}>
+                                    (cada {autoScanStatus.intervalMinutes} min)
+                                </span>
+                            )}
+                        </div>
+                        <div style={{ display: 'flex', gap: 16, fontSize: '0.8rem', color: 'var(--adm-muted)' }}>
+                            {autoScanStatus.lastRun && (
+                                <span>Último: {new Date(autoScanStatus.lastRun).toLocaleString('es-AR')}</span>
+                            )}
+                            {autoScanStatus.lastResult && (() => {
+                                try {
+                                    const r = typeof autoScanStatus.lastResult === 'string' ? JSON.parse(autoScanStatus.lastResult) : autoScanStatus.lastResult;
+                                    return <span style={{ color: r.errors > 0 ? '#f87171' : '#86efac' }}>{r.message}</span>;
+                                } catch { return null; }
+                            })()}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Error */}
             {error && (
