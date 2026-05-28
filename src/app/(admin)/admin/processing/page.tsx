@@ -329,7 +329,7 @@ export default function ProcessingMonitorPage() {
                 <div className="adm-table-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
                     <h2 className="adm-table-card-title">Cola de Trabajos Recientes (Historial de 100)</h2>
                     <div style={{ display: 'flex', gap: 12 }}>
-                        {videos.some(v => v.status === 'FAILED' || v.status === 'PENDING') && (
+                        {(totalStats.failed > 0 || videos.some(v => v.status === 'FAILED' || v.status === 'PENDING')) && (
                             <button 
                                 className="adm-btn" 
                                 onClick={handleRetryAll}
