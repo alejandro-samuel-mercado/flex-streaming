@@ -1,4 +1,5 @@
 'use client';
+import { adminFetch } from '@/lib/admin-api';
 
 import { useState, useEffect } from 'react';
 import { History, Search, Film, Tv, Clock, Loader2 } from 'lucide-react';
@@ -17,7 +18,7 @@ export default function AdminHistoryPage() {
       setLoading(true);
       try {
         const token = localStorage.getItem('adminToken');
-        const res = await fetch(`${API_ROUTES.ADMIN.BASE}/history?page=${page}&search=${encodeURIComponent(search)}`, {
+        const res = await adminFetch(`${API_ROUTES.ADMIN.BASE}/history?page=${page}&search=${encodeURIComponent(search)}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

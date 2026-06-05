@@ -1,4 +1,5 @@
 'use client';
+import { adminFetch } from '@/lib/admin-api';
 
 import { useState, useEffect, useCallback } from 'react';
 import { Tag, Plus, Search, Trash2, Loader2, X, Server, Pencil } from 'lucide-react';
@@ -61,7 +62,7 @@ export default function AdminTaxonomyPage() {
     setLoadingPlats(true);
     try {
       const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
-      const res = await fetch(API_ROUTES.PLATFORMS.LIST, {
+      const res = await adminFetch(API_ROUTES.PLATFORMS.LIST, {
         headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
       });
       const d = await res.json();
@@ -88,7 +89,7 @@ export default function AdminTaxonomyPage() {
     setSubmittingTag(true);
     try {
       const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
-      const res = await fetch(API_ROUTES.CATEGORIES.TAGS, {
+      const res = await adminFetch(API_ROUTES.CATEGORIES.TAGS, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -112,7 +113,7 @@ export default function AdminTaxonomyPage() {
     if (!window.confirm(`¿Eliminar etiqueta "${name}"?`)) return;
     try {
       const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
-      const res = await fetch(API_ROUTES.CATEGORIES.DELETE_TAG(id), {
+      const res = await adminFetch(API_ROUTES.CATEGORIES.DELETE_TAG(id), {
         method: 'DELETE',
         headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
       });
@@ -128,7 +129,7 @@ export default function AdminTaxonomyPage() {
     setSubmittingGenre(true);
     try {
       const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
-      const res = await fetch(API_ROUTES.CATEGORIES.GENRES, {
+      const res = await adminFetch(API_ROUTES.CATEGORIES.GENRES, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -152,7 +153,7 @@ export default function AdminTaxonomyPage() {
     if (!window.confirm(`¿Eliminar género "${name}"?`)) return;
     try {
       const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
-      const res = await fetch(API_ROUTES.CATEGORIES.DELETE_GENRE(id), {
+      const res = await adminFetch(API_ROUTES.CATEGORIES.DELETE_GENRE(id), {
         method: 'DELETE',
         headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
       });
@@ -172,7 +173,7 @@ export default function AdminTaxonomyPage() {
       const url = editingPlatId ? API_ROUTES.PLATFORMS.UPDATE(editingPlatId) : API_ROUTES.PLATFORMS.CREATE;
       const method = editingPlatId ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await adminFetch(url, {
         method,
         headers: { 
           'Content-Type': 'application/json',
@@ -208,7 +209,7 @@ export default function AdminTaxonomyPage() {
     if (!window.confirm(`¿Estás seguro de que deseas eliminar la plataforma "${name}"?`)) return;
     try {
       const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
-      const res = await fetch(API_ROUTES.PLATFORMS.DELETE(id), {
+      const res = await adminFetch(API_ROUTES.PLATFORMS.DELETE(id), {
         method: 'DELETE',
         headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
       });

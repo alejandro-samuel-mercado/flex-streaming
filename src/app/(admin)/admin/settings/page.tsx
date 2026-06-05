@@ -1,4 +1,5 @@
 'use client';
+import { adminFetch } from '@/lib/admin-api';
 import { useState, useEffect } from 'react';
 import { Settings, Globe, Bell, Shield, Palette, Save, MessageSquare, UploadCloud, FolderSearch, Clock, FolderOpen, Loader2, CheckCircle2 } from 'lucide-react';
 import { API_ROUTES } from '@/lib/api-routes';
@@ -14,7 +15,7 @@ export default function AdminSettingsPage() {
         const fetchSettings = async () => {
             try {
                 const token = localStorage.getItem('adminToken');
-                const res = await fetch(API_ROUTES.ADMIN.BASE + '/settings', {
+                const res = await adminFetch(API_ROUTES.ADMIN.BASE + '/settings', {
                     headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
                 });
                 const json = await res.json();
@@ -67,7 +68,7 @@ export default function AdminSettingsPage() {
         setSaving(true);
         try {
             const token = localStorage.getItem('adminToken');
-            await fetch(API_ROUTES.ADMIN.BASE + '/settings', {
+            await adminFetch(API_ROUTES.ADMIN.BASE + '/settings', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

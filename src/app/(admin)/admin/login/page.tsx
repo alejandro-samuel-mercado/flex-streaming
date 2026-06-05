@@ -55,7 +55,7 @@ export default function AdminLoginPage() {
             localStorage.setItem('adminRefreshToken', json.data.refreshToken);
 
             // Cookie for Next.js middleware protection
-            document.cookie = `adminToken=${json.data.accessToken}; path=/; max-age=${8 * 3600}; SameSite=Lax`;
+            document.cookie = `adminToken=${json.data.accessToken}; path=/; max-age=${180 * 24 * 3600}; SameSite=Lax`;
 
             window.location.href = redirectPath;
 

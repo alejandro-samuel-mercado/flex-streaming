@@ -1,4 +1,5 @@
 'use client';
+import { adminFetch } from '@/lib/admin-api';
 
 import { useState, useEffect, useCallback } from 'react';
 import { Tag, Plus, Search, Trash2, Loader2, X } from 'lucide-react';
@@ -52,7 +53,7 @@ export default function AdminCategoriesPage() {
     setSubmitting(true);
     try {
       const token = localStorage.getItem('adminToken');
-      const res = await fetch(API_ROUTES.CATEGORIES.TAGS, {
+      const res = await adminFetch(API_ROUTES.CATEGORIES.TAGS, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +77,7 @@ export default function AdminCategoriesPage() {
     if (!window.confirm(`¿Eliminar etiqueta "${name}"?`)) return;
     try {
       const token = localStorage.getItem('adminToken');
-      const res = await fetch(API_ROUTES.CATEGORIES.DELETE_TAG(id), {
+      const res = await adminFetch(API_ROUTES.CATEGORIES.DELETE_TAG(id), {
         method: 'DELETE',
         headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
       });
@@ -92,7 +93,7 @@ export default function AdminCategoriesPage() {
     setSubmittingGenre(true);
     try {
       const token = localStorage.getItem('adminToken');
-      const res = await fetch(API_ROUTES.CATEGORIES.GENRES, {
+      const res = await adminFetch(API_ROUTES.CATEGORIES.GENRES, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -116,7 +117,7 @@ export default function AdminCategoriesPage() {
     if (!window.confirm(`¿Eliminar género "${name}"?`)) return;
     try {
       const token = localStorage.getItem('adminToken');
-      const res = await fetch(API_ROUTES.CATEGORIES.DELETE_GENRE(id), {
+      const res = await adminFetch(API_ROUTES.CATEGORIES.DELETE_GENRE(id), {
         method: 'DELETE',
         headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
       });

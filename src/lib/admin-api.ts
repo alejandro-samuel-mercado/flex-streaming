@@ -34,6 +34,8 @@ async function refreshAdminToken(): Promise<string | null> {
                 if (refreshJson.data.refreshToken) {
                     localStorage.setItem('adminRefreshToken', refreshJson.data.refreshToken);
                 }
+                // Keep cookie in sync — 180 days matches the refresh token TTL
+                document.cookie = `adminToken=${refreshJson.data.accessToken}; path=/; max-age=${180 * 24 * 3600}; SameSite=Lax`;
                 return refreshJson.data.accessToken;
             } else {
                 console.error('[adminFetch] Refresh failed:', refreshJson);

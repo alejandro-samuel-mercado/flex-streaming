@@ -1,4 +1,5 @@
 'use client';
+import { userFetch } from '@/lib/api-client';
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
@@ -118,7 +119,7 @@ export default function WatchPage() {
                     return;
                 }
 
-                const res = await fetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
+                const res = await userFetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -166,7 +167,7 @@ export default function WatchPage() {
                 const profileId = localStorage.getItem('profileId');
                 if (!token || !profileId) return;
 
-                const res = await fetch(`${API_ROUTES.HISTORY.BASE}/${watchId}`, {
+                const res = await userFetch(`${API_ROUTES.HISTORY.BASE}/${watchId}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'X-Profile-Id': profileId,
@@ -201,7 +202,7 @@ export default function WatchPage() {
             const profileId = localStorage.getItem('profileId');
             if (!token || !profileId) return;
 
-            await fetch(API_ROUTES.HISTORY.PROGRESS, {
+            await userFetch(API_ROUTES.HISTORY.PROGRESS, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

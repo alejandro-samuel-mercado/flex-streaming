@@ -58,7 +58,7 @@ function LoginContent() {
                 // It's an admin/vendor logging in from the public page
                 localStorage.setItem('adminToken', result.data.accessToken);
                 localStorage.setItem('adminRefreshToken', result.data.refreshToken);
-                document.cookie = `adminToken=${result.data.accessToken}; path=/; max-age=${8 * 3600}; SameSite=Lax`;
+                document.cookie = `adminToken=${result.data.accessToken}; path=/; max-age=${180 * 24 * 3600}; SameSite=Lax`;
                 
                 let adminRedirect = '/admin';
                 if (user.role === 'VENDOR') adminRedirect = '/vendor';

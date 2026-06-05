@@ -1,4 +1,5 @@
 'use client';
+import { userFetch } from '@/lib/api-client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -20,7 +21,7 @@ export default function HistorialPage() {
             }
 
             try {
-                const res = await fetch(API_ROUTES.HISTORY.BASE, {
+                const res = await userFetch(API_ROUTES.HISTORY.BASE, {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`,
                         'X-Profile-Id': profileId

@@ -1,4 +1,5 @@
 'use client';
+import { adminFetch } from '@/lib/admin-api';
 
 import { useState, useEffect, useCallback } from 'react';
 import { Search, Plus, Edit2, Trash2, Loader2, Film, FolderSearch, AlertTriangle, ChevronLeft, ChevronRight, SortAsc, SortDesc, Calendar, Eye, Star, Hash } from 'lucide-react';
@@ -100,7 +101,7 @@ export default function AdminContentPage() {
             if (filterStatus) params.append('status', filterStatus);
             if (showIncomplete) params.append('incomplete', 'true');
 
-            const res = await fetch(`${API_ROUTES.CONTENT.LIST}?${params}`, {
+            const res = await adminFetch(`${API_ROUTES.CONTENT.LIST}?${params}`, {
                 headers: {
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 }
@@ -130,7 +131,7 @@ export default function AdminContentPage() {
 
         try {
             const token = localStorage.getItem('adminToken');
-            const res = await fetch(API_ROUTES.CONTENT.DELETE(id), {
+            const res = await adminFetch(API_ROUTES.CONTENT.DELETE(id), {
                 method: 'DELETE',
                 headers: {
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {})

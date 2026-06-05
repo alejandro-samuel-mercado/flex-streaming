@@ -1,4 +1,5 @@
 'use client';
+import { adminFetch } from '@/lib/admin-api';
 
 import { useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
@@ -43,7 +44,7 @@ export default function ProcessingMonitorPage() {
         const fetchStatus = async () => {
             try {
                 const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
-                const res = await fetch(API_ROUTES.ADMIN.VIDEOS_STATUS, {
+                const res = await adminFetch(API_ROUTES.ADMIN.VIDEOS_STATUS, {
                     headers: {
                         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                     }
@@ -116,7 +117,7 @@ export default function ProcessingMonitorPage() {
         const fetchLogs = async () => {
             try {
                 const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
-                const res = await fetch(API_ROUTES.ADMIN.JOB_LOGS(viewingLogs), {
+                const res = await adminFetch(API_ROUTES.ADMIN.JOB_LOGS(viewingLogs), {
                     headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
                 });
                 if (res.ok && isMounted) {
@@ -147,7 +148,7 @@ export default function ProcessingMonitorPage() {
 
         try {
             const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
-            const res = await fetch(API_ROUTES.ADMIN.UPLOAD.DELETE_VIDEO(id), {
+            const res = await adminFetch(API_ROUTES.ADMIN.UPLOAD.DELETE_VIDEO(id), {
                 method: 'DELETE',
                 headers: {
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
@@ -169,7 +170,7 @@ export default function ProcessingMonitorPage() {
     const handleRetry = async (id: string, slug: string) => {
         try {
             const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
-            const res = await fetch(API_ROUTES.ADMIN.UPLOAD.RETRY_VIDEO(id), {
+            const res = await adminFetch(API_ROUTES.ADMIN.UPLOAD.RETRY_VIDEO(id), {
                 method: 'POST',
                 headers: {
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
@@ -192,7 +193,7 @@ export default function ProcessingMonitorPage() {
         if (!window.confirm('¿Deseas reintentar TODOS los videos fallidos?')) return;
         try {
             const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
-            const res = await fetch(API_ROUTES.ADMIN.VIDEOS_RETRY_FAILED, {
+            const res = await adminFetch(API_ROUTES.ADMIN.VIDEOS_RETRY_FAILED, {
                 method: 'POST',
                 headers: {
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
@@ -201,7 +202,7 @@ export default function ProcessingMonitorPage() {
 
             if (res.ok) {
                 // Refresh list
-                const resStatus = await fetch(API_ROUTES.ADMIN.VIDEOS_STATUS, {
+                const resStatus = await adminFetch(API_ROUTES.ADMIN.VIDEOS_STATUS, {
                     headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
                 });
                 if (resStatus.ok) {

@@ -39,6 +39,8 @@ export async function resellerFetch(url: string, options: RequestInit = {}) {
                     if (refreshJson.data.refreshToken) {
                         localStorage.setItem('adminRefreshToken', refreshJson.data.refreshToken);
                     }
+                    // Keep cookie in sync — 180 days matches the refresh token TTL
+                    document.cookie = `adminToken=${token}; path=/; max-age=${180 * 24 * 3600}; SameSite=Lax`;
 
                     const newHeaders = { ...headers, 'Authorization': `Bearer ${token}` };
                     res = await fetch(url, { ...options, headers: newHeaders });

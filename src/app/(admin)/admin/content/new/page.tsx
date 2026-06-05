@@ -1,4 +1,5 @@
 'use client';
+import { adminFetch } from '@/lib/admin-api';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -133,7 +134,7 @@ export default function NewContentPage() {
 
         try {
             const token = localStorage.getItem('adminToken');
-            const res = await fetch(API_ROUTES.CONTENT.LIST, {
+            const res = await adminFetch(API_ROUTES.CONTENT.LIST, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -157,7 +158,7 @@ export default function NewContentPage() {
                 uploadFd.append('contentId', newContentId);
                 uploadFd.append('type', 'TRAILER');
 
-                const uploadRes = await fetch(API_ROUTES.ADMIN.UPLOAD.BASE, {
+                const uploadRes = await adminFetch(API_ROUTES.ADMIN.UPLOAD.BASE, {
                     method: 'POST',
                     headers: {
                         ...(token ? { 'Authorization': `Bearer ${token}` } : {})

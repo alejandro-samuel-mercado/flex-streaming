@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Star, MessageSquare, Send, Reply, User } from 'lucide-react';
 import { API_ROUTES } from '@/lib/api-routes';
 import { useAuth } from '@/context/AuthContext';
+import { userFetch } from '@/lib/api-client';
 
 export default function FilmComments({ contentId }: { contentId: string }) {
     const { user: authUser } = useAuth();
@@ -46,17 +47,11 @@ export default function FilmComments({ contentId }: { contentId: string }) {
 
         setSubmitting(true);
         try {
-            const token = localStorage.getItem('accessToken');
             const profileId = localStorage.getItem('profileId');
-            if (!token || !profileId) return;
+            if (!profileId) return;
 
-            const res = await fetch(API_ROUTES.REVIEWS.CREATE, {
+            const res = await userFetch(API_ROUTES.REVIEWS.CREATE, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                    'x-profile-id': profileId
-                },
                 body: JSON.stringify({
                     contentId,
                     rating: newRating,
@@ -85,17 +80,11 @@ export default function FilmComments({ contentId }: { contentId: string }) {
 
         setSubmittingReply(true);
         try {
-            const token = localStorage.getItem('accessToken');
             const profileId = localStorage.getItem('profileId');
-            if (!token || !profileId) return;
+            if (!profileId) return;
 
-            const res = await fetch(API_ROUTES.REVIEWS.CREATE, {
+            const res = await userFetch(API_ROUTES.REVIEWS.CREATE, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                    'x-profile-id': profileId
-                },
                 body: JSON.stringify({
                     contentId,
                     body: replyBody,

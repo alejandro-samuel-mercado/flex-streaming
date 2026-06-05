@@ -1,4 +1,5 @@
 'use client';
+import { userFetch } from '@/lib/api-client';
 // Force HMR and Tailwind rescan
 
 import { useAuth } from '@/context/AuthContext';
@@ -16,7 +17,7 @@ export default function ProfilePage() {
         if (user && user.profiles?.[0]) {
             const fetchHistory = async () => {
                 try {
-                    const res = await fetch(API_ROUTES.HISTORY.BASE, {
+                    const res = await userFetch(API_ROUTES.HISTORY.BASE, {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
                             'X-Profile-Id': localStorage.getItem('profileId') || user.profiles![0].id

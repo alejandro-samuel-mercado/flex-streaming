@@ -1,4 +1,5 @@
 'use client';
+import { adminFetch } from '@/lib/admin-api';
 
 import { useState, useEffect, useCallback } from 'react';
 import { Server, Plus, Pencil, Trash2, X, Loader2 } from 'lucide-react';
@@ -19,7 +20,7 @@ export default function AdminPlatformsPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
-      const res = await fetch(API_ROUTES.PLATFORMS.LIST, {
+      const res = await adminFetch(API_ROUTES.PLATFORMS.LIST, {
         headers: {
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         }
@@ -46,7 +47,7 @@ export default function AdminPlatformsPage() {
       const url = editingId ? API_ROUTES.PLATFORMS.UPDATE(editingId) : API_ROUTES.PLATFORMS.CREATE;
       const method = editingId ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await adminFetch(url, {
         method,
         headers: { 
           'Content-Type': 'application/json',
@@ -83,7 +84,7 @@ export default function AdminPlatformsPage() {
     
     try {
       const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
-      const res = await fetch(API_ROUTES.PLATFORMS.DELETE(id), {
+      const res = await adminFetch(API_ROUTES.PLATFORMS.DELETE(id), {
         method: 'DELETE',
         headers: {
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})

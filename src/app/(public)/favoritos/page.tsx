@@ -1,4 +1,5 @@
 'use client';
+import { userFetch } from '@/lib/api-client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -37,7 +38,7 @@ export default function FavoritosPage() {
             }
 
             try {
-                const res = await fetch(API_ROUTES.FAVORITES.BASE, {
+                const res = await userFetch(API_ROUTES.FAVORITES.BASE, {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`,
                         'X-Profile-Id': profileId

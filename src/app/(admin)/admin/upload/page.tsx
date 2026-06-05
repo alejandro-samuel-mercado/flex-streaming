@@ -1,4 +1,5 @@
 'use client';
+import { adminFetch } from '@/lib/admin-api';
 
 import { useState, useEffect } from 'react';
 import { UploadCloud, FileVideo, CheckCircle2, AlertCircle, X, Plus, Loader2, Activity } from 'lucide-react';
@@ -130,7 +131,7 @@ export default function UploadManagerPage() {
 
         try {
             // 2. Validación en tiempo real contra el servidor
-            const freshRes = await fetch(`${API_ROUTES.CONTENT.LIST}?limit=500`, { headers });
+            const freshRes = await adminFetch(`${API_ROUTES.CONTENT.LIST}?limit=500`, { headers });
             if (freshRes.ok) {
                 const freshData = await freshRes.json();
                 const freshList: any[] = freshData.data || [];
@@ -158,7 +159,7 @@ export default function UploadManagerPage() {
                 // Verificar chunks ya subidos (reanudable) — con auth token
                 let uploadedChunks: number[] = [];
                 try {
-                    const statusRes = await fetch(`${API_ROUTES.ADMIN.UPLOAD.BASE}/chunk-status/${fileId}`, { headers });
+                    const statusRes = await adminFetch(`${API_ROUTES.ADMIN.UPLOAD.BASE}/chunk-status/${fileId}`, { headers });
                     if (statusRes.ok) {
                         const statusData = await statusRes.json();
                         uploadedChunks = statusData.uploadedChunks || [];
@@ -176,7 +177,7 @@ export default function UploadManagerPage() {
                     fd.append('chunk', chunk);
                     fd.append('fileId', fileId);
                     fd.append('chunkIndex', i.toString());
-                    const res = await fetch(API_ROUTES.ADMIN.UPLOAD.CHUNK, { method: 'POST', body: fd, headers });
+                    const res = await adminFetch(API_ROUTES.ADMIN.UPLOAD.CHUNK, { method: 'POST', body: fd, headers });
                     if (!res.ok) throw new Error(`Error en parte ${i}`);
                 };
 
@@ -198,7 +199,7 @@ export default function UploadManagerPage() {
 
                 await Promise.all(Array.from({ length: Math.min(CONCURRENCY, totalChunks) }, processQueue));
 
-                const completeRes = await fetch(API_ROUTES.ADMIN.UPLOAD.COMPLETE, {
+                const completeRes = await adminFetch(API_ROUTES.ADMIN.UPLOAD.COMPLETE, {
                     method: 'POST',
                     headers: { ...headers, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ fileId, fileName: f.fileName, totalChunks, contentId: f.contentId, type: f.type })

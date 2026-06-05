@@ -1,4 +1,5 @@
 'use client';
+import { userFetch } from '@/lib/api-client';
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
@@ -89,7 +90,7 @@ export default function FilmDetailPage() {
             if (!token || !profileId) return;
 
             try {
-                const res = await fetch(API_ROUTES.LIKES.CHECK(id), {
+                const res = await userFetch(API_ROUTES.LIKES.CHECK(id), {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'x-profile-id': profileId
@@ -117,7 +118,7 @@ export default function FilmDetailPage() {
         }
 
         try {
-            const res = await fetch(API_ROUTES.FAVORITES.TOGGLE, {
+            const res = await userFetch(API_ROUTES.FAVORITES.TOGGLE, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -144,7 +145,7 @@ export default function FilmDetailPage() {
         }
 
         try {
-            const res = await fetch(API_ROUTES.LIKES.TOGGLE, {
+            const res = await userFetch(API_ROUTES.LIKES.TOGGLE, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

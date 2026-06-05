@@ -228,7 +228,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                     uploadFd.append('type', 'TRAILER');
 
                     const token = localStorage.getItem('adminToken');
-                    const uploadRes = await fetch(API_ROUTES.ADMIN.UPLOAD.BASE, {
+                    const uploadRes = await adminFetch(API_ROUTES.ADMIN.UPLOAD.BASE, {
                         method: 'POST',
                         headers: {
                             ...(token ? { 'Authorization': `Bearer ${token}` } : {})
