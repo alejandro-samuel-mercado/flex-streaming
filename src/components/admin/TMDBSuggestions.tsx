@@ -136,11 +136,11 @@ export default function TMDBSuggestions({ title, contentId, onApplied }: TMDBSug
             padding: '20px 24px',
         }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                <AlertTriangle size={18} style={{ color: '#facc15' }} />
+                <Search size={18} style={{ color: '#60a5fa' }} />
                 <div>
-                    <strong style={{ color: '#fde68a', fontSize: '0.95rem' }}>Datos incompletos</strong>
+                    <strong style={{ color: '#93c5fd', fontSize: '0.95rem' }}>Búsqueda en TMDB</strong>
                     <p style={{ fontSize: '0.8rem', color: 'var(--adm-muted)', marginTop: 2 }}>
-                        Selecciona una coincidencia de TMDB para completar la información de este contenido.
+                        Selecciona una coincidencia para reemplazar y sincronizar los datos de este contenido.
                     </p>
                 </div>
             </div>
