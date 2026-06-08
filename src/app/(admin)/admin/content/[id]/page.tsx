@@ -495,17 +495,14 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                 {/* COLUMNA IZQUIERDA: Textos, Imágenes, Archivos de Video */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-                    {/* TMDB Suggestions for incomplete content */}
-                    {data && data.status === 'PENDING' && (
-                        !data.translations.find(t => t.lang === 'es')?.description ||
-                        !data.thumbnails?.find(t => t.type === 'POSTER')
-                    ) && (
-                            <TMDBSuggestions
-                                title={data.translations.find(t => t.lang === 'es')?.title || ''}
-                                contentId={id}
-                                onApplied={() => fetchData()}
-                            />
-                        )}
+                    {/* TMDB Suggestions */}
+                    {data && (
+                        <TMDBSuggestions
+                            title={data.translations.find(t => t.lang === 'es')?.title || data.originalTitle || ''}
+                            contentId={id}
+                            onApplied={() => fetchData()}
+                        />
+                    )}
 
                     {/* Textos (Español) */}
                     <div className="adm-settings-section">
