@@ -57,12 +57,8 @@ export default function TMDBSuggestions({ title, contentId, onApplied }: TMDBSug
         }
     }, []);
 
-    // Auto-search on mount
-    useEffect(() => {
-        if (title) {
-            doSearch(title);
-        }
-    }, [title, doSearch]);
+    // Removed auto-search on mount as per user request
+    // The user must manually click 'Buscar' to see results.
 
     const handleApply = async (result: TMDBResult) => {
         const confirmMsg = `¿Importar datos de "${result.title || result.name}"?\n\nEsto reemplazará el título, sinopsis, imágenes, géneros, actores y más.`;
