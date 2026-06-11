@@ -368,25 +368,7 @@ export default function VideoPlayer({
                 onLoadedData={() => setIsBuffering(false)}
             />
 
-            {/* Cinematic Loading Overlay */}
-            {showLoading && (
-                <div className="absolute inset-0 z-[150] flex flex-col items-center justify-center bg-black/60 backdrop-blur-md transition-all duration-500 pointer-events-none">
-                    <div className="relative w-24 h-24 mb-6">
-                        <div className="absolute inset-0 rounded-full border-4 border-white/5" />
-                        <div className="absolute inset-0 rounded-full border-4 border-t-purple-500 animate-spin shadow-[0_0_20px_rgba(168,85,247,0.5)]" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Nuba</span>
-                        </div>
-                    </div>
-                    <div className="text-center animate-pulse">
 
-                        <div className="flex items-center !gap-4 text-[10px] font-mono text-white/50">
-                            {loadingStats.loaded > 0 && <span>{(loadingStats.loaded / 1024 / 1024).toFixed(1)}MB cargados</span>}
-                            {loadingStats.speed > 0 && <span className="text-purple-400">{loadingStats.speed.toFixed(1)} Mbps</span>}
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Subtitles Overlay */}
             {currentCue && !isLocked && (
