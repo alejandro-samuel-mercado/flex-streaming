@@ -129,9 +129,10 @@ export default function VideoPlayer({
                 capLevelToPlayerSize: true,
                 autoStartLoad: true,
                 startPosition: initialTime > 0 ? initialTime : -1,
-                maxBufferLength: 30,
-                maxMaxBufferLength: 60,
-                maxBufferSize: 60 * 1024 * 1024,
+                startLevel: 0, // Force lowest quality for instantaneous start
+                maxBufferLength: 15, // Reduce initial aggressive buffering
+                maxMaxBufferLength: 30,
+                maxBufferSize: 30 * 1024 * 1024,
                 xhrSetup: (xhr, url) => {
                     try {
                         const masterUrl = new URL(src, window.location.origin);
