@@ -4,41 +4,66 @@ import { userFetch } from '@/lib/api-client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { API_ROUTES, API_ORIGIN, resolveImageUrl } from '@/lib/api-routes';
 
 export default function HistorialPage() {
     const [history, setHistory] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchHistory = async () => {
-            const accessToken = localStorage.getItem('accessToken');
-            const profileId = localStorage.getItem('profileId');
-            if (!accessToken || !profileId) {
-                setLoading(false);
-                return;
-            }
+    const fetchHistory = async () => {
+        const accessToken = localStorage.getItem('accessToken');
+        const profileId = localStorage.getItem('profileId');
+        if (!accessToken || !profileId) {
+            setLoading(false);
+            return;
+        }
 
-            try {
-                const res = await userFetch(API_ROUTES.HISTORY.BASE, {
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`,
-                        'X-Profile-Id': profileId
-                    }
-                });
-                const resJson = await res.json();
-                if (resJson.success && resJson.data) {
-                    setHistory(resJson.data.data);
+        try {
+            const res = await userFetch(API_ROUTES.HISTORY.BASE, {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'X-Profile-Id': profileId
                 }
-            } catch (e) {
-                console.error(e);
-            } finally {
-                setLoading(false);
+            });
+            const resJson = await res.json();
+            if (resJson.success && resJson.data) {
+                setHistory(resJson.data.data);
             }
-        };
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchHistory();
     }, []);
+
+    const handleRemoveHistory = async (e: React.MouseEvent, contentId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        setHistory(prev => prev.filter(item => item.content?.id !== contentId));
+
+        try {
+            const accessToken = localStorage.getItem('accessToken');
+            const profileId = localStorage.getItem('profileId');
+            if (!accessToken || !profileId) return;
+
+            await userFetch(`${API_ROUTES.HISTORY.BASE}/${contentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'X-Profile-Id': profileId
+                }
+            });
+        } catch (err) {
+            console.error('Failed to delete history item:', err);
+            fetchHistory(); // rollback
+        }
+    };
 
     return (
         <>
@@ -74,6 +99,13 @@ export default function HistorialPage() {
                                                 alt={c.translations?.[0]?.title}
                                                 className="w-full h-full object-cover group-hover:brightness-110 transition"
                                             />
+                                            <button
+                                                onClick={(e) => handleRemoveHistory(e, c.id)}
+                                                className="absolute top-2 right-2 p-2 bg-black/60 hover:bg-red-600/90 text-white/80 hover:text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 backdrop-blur-md border border-white/10 hover:border-red-500/20 shadow-lg"
+                                                title="Quitar del historial"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
                                             <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
                                                 <div className="h-full bg-[var(--color-primary)]" style={{ width: `${(item.progress / Math.max(item.duration, 1)) * 100}%` }} />
                                             </div>

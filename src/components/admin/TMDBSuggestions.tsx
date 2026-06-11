@@ -160,19 +160,6 @@ export default function TMDBSuggestions({ title, contentId, onApplied }: TMDBSug
                 </button>
             </form>
 
-            {error && (
-                <div style={{
-                    background: 'rgba(248, 113, 113, .1)',
-                    padding: '8px 12px',
-                    borderRadius: 8,
-                    color: '#fca5a5',
-                    fontSize: '0.8rem',
-                    marginBottom: 12
-                }}>
-                    {error}
-                </div>
-            )}
-
             {/* Results */}
             {loading && results.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '20px', color: 'var(--adm-muted)' }}>

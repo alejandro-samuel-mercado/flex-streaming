@@ -741,7 +741,8 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                                                 const resJson = await res.json();
                                                                                 if (resJson.success) {
                                                                                     const filename = video.masterPlaylist?.split('/').pop() || 'master.m3u8';
-                                                                                    const streamUrl = `${API_ORIGIN}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}`;
+                                                                                    const streamHost = resJson.data.streamBaseUrl || API_ORIGIN;
+                                                                                    const streamUrl = `${streamHost}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}`;
                                                                                     
                                                                                     setActiveVideo({
                                                                                         url: streamUrl,
@@ -841,7 +842,8 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                         const ep = data?.seasons?.flatMap(s => s.episodes || []).find(e => e.id === episodeId);
                                                         const season = data?.seasons?.find(s => s.episodes?.some((e: any) => e.id === episodeId));
                                                         
-                                                        const streamUrl = `${API_ORIGIN}/api/stream/hls/${resJson.data.videoFileId}/master.m3u8?token=${resJson.data.token}`;
+                                                        const streamHost = resJson.data.streamBaseUrl || API_ORIGIN;
+                                                        const streamUrl = `${streamHost}/api/stream/hls/${resJson.data.videoFileId}/master.m3u8?token=${resJson.data.token}`;
                                                         setActiveVideo({
                                                             url: streamUrl,
                                                             title: `${data?.translations?.find(t => t.lang === 'es')?.title || data?.originalTitle || 'Serie'} - T${season?.number || ''}E${ep?.number || ''}`
@@ -910,7 +912,8 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                                         const resJson = await res.json();
                                                                         if (resJson.success) {
                                                                             const filename = video.masterPlaylist?.split('/').pop() || 'master.m3u8';
-                                                                            const streamUrl = `${API_ORIGIN}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}`;
+                                                                            const streamHost = resJson.data.streamBaseUrl || API_ORIGIN;
+                                                                            const streamUrl = `${streamHost}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}`;
 
                                                                             setActiveVideo({
                                                                                 url: streamUrl,

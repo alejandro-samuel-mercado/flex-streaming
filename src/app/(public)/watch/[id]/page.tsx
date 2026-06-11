@@ -136,14 +136,16 @@ export default function WatchPage() {
                 const resJson = await res.json();
                 if (!resJson.success) throw new Error(resJson.error || 'Acceso denegado.');
 
-                const { token: signedToken, videoFileId } = resJson.data;
+                const { token: signedToken, videoFileId, streamBaseUrl } = resJson.data;
                 
                 // Get the actual playlist filename from the videoFile data
                 const targetVideos = currentEpisode ? currentEpisode.videoFiles : content.videoFiles;
                 const videoFile = targetVideos?.find((v: any) => v.id === videoFileId) || targetVideos?.[0];
                 const filename = videoFile?.masterPlaylist?.split('/').pop() || 'master.m3u8';
                 
-                const hlsUrl = `${backendUrl}/api/stream/hls/${videoFileId}/${filename}?token=${signedToken}`;
+                // Use the storage node URL if provided, otherwise fall back to the main API
+                const streamHost = streamBaseUrl || backendUrl;
+                const hlsUrl = `${streamHost}/api/stream/hls/${videoFileId}/${filename}?token=${signedToken}`;
                 setStreamSrc(hlsUrl);
             } catch (err: any) {
                 setError(err.message);

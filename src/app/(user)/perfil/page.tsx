@@ -4,7 +4,7 @@ import { userFetch } from '@/lib/api-client';
 
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
-import { User, Calendar, CreditCard, Clock, Monitor, Settings, LogOut, ChevronRight, Play } from 'lucide-react';
+import { User, Calendar, CreditCard, Clock, Monitor, Settings, LogOut, ChevronRight, Play, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { resolveImageUrl, API_ROUTES } from '@/lib/api-routes';
 
@@ -13,29 +13,54 @@ export default function ProfilePage() {
     const [history, setHistory] = useState<any[]>([]);
     const [loadingHistory, setLoadingHistory] = useState(true);
 
-    useEffect(() => {
+    const fetchHistory = async () => {
         if (user && user.profiles?.[0]) {
-            const fetchHistory = async () => {
-                try {
-                    const res = await userFetch(API_ROUTES.HISTORY.BASE, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-                            'X-Profile-Id': localStorage.getItem('profileId') || user.profiles![0].id
-                        }
-                    });
-                    const result = await res.json();
-                    if (result.success && result.data) {
-                        setHistory(result.data.data || []);
+            try {
+                const res = await userFetch(API_ROUTES.HISTORY.BASE, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                        'X-Profile-Id': localStorage.getItem('profileId') || user.profiles![0].id
                     }
-                } catch (err) {
-                    console.error('Error fetching history:', err);
-                } finally {
-                    setLoadingHistory(false);
+                });
+                const result = await res.json();
+                if (result.success && result.data) {
+                    setHistory(result.data.data || []);
                 }
-            };
-            fetchHistory();
+            } catch (err) {
+                console.error('Error fetching history:', err);
+            } finally {
+                setLoadingHistory(false);
+            }
         }
+    };
+
+    useEffect(() => {
+        fetchHistory();
     }, [user]);
+
+    const handleRemoveHistory = async (e: React.MouseEvent, contentId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        setHistory(prev => prev.filter(item => item.contentId !== contentId));
+
+        try {
+            const accessToken = localStorage.getItem('accessToken');
+            const profileId = localStorage.getItem('profileId') || (user && user.profiles?.[0]?.id);
+            if (!accessToken || !profileId) return;
+
+            await userFetch(`${API_ROUTES.HISTORY.BASE}/${contentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'X-Profile-Id': profileId
+                }
+            });
+        } catch (err) {
+            console.error('Failed to delete history item:', err);
+            fetchHistory(); // rollback
+        }
+    };
 
     if (loading) return (
         <div className="min-h-screen bg-[#02040A] flex items-center justify-center">
@@ -181,13 +206,20 @@ export default function ProfilePage() {
                             ) : history.length > 0 ? (
                                 <div className="!grid !grid-cols-1 sm:!grid-cols-2 !gap-4">
                                     {history.slice(0, 4).map((item: any) => (
-                                        <Link key={item.id} href={`/film/${item.contentId}`} className="!flex !gap-4 !group !bg-white/5 hover:!bg-white/10 !p-3 !rounded-2xl !border !border-transparent hover:!border-white/10 !transition-all">
+                                        <Link key={item.id} href={`/film/${item.contentId}`} className="!flex !gap-4 !group !bg-white/5 hover:!bg-white/10 !p-3 !rounded-2xl !border !border-transparent hover:!border-white/10 !transition-all !relative">
                                             <div className="!w-20 !h-28 !rounded-xl !overflow-hidden !flex-shrink-0 !relative">
                                                 <img src={resolveImageUrl(item.content?.thumbnails?.[0]?.url)} className="!w-full !h-full !object-cover" alt="" />
                                                 <div className="!absolute !inset-0 !bg-black/40 !opacity-0 group-hover:!opacity-100 !flex !items-center !justify-center !transition-opacity">
                                                     <Play size={24} fill="white" />
                                                 </div>
                                             </div>
+                                            <button
+                                                onClick={(e) => handleRemoveHistory(e, item.contentId)}
+                                                className="absolute top-2 right-2 p-2 bg-black/60 hover:bg-red-600/90 text-white/80 hover:text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 backdrop-blur-md border border-white/10 hover:border-red-500/20 shadow-lg"
+                                                title="Quitar del historial"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
                                             <div className="!flex !flex-col !justify-center !py-1">
                                                 <p className="!font-bold !text-white !line-clamp-1 group-hover:!text-[var(--color-primary)] !transition-colors !mb-1">{item.content?.translations?.[0]?.title || 'Contenido'}</p>
                                                 <p className="!text-[10px] !text-gray-500 !uppercase !font-black !tracking-widest !mb-2">{item.content?.type}</p>
