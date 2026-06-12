@@ -133,6 +133,7 @@ export default function VideoPlayer({
                 maxBufferLength: 15, // Reduce initial aggressive buffering
                 maxMaxBufferLength: 30,
                 maxBufferSize: 30 * 1024 * 1024,
+                renderTextTracksNatively: false, // Force HLS.js to use CUES_PARSED instead of native browser UI
                 xhrSetup: (xhr, url) => {
                     try {
                         const masterUrl = new URL(src, window.location.origin);
@@ -521,7 +522,7 @@ export default function VideoPlayer({
                                 setCurrentCue(null);
                                 if (track.type === 'HLS' && hlsRef.current) {
                                     hlsRef.current.subtitleTrack = i;
-                                    hlsRef.current.subtitleDisplay = false; // Disable native rendering to use custom overlay
+                                    hlsRef.current.subtitleDisplay = true; // Required for HLS.js to fetch and parse the VTT files!
                                 }
                                 setIsSubtitleMenuOpen(false);
                             }}
