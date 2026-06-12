@@ -162,6 +162,27 @@ export default function VideoPlayer({
                 setCurrentLevel(hls?.currentLevel ?? -1);
             });
 
+            hls.on(Hls.Events.CUES_PARSED, (_event, data) => {
+                if (data.cues && data.cues.length > 0) {
+                    const newCues = data.cues.map((c: any, i: number) => ({
+                        id: Date.now() + i,
+                        start: c.startTime,
+                        end: c.endTime,
+                        text: c.text
+                    }));
+                    setActiveCues(prev => {
+                        const merged = [...prev, ...newCues];
+                        // Filter duplicates by start time and text
+                        const unique = merged.filter((cue, index, self) =>
+                            index === self.findIndex((t) => (
+                                t.start === cue.start && t.text === cue.text
+                            ))
+                        );
+                        return unique.sort((a, b) => a.start - b.start);
+                    });
+                }
+            });
+
             hls.on(Hls.Events.FRAG_LOADED, (_event, data) => {
                 const stats = (data as any).stats;
                 if (stats) {
@@ -496,9 +517,11 @@ export default function VideoPlayer({
                         {subtitleTracks.map((track, i) => (
                             <button key={i} onClick={() => {
                                 setCurrentSubtitle(i);
+                                setActiveCues([]); // Clear previous cues
+                                setCurrentCue(null);
                                 if (track.type === 'HLS' && hlsRef.current) {
                                     hlsRef.current.subtitleTrack = i;
-                                    hlsRef.current.subtitleDisplay = true;
+                                    hlsRef.current.subtitleDisplay = false; // Disable native rendering to use custom overlay
                                 }
                                 setIsSubtitleMenuOpen(false);
                             }}
