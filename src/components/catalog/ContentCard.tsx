@@ -25,7 +25,7 @@ export default function ContentCard({
       href={`/film/${id}`}
       className={`poster-card block ${isLarge ? 'col-span-2 row-span-2' : ''}`}
     >
-      <img src={imageUrl} alt={title} className="poster-img" loading="lazy" />
+      <img src={imageUrl} alt={title} className="poster-img" />
 
       <div className="poster-info">
         <div className="flex items-center justify-between gap-2 mb-1">

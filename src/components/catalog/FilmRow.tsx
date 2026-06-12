@@ -95,7 +95,6 @@ export default function FilmRow({ title, subtitle, items, variant = 'default', a
                                     src={item.posterUrl || item.backdropUrl || 'https://images.unsplash.com/photo-1534809027769-b00d750a6bac?q=80&w=800&auto=format&fit=crop'}
                                     alt={item.title}
                                     className="film-card-img"
-                                    loading="lazy"
                                 />
                                 <div className="film-card-overlay" />
 

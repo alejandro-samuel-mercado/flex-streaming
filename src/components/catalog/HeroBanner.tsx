@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Star, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import Head from 'next/head';
 import { getContentTypeLabel } from '@/lib/content-types';
 import { useAuth } from '@/context/AuthContext';
 
@@ -83,7 +84,11 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
   };
 
   return (
-    <section className="hero-carousel" id="hero-carousel">
+    <>
+      {slides.length > 0 && (
+        <link rel="preload" as="image" href={slides[0].backdropUrl} />
+      )}
+      <section className="hero-carousel" id="hero-carousel">
       {/* Particles */}
       <div className="hero-particles" aria-hidden="true">
         {Array.from({ length: 30 }).map((_, i) => (
@@ -230,5 +235,6 @@ export default function HeroCarousel({ slides }: HeroCarouselProps) {
         </svg>
       </div>
     </section>
+    </>
   );
 }
