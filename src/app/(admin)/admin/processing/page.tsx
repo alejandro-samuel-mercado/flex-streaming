@@ -207,7 +207,7 @@ export default function ProcessingMonitorPage() {
                 });
                 if (resStatus.ok) {
                     const data = await resStatus.json();
-                    setVideos(data.data || []);
+                    setVideos(data.data?.videos || []);
                 }
                 alert('Todos los videos fallidos han sido reenviados a la cola.');
             } else {
