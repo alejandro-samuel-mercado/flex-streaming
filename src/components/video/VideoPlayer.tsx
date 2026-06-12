@@ -479,7 +479,16 @@ export default function VideoPlayer({
                         <button onClick={() => setIsSubtitleMenuOpen(false)} className="text-white/40 hover:text-white !p-1"><X size={16} /></button>
                     </div>
                     <div className="!py-2 max-h-64 overflow-y-auto">
-                        <button onClick={() => { setCurrentSubtitle(-1); setActiveCues([]); setCurrentCue(null); setIsSubtitleMenuOpen(false); }}
+                        <button onClick={() => { 
+                                setCurrentSubtitle(-1); 
+                                setActiveCues([]); 
+                                setCurrentCue(null); 
+                                if (hlsRef.current) {
+                                    hlsRef.current.subtitleTrack = -1;
+                                    hlsRef.current.subtitleDisplay = false;
+                                }
+                                setIsSubtitleMenuOpen(false); 
+                            }}
                             className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentSubtitle === -1 ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
                             <span className="font-semibold">Desactivados</span>
                             {currentSubtitle === -1 && <div className="w-2 h-2 rounded-full bg-purple-400" />}
@@ -487,7 +496,10 @@ export default function VideoPlayer({
                         {subtitleTracks.map((track, i) => (
                             <button key={i} onClick={() => {
                                 setCurrentSubtitle(i);
-                                if (track.type === 'HLS' && hlsRef.current) hlsRef.current.subtitleTrack = i;
+                                if (track.type === 'HLS' && hlsRef.current) {
+                                    hlsRef.current.subtitleTrack = i;
+                                    hlsRef.current.subtitleDisplay = true;
+                                }
                                 setIsSubtitleMenuOpen(false);
                             }}
                                 className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentSubtitle === i ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
