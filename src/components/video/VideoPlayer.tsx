@@ -425,6 +425,30 @@ export default function VideoPlayer({
                 </div>
             )}
 
+            {/* ── Quality Menu ── */}
+            {isQualityMenuOpen && (
+                <div className="absolute bottom-36 !right-8 z-[200] w-72 bg-black/85 backdrop-blur-2xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200" onClick={e => e.stopPropagation()}>
+                    <div className="flex items-center justify-between !px-5 !py-3 border-b border-white/10">
+                        <span className="text-xs font-black text-white/60 uppercase tracking-[3px]">Calidad</span>
+                        <button onClick={() => setIsQualityMenuOpen(false)} className="text-white/40 hover:text-white !p-1"><X size={16} /></button>
+                    </div>
+                    <div className="!py-2 max-h-64 overflow-y-auto">
+                        <button onClick={() => { if (hlsRef.current) hlsRef.current.currentLevel = -1; setCurrentLevel(-1); setIsQualityMenuOpen(false); }}
+                            className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentLevel === -1 ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+                            <span className="font-semibold">Auto</span>
+                            {currentLevel === -1 && <div className="w-2 h-2 rounded-full bg-purple-400" />}
+                        </button>
+                        {levels.map((level, i) => (
+                            <button key={i} onClick={() => { if (hlsRef.current) hlsRef.current.currentLevel = i; setCurrentLevel(i); setIsQualityMenuOpen(false); }}
+                                className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentLevel === i ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+                                <span className="font-semibold">{level.height}p</span>
+                                {currentLevel === i && <div className="w-2 h-2 rounded-full bg-purple-400" />}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* ── Audio Menu ── */}
             {isAudioMenuOpen && (
                 <div className="absolute bottom-36 !right-8 z-[200] w-72 bg-black/85 backdrop-blur-2xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200" onClick={e => e.stopPropagation()}>
@@ -538,18 +562,25 @@ export default function VideoPlayer({
                         {/* RIGHT: Audio · Subs · Fullscreen */}
                         <div className="flex items-center !gap-4 md:!gap-8">
                             <button
-                                onClick={(e) => { e.stopPropagation(); setIsSubtitleMenuOpen(false); setIsAudioMenuOpen(!isAudioMenuOpen); }}
+                                onClick={(e) => { e.stopPropagation(); setIsSubtitleMenuOpen(false); setIsAudioMenuOpen(!isAudioMenuOpen); setIsQualityMenuOpen(false); }}
                                 className={`flex flex-col items-center !gap-1 transition-colors ${isAudioMenuOpen ? 'text-purple-400' : 'text-white/60 hover:text-white'}`}
                             >
                                 <Headphones className="w-5 h-5 md:w-7 md:h-7" />
                                 <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest hidden sm:block">Audio</span>
                             </button>
                             <button
-                                onClick={(e) => { e.stopPropagation(); setIsAudioMenuOpen(false); setIsSubtitleMenuOpen(!isSubtitleMenuOpen); }}
+                                onClick={(e) => { e.stopPropagation(); setIsAudioMenuOpen(false); setIsSubtitleMenuOpen(!isSubtitleMenuOpen); setIsQualityMenuOpen(false); }}
                                 className={`flex flex-col items-center !gap-1 transition-colors ${isSubtitleMenuOpen ? 'text-purple-400' : 'text-white/60 hover:text-white'}`}
                             >
                                 <MessageSquare className="w-5 h-5 md:w-7 md:h-7" />
                                 <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest hidden sm:block">Subs</span>
+                            </button>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setIsAudioMenuOpen(false); setIsSubtitleMenuOpen(false); setIsQualityMenuOpen(!isQualityMenuOpen); }}
+                                className={`flex flex-col items-center !gap-1 transition-colors ${isQualityMenuOpen ? 'text-purple-400' : 'text-white/60 hover:text-white'}`}
+                            >
+                                <Settings className="w-5 h-5 md:w-7 md:h-7" />
+                                <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest hidden sm:block">Calidad</span>
                             </button>
                             <button onClick={handleFullscreen} className="text-white/60 hover:text-white transition-all hover:scale-110">
                                 <Maximize2 className="w-5 h-5 md:w-7 md:h-7" />
