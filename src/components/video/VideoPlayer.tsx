@@ -133,7 +133,6 @@ export default function VideoPlayer({
                 maxBufferLength: 15, // Reduce initial aggressive buffering
                 maxMaxBufferLength: 30,
                 maxBufferSize: 30 * 1024 * 1024,
-                renderTextTracksNatively: false, // Force HLS.js to use CUES_PARSED instead of native browser UI
                 xhrSetup: (xhr, url) => {
                     try {
                         const masterUrl = new URL(src, window.location.origin);
@@ -161,27 +160,6 @@ export default function VideoPlayer({
                 setCurrentSubtitle(hls?.subtitleTrack ?? -1);
                 setLevels(hls?.levels || []);
                 setCurrentLevel(hls?.currentLevel ?? -1);
-            });
-
-            hls.on(Hls.Events.CUES_PARSED, (_event, data) => {
-                if (data.cues && data.cues.length > 0) {
-                    const newCues = data.cues.map((c: any, i: number) => ({
-                        id: Date.now() + i,
-                        start: c.startTime,
-                        end: c.endTime,
-                        text: c.text
-                    }));
-                    setActiveCues(prev => {
-                        const merged = [...prev, ...newCues];
-                        // Filter duplicates by start time and text
-                        const unique = merged.filter((cue, index, self) =>
-                            index === self.findIndex((t) => (
-                                t.start === cue.start && t.text === cue.text
-                            ))
-                        );
-                        return unique.sort((a, b) => a.start - b.start);
-                    });
-                }
             });
 
             hls.on(Hls.Events.FRAG_LOADED, (_event, data) => {
@@ -521,8 +499,8 @@ export default function VideoPlayer({
                                 setActiveCues([]); // Clear previous cues
                                 setCurrentCue(null);
                                 if (track.type === 'HLS' && hlsRef.current) {
+                                    hlsRef.current.subtitleDisplay = true; // Must be set BEFORE setting the track!
                                     hlsRef.current.subtitleTrack = i;
-                                    hlsRef.current.subtitleDisplay = true; // Required for HLS.js to fetch and parse the VTT files!
                                 }
                                 setIsSubtitleMenuOpen(false);
                             }}
