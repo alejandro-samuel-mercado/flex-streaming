@@ -90,7 +90,20 @@ export default function AdminSettingsPage() {
         setSaving(true);
         try {
             const token = localStorage.getItem('adminToken');
-            const res = await adminFetch(API_ROUTES.MEDIA_SCANNER.SCAN, {
+            const mPath = settings['AUTO_SCAN_MOVIE_PATH'] || '';
+            const sPath = settings['AUTO_SCAN_SERIES_PATH'] || '';
+            
+            if (!mPath && !sPath) {
+                alert('Debes configurar al menos una ruta de películas o series antes de forzar el escaneo.');
+                setSaving(false);
+                return;
+            }
+
+            const url = new URL(API_ROUTES.MEDIA_SCANNER.SCAN);
+            if (mPath) url.searchParams.append('moviePath', mPath);
+            if (sPath) url.searchParams.append('seriesPath', sPath);
+
+            const res = await adminFetch(url.toString(), {
                 method: 'GET',
                 headers: {
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
