@@ -203,40 +203,9 @@ export default function ProcessingMonitorPage() {
         }
     };
 
-    const handleRetryAll = async () => {
-        if (!window.confirm('¿Deseas reintentar TODOS los videos fallidos?')) return;
-        try {
-            const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
-            const res = await adminFetch(API_ROUTES.ADMIN.VIDEOS_RETRY_FAILED, {
-                method: 'POST',
-                headers: {
-                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                }
-            });
-
-            if (res.ok) {
-                // Refresh list
-                const resStatus = await adminFetch(API_ROUTES.ADMIN.VIDEOS_STATUS, {
-                    headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
-                });
-                if (resStatus.ok) {
-                    const data = await resStatus.json();
-                    setVideos(data.data?.videos || []);
-                }
-                alert('Todos los videos fallidos han sido reenviados a la cola.');
-            } else {
-                const err = await res.json();
-                alert(`Error al reintentar todos: ${err.error || 'No se pudo completar la operación'}`);
-            }
-        } catch (err) {
-            console.error('Retry all error:', err);
-            alert('Error de conexión al intentar reintentar todos');
-        }
-    };
-
     const handleDrainAndReset = async () => {
         if (!window.confirm('CUIDADO: Esto vaciará toda la cola de procesamiento en memoria (Redis) y reiniciará TODOS los trabajos en curso o atascados a PENDING para que el sistema empiece de cero. ¡Solo haz esto si la cola está trabada! ¿Estás totalmente seguro?')) return;
-        
+
         try {
             const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
             const res = await adminFetch(API_ROUTES.MEDIA_SCANNER.DRAIN_AND_RESET, {
@@ -299,16 +268,16 @@ export default function ProcessingMonitorPage() {
 
     const getVideoName = (v: VideoStatus) => {
         let title = v.content?.translations?.[0]?.title || v.content?.slug || 'Sin título';
-        
+
         if (v.type === 'EPISODE' && v.episode) {
             const seriesTitle = v.episode.season.content?.translations?.[0]?.title || v.episode.season.content?.slug || title;
             return `${seriesTitle} - T${v.episode.season.number} E${v.episode.number}`;
         }
-        
+
         if (v.type === 'TRAILER') {
             return `Tráiler: ${title}`;
         }
-        
+
         return title;
     };
 
@@ -326,11 +295,11 @@ export default function ProcessingMonitorPage() {
             </div>
 
             {/* Stats Grid - Moved to top with better design */}
-            <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
-                gap: 20, 
-                marginBottom: 24 
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                gap: 20,
+                marginBottom: 24
             }}>
                 <div className="adm-table-card" style={{ padding: 24, background: 'linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%)', border: '1px solid rgba(167, 139, 250, 0.2)' }}>
                     <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
@@ -386,53 +355,44 @@ export default function ProcessingMonitorPage() {
                     <h2 className="adm-table-card-title">Cola de Trabajos Recientes (Historial de 100)</h2>
                     <div style={{ display: 'flex', gap: 12 }}>
                         {totalStats.failed > 0 && (
-                            <button 
-                                className="adm-btn" 
-                                onClick={() => setStatusFilter('FAILED')}
-                                style={{ background: 'rgba(229, 9, 20, 0.1)', color: 'var(--adm-danger)', border: '1px solid rgba(229, 9, 20, 0.2)', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}
+                            <Link
+                                href="/admin/processing/failed"
+                                className="adm-btn"
+                                style={{ background: 'rgba(229, 9, 20, 0.1)', color: 'var(--adm-danger)', border: '1px solid rgba(229, 9, 20, 0.2)', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', textDecoration: 'none' }}
                             >
                                 <AlertCircle size={16} style={{ display: 'inline', marginRight: 6, verticalAlign: 'middle' }} />
                                 Ver Todos los Fallidos
-                            </button>
+                            </Link>
                         )}
-                        {(totalStats.failed > 0 || videos.some(v => v.status === 'FAILED' || v.status === 'PENDING')) && (
-                            <button 
-                                className="adm-btn" 
-                                onClick={handleRetryAll}
-                                style={{ background: 'var(--adm-primary)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(139, 92, 246, 0.2)' }}
-                            >
-                                Reintentar Todo (Pendientes/Fallidos)
-                            </button>
-                        )}
-                        <button 
-                            className="adm-btn" 
+                        <button
+                            className="adm-btn"
                             onClick={handleDrainAndReset}
                             style={{ background: 'var(--adm-danger)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(229, 9, 20, 0.3)' }}
                             title="Limpia la cola en memoria (Redis) si está trabada y reinicia todos los trabajos a estado Pendiente."
                         >
-                            Reset Nuclear (Purgar Cola)
+                            Reinicio global (Restaurar cola)
                         </button>
                     </div>
                 </div>
 
                 {/* Filter Bar */}
-                <div style={{ 
-                    padding: '16px 20px', 
-                    borderBottom: '1px solid var(--adm-border)', 
-                    display: 'flex', 
-                    gap: 16, 
+                <div style={{
+                    padding: '16px 20px',
+                    borderBottom: '1px solid var(--adm-border)',
+                    display: 'flex',
+                    gap: 16,
                     flexWrap: 'wrap',
                     background: 'rgba(255,255,255,0.02)'
                 }}>
                     <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
                         <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--adm-muted)' }} />
-                        <input 
-                            type="text" 
-                            placeholder="Buscar por nombre..." 
+                        <input
+                            type="text"
+                            placeholder="Buscar por nombre..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            style={{ 
-                                width: '100%', padding: '10px 12px 10px 38px', 
+                            style={{
+                                width: '100%', padding: '10px 12px 10px 38px',
                                 background: 'var(--adm-bg-alt)', border: '1px solid var(--adm-border)',
                                 borderRadius: 8, color: 'white', fontSize: '0.9rem'
                             }}
@@ -441,10 +401,10 @@ export default function ProcessingMonitorPage() {
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 150 }}>
                         <Filter size={16} style={{ color: 'var(--adm-muted)' }} />
-                        <select 
+                        <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            style={{ 
+                            style={{
                                 padding: '10px 12px', background: 'var(--adm-bg-alt)', border: '1px solid var(--adm-border)',
                                 borderRadius: 8, color: 'white', fontSize: '0.9rem', cursor: 'pointer'
                             }}
@@ -460,17 +420,17 @@ export default function ProcessingMonitorPage() {
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <Calendar size={16} style={{ color: 'var(--adm-muted)' }} />
-                        <input 
-                            type="date" 
+                        <input
+                            type="date"
                             value={dateFilter}
                             onChange={(e) => setDateFilter(e.target.value)}
-                            style={{ 
+                            style={{
                                 padding: '10px 12px', background: 'var(--adm-bg-alt)', border: '1px solid var(--adm-border)',
                                 borderRadius: 8, color: 'white', fontSize: '0.9rem', cursor: 'pointer'
                             }}
                         />
                         {dateFilter && (
-                            <button 
+                            <button
                                 onClick={() => setDateFilter('')}
                                 style={{ background: 'transparent', border: 'none', color: 'var(--adm-danger)', cursor: 'pointer', fontSize: '0.8rem' }}
                             >
@@ -661,7 +621,7 @@ export default function ProcessingMonitorPage() {
                     <div style={{
                         background: '#111', width: '100%', maxWidth: 500, borderRadius: 12,
                         border: '1px solid #333', display: 'flex', flexDirection: 'column',
-                        boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.5)', maxHeight: '90vh', overflowY: 'auto'
                     }} onClick={e => e.stopPropagation()}>
                         <div style={{
                             padding: '16px 20px', borderBottom: '1px solid #333', display: 'flex',
@@ -683,8 +643,8 @@ export default function ProcessingMonitorPage() {
                             <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: 1.5, color: '#ccc' }}>
                                 El procesamiento de <strong>{getVideoName(errorModal)}</strong> ha fallado.
                             </p>
-                            <div style={{ 
-                                padding: 16, background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.2)', 
+                            <div style={{
+                                padding: 16, background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.2)',
                                 borderRadius: 8, color: '#f43f5e', fontSize: '0.9rem', fontFamily: 'monospace', whiteSpace: 'pre-wrap'
                             }}>
                                 {errorModal.errorMessage || 'Error desconocido (no hay detalles guardados).'}
