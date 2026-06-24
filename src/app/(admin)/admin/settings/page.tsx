@@ -91,7 +91,7 @@ export default function AdminSettingsPage() {
         try {
             const token = localStorage.getItem('adminToken');
             const res = await adminFetch(API_ROUTES.MEDIA_SCANNER.SCAN, {
-                method: 'POST',
+                method: 'GET',
                 headers: {
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 }
