@@ -157,6 +157,7 @@ export const API_ROUTES = {
         IMPORT: `${API_BASE_URL}/admin/media-scanner/import`,
         STATUS: `${API_BASE_URL}/admin/media-scanner/status`,
         APPLY_TMDB: `${API_BASE_URL}/admin/media-scanner/apply-tmdb`,
+        DRAIN_AND_RESET: `${API_BASE_URL}/admin/media-scanner/drain-and-reset`,
     },
     BACKUP: {
         LIST: `${API_BASE_URL}/admin/backup/list`,

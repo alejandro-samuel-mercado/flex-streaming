@@ -234,6 +234,32 @@ export default function ProcessingMonitorPage() {
         }
     };
 
+    const handleDrainAndReset = async () => {
+        if (!window.confirm('CUIDADO: Esto vaciará toda la cola de procesamiento en memoria (Redis) y reiniciará TODOS los trabajos en curso o atascados a PENDING para que el sistema empiece de cero. ¡Solo haz esto si la cola está trabada! ¿Estás totalmente seguro?')) return;
+        
+        try {
+            const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
+            const res = await adminFetch(API_ROUTES.MEDIA_SCANNER.DRAIN_AND_RESET, {
+                method: 'POST',
+                headers: {
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                }
+            });
+
+            if (res.ok) {
+                alert('¡Sistema purgado y reseteado exitosamente! El escáner automático pronto recogerá los trabajos pendientes.');
+                // Forzar recarga completa para ver los nuevos estados
+                window.location.reload();
+            } else {
+                const err = await res.json();
+                alert(`Error al resetear la cola: ${err.error || 'No se pudo completar la operación'}`);
+            }
+        } catch (err) {
+            console.error('Drain and reset error:', err);
+            alert('Error de conexión al intentar resetear la cola');
+        }
+    };
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'COMPLETED': return 'var(--adm-success)';
@@ -378,6 +404,14 @@ export default function ProcessingMonitorPage() {
                                 Reintentar Todo (Pendientes/Fallidos)
                             </button>
                         )}
+                        <button 
+                            className="adm-btn" 
+                            onClick={handleDrainAndReset}
+                            style={{ background: 'var(--adm-danger)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(229, 9, 20, 0.3)' }}
+                            title="Limpia la cola en memoria (Redis) si está trabada y reinicia todos los trabajos a estado Pendiente."
+                        >
+                            Reset Nuclear (Purgar Cola)
+                        </button>
                     </div>
                 </div>
 
