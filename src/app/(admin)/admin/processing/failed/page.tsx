@@ -2,7 +2,7 @@
 import { adminFetch } from '@/lib/admin-api';
 
 import { useState, useEffect } from 'react';
-import { AlertCircle, ArrowLeft, Loader2, PlayCircle, X } from 'lucide-react';
+import { AlertCircle, ArrowLeft, CheckCircle2, Loader2, PlayCircle, X } from 'lucide-react';
 import Link from 'next/link';
 import { API_ROUTES } from '@/lib/api-routes';
 
@@ -133,16 +133,16 @@ export default function FailedVideosPage() {
 
     const getVideoName = (v: VideoStatus) => {
         let title = v.content?.translations?.[0]?.title || v.content?.slug || 'Sin título';
-        
+
         if (v.type === 'EPISODE' && v.episode) {
             const seriesTitle = v.episode.season.content?.translations?.[0]?.title || v.episode.season.content?.slug || title;
             return `${seriesTitle} - T${v.episode.season.number} E${v.episode.number}`;
         }
-        
+
         if (v.type === 'TRAILER') {
             return `Tráiler: ${title}`;
         }
-        
+
         return title;
     };
 
@@ -164,8 +164,8 @@ export default function FailedVideosPage() {
                 <div className="adm-table-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
                     <h2 className="adm-table-card-title">Listado de Fallos</h2>
                     {videos.length > 0 && (
-                        <button 
-                            className="adm-btn" 
+                        <button
+                            className="adm-btn"
                             onClick={handleRetryAll}
                             style={{ background: 'var(--adm-primary)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(139, 92, 246, 0.2)' }}
                         >
@@ -275,8 +275,8 @@ export default function FailedVideosPage() {
                             <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: 1.5, color: '#ccc' }}>
                                 El procesamiento de <strong>{getVideoName(errorModal)}</strong> ha fallado.
                             </p>
-                            <div style={{ 
-                                padding: 16, background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.2)', 
+                            <div style={{
+                                padding: 16, background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.2)',
                                 borderRadius: 8, color: '#f43f5e', fontSize: '0.9rem', fontFamily: 'monospace', whiteSpace: 'pre-wrap'
                             }}>
                                 {errorModal.errorMessage || 'Error desconocido (no hay detalles guardados).'}
