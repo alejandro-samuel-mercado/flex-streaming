@@ -822,41 +822,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                         </div>
                                     </div>
                                 )}
-                                {/* Embedded Player Overlay */}
-                                {activeVideo && typeof window !== 'undefined' && createPortal(
-                                    <div style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'black' }}>
-                                        <VideoPlayer
-                                            src={activeVideo.url}
-                                            title={activeVideo.title}
-                                            poster={resolveImageUrl(data?.thumbnails?.find(t => t.type === 'BACKDROP')?.url) || undefined}
-                                            episodes={data?.seasons || []}
-                                            onBack={() => setActiveVideo(null)}
-                                            onEpisodeSelect={async (episodeId) => {
-                                                try {
-                                                    const res = await adminFetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
-                                                        method: 'POST',
-                                                        body: JSON.stringify({ contentId: id, episodeId })
-                                                    });
-                                                    const resJson = await res.json();
-                                                    if (resJson.success && resJson.data) {
-                                                        const ep = data?.seasons?.flatMap(s => s.episodes || []).find(e => e.id === episodeId);
-                                                        const season = data?.seasons?.find(s => s.episodes?.some((e: any) => e.id === episodeId));
-                                                        
-                                                        const streamHost = resJson.data.streamBaseUrl || API_ORIGIN;
-                                                        const streamUrl = `${streamHost}/api/stream/hls/${resJson.data.videoFileId}/master.m3u8?token=${resJson.data.token}`;
-                                                        setActiveVideo({
-                                                            url: streamUrl,
-                                                            title: `${data?.translations?.find(t => t.lang === 'es')?.title || data?.originalTitle || 'Serie'} - T${season?.number || ''}E${ep?.number || ''}`
-                                                        });
-                                                    }
-                                                } catch (err) {
-                                                    console.error('Error switching episode:', err);
-                                                }
-                                            }}
-                                        />
-                                    </div>,
-                                    document.body
-                                )}
+
 
                                 {!data || !data.videoFiles || (data.type !== 'MOVIE' ? data.videoFiles.filter(v => !v.episodeId) : data.videoFiles).length === 0 ? (
                                     <div style={{ textAlign: 'center', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: 12 }}>
@@ -1222,6 +1188,41 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                         <ChevronLeft size={24} style={{ transform: 'rotate(90deg)' }} />
                     </button>
                 </div>
+            )}
+            {/* Embedded Player Overlay */}
+            {activeVideo && typeof window !== 'undefined' && createPortal(
+                <div style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'black' }}>
+                    <VideoPlayer
+                        src={activeVideo.url}
+                        title={activeVideo.title}
+                        poster={resolveImageUrl(data?.thumbnails?.find(t => t.type === 'BACKDROP')?.url) || undefined}
+                        episodes={data?.seasons || []}
+                        onBack={() => setActiveVideo(null)}
+                        onEpisodeSelect={async (episodeId) => {
+                            try {
+                                const res = await adminFetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
+                                    method: 'POST',
+                                    body: JSON.stringify({ contentId: id, episodeId })
+                                });
+                                const resJson = await res.json();
+                                if (resJson.success && resJson.data) {
+                                    const ep = data?.seasons?.flatMap(s => s.episodes || []).find(e => e.id === episodeId);
+                                    const season = data?.seasons?.find(s => s.episodes?.some((e: any) => e.id === episodeId));
+                                    
+                                    const streamHost = resJson.data.streamBaseUrl || API_ORIGIN;
+                                    const streamUrl = `${streamHost}/api/stream/hls/${resJson.data.videoFileId}/master.m3u8?token=${resJson.data.token}`;
+                                    setActiveVideo({
+                                        url: streamUrl,
+                                        title: `${data?.translations?.find(t => t.lang === 'es')?.title || data?.originalTitle || 'Serie'} - T${season?.number || ''}E${ep?.number || ''}`
+                                    });
+                                }
+                            } catch (err) {
+                                console.error('Error switching episode:', err);
+                            }
+                        }}
+                    />
+                </div>,
+                document.body
             )}
         </div>
     );
