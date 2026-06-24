@@ -86,6 +86,34 @@ export default function AdminSettingsPage() {
         }
     };
 
+    const handleForceScan = async () => {
+        setSaving(true);
+        try {
+            const token = localStorage.getItem('adminToken');
+            const res = await adminFetch(API_ROUTES.MEDIA_SCANNER.SCAN, {
+                method: 'POST',
+                headers: {
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                }
+            });
+            if (res.ok) {
+                alert('¡Escaneo forzado iniciado! El sistema está buscando archivos nuevos.');
+                // Refrescar el estado en 2 segundos
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                const err = await res.json();
+                alert(`Error al iniciar escaneo: ${err.error}`);
+            }
+        } catch (err) {
+            console.error('Force scan error:', err);
+            alert('Error de conexión al forzar escaneo.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const formatLastRun = (dateStr: string | null) => {
         if (!dateStr) return 'Nunca';
         const d = new Date(dateStr);
@@ -185,9 +213,23 @@ export default function AdminSettingsPage() {
                                     padding: '10px 14px',
                                     fontSize: '0.8rem'
                                 }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                                        <span style={{ color: 'var(--adm-muted)' }}>Último escaneo:</span>
-                                        <span style={{ color: 'white' }}>{formatLastRun(scanStatus?.lastRun)}</span>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, alignItems: 'center' }}>
+                                        <div>
+                                            <span style={{ color: 'var(--adm-muted)' }}>Último escaneo: </span>
+                                            <span style={{ color: 'white' }}>{formatLastRun(scanStatus?.lastRun)}</span>
+                                        </div>
+                                        <button 
+                                            onClick={handleForceScan}
+                                            disabled={saving}
+                                            style={{
+                                                background: 'var(--adm-primary)', color: 'white', border: 'none', 
+                                                padding: '4px 10px', borderRadius: 6, fontSize: '0.75rem', cursor: 'pointer',
+                                                display: 'flex', alignItems: 'center', gap: 4
+                                            }}
+                                        >
+                                            {saving ? <Loader2 size={12} className="animate-spin" /> : <FolderSearch size={12} />}
+                                            Forzar Escaneo Ahora
+                                        </button>
                                     </div>
                                     {lastResult && (
                                         <div style={{
