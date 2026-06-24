@@ -15,6 +15,7 @@ interface VideoStatus {
     masterPlaylist: string | null;
     createdAt: string;
     progress?: number;
+    errorMessage?: string;
     content: {
         slug: string;
     };
@@ -33,6 +34,7 @@ export default function ProcessingMonitorPage() {
         processing: 0,
         queued: 0
     });
+    const [errorModal, setErrorModal] = useState<VideoStatus | null>(null);
 
     // Filters state
     const [searchTerm, setSearchTerm] = useState('');
@@ -330,6 +332,16 @@ export default function ProcessingMonitorPage() {
                 <div className="adm-table-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
                     <h2 className="adm-table-card-title">Cola de Trabajos Recientes (Historial de 100)</h2>
                     <div style={{ display: 'flex', gap: 12 }}>
+                        {totalStats.failed > 0 && (
+                            <button 
+                                className="adm-btn" 
+                                onClick={() => setStatusFilter('FAILED')}
+                                style={{ background: 'rgba(229, 9, 20, 0.1)', color: 'var(--adm-danger)', border: '1px solid rgba(229, 9, 20, 0.2)', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}
+                            >
+                                <AlertCircle size={16} style={{ display: 'inline', marginRight: 6, verticalAlign: 'middle' }} />
+                                Ver Todos los Fallidos
+                            </button>
+                        )}
                         {(totalStats.failed > 0 || videos.some(v => v.status === 'FAILED' || v.status === 'PENDING')) && (
                             <button 
                                 className="adm-btn" 
@@ -493,15 +505,24 @@ export default function ProcessingMonitorPage() {
                                                     <Link href={`/admin/content/${v.contentId}`} className="adm-btn adm-btn--gray" style={{ padding: '6px 12px', textDecoration: 'none' }}>Editar</Link>
                                                 )}
                                                 {v.status === 'FAILED' && (
-                                                    <button
-                                                        className="adm-btn"
-                                                        style={{ padding: '6px 12px', background: 'var(--adm-primary)', color: 'white', border: 'none' }}
-                                                        onClick={() => handleRetry(v.id, v?.content?.slug || 'video')}
-                                                    >
-                                                        Reintentar
-                                                    </button>
+                                                    <>
+                                                        <button
+                                                            className="adm-btn"
+                                                            style={{ padding: '6px 12px', background: 'rgba(244, 63, 94, 0.1)', color: '#f43f5e', border: '1px solid rgba(244, 63, 94, 0.2)' }}
+                                                            onClick={() => setErrorModal(v)}
+                                                        >
+                                                            Motivo del Error
+                                                        </button>
+                                                        <button
+                                                            className="adm-btn"
+                                                            style={{ padding: '6px 12px', background: 'var(--adm-primary)', color: 'white', border: 'none' }}
+                                                            onClick={() => handleRetry(v.id, v?.content?.slug || 'video')}
+                                                        >
+                                                            Reintentar
+                                                        </button>
+                                                    </>
                                                 )}
-                                                {v.status !== 'COMPLETED' && (
+                                                {v.status !== 'COMPLETED' && v.status !== 'FAILED' && (
                                                     <button
                                                         className="adm-btn"
                                                         style={{ padding: '6px 12px', background: 'var(--adm-danger)', color: 'white', border: 'none' }}
@@ -565,6 +586,64 @@ export default function ProcessingMonitorPage() {
                                 ))
                             )}
                             <div style={{ height: 20 }} /> {/* Bottom padding */}
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Error Modal for Failed Jobs */}
+            {errorModal && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)',
+                    zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
+                }} onClick={() => setErrorModal(null)}>
+                    <div style={{
+                        background: '#111', width: '100%', maxWidth: 500, borderRadius: 12,
+                        border: '1px solid #333', display: 'flex', flexDirection: 'column',
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
+                    }} onClick={e => e.stopPropagation()}>
+                        <div style={{
+                            padding: '16px 20px', borderBottom: '1px solid #333', display: 'flex',
+                            justifyContent: 'space-between', alignItems: 'center', background: '#1a1a1a',
+                            borderTopLeftRadius: 12, borderTopRightRadius: 12
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <AlertCircle size={18} color="var(--adm-danger)" />
+                                <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Motivo del Error</h3>
+                            </div>
+                            <button
+                                onClick={() => setErrorModal(null)}
+                                style={{ background: 'transparent', border: 'none', color: '#888', cursor: 'pointer' }}
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                            <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: 1.5, color: '#ccc' }}>
+                                El video <strong>{errorModal.content?.slug || 'Sin título'}</strong> ha fallado durante el procesamiento.
+                            </p>
+                            <div style={{ 
+                                padding: 16, background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.2)', 
+                                borderRadius: 8, color: '#f43f5e', fontSize: '0.9rem', fontFamily: 'monospace', whiteSpace: 'pre-wrap'
+                            }}>
+                                {errorModal.errorMessage || 'Error desconocido (no hay detalles guardados).'}
+                            </div>
+                            <div style={{ background: 'rgba(255,255,255,0.05)', padding: 16, borderRadius: 8, fontSize: '0.9rem', color: '#aaa', lineHeight: 1.5 }}>
+                                <strong style={{ color: 'white' }}>¿Qué debes hacer?</strong>
+                                <ul style={{ margin: '8px 0 0', paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                    <li>Si dice <strong>"Archivo corrompido"</strong>, <strong>"moov atom not found"</strong> o <strong>"Invalid data found"</strong>, significa que el archivo original de video que subiste está dañado, incompleto o no se terminó de subir bien.</li>
+                                    <li>Debes <strong>eliminar</strong> este video de tu contenido y <strong>volver a subir el archivo</strong> asegurándote de no cerrar la pestaña hasta que llegue al 100%.</li>
+                                    <li>Si dice "Timeout" o "ETIMEDOUT", pudo ser una caída de internet en el servidor. En ese caso, usa el botón "Reintentar".</li>
+                                </ul>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                                <button
+                                    className="adm-btn adm-btn--primary"
+                                    onClick={() => setErrorModal(null)}
+                                >
+                                    Entendido
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
