@@ -240,6 +240,7 @@ export default function ProcessingMonitorPage() {
 
     // Filter logic
     const filteredVideos = videos.filter(v => {
+        if (v.status === 'FAILED') return false; // Hide FAILED videos from this page (they are in the dedicated page)
         const matchesSearch = (v.content?.slug || '').toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === 'ALL' || v.status === statusFilter;
         const matchesDate = !dateFilter || new Date(v.createdAt).toISOString().split('T')[0] === dateFilter;
@@ -411,7 +412,6 @@ export default function ProcessingMonitorPage() {
                             <option value="PROCESSING">Procesando</option>
                             <option value="QUEUED">En Cola</option>
                             <option value="PENDING">Pendiente</option>
-                            <option value="FAILED">Fallido</option>
                             <option value="COMPLETED">Completado</option>
                         </select>
                     </div>
