@@ -354,16 +354,14 @@ export default function ProcessingMonitorPage() {
                 <div className="adm-table-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
                     <h2 className="adm-table-card-title">Cola de Trabajos Recientes (Historial de 100)</h2>
                     <div style={{ display: 'flex', gap: 12 }}>
-                        {totalStats.failed > 0 && (
-                            <Link
-                                href="/admin/processing/failed"
-                                className="adm-btn"
-                                style={{ background: 'rgba(229, 9, 20, 0.1)', color: 'var(--adm-danger)', border: '1px solid rgba(229, 9, 20, 0.2)', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', textDecoration: 'none' }}
-                            >
-                                <AlertCircle size={16} style={{ display: 'inline', marginRight: 6, verticalAlign: 'middle' }} />
-                                Ver Todos los Fallidos
-                            </Link>
-                        )}
+                        <Link 
+                            href="/admin/processing/failed"
+                            className="adm-btn" 
+                            style={{ background: 'rgba(229, 9, 20, 0.1)', color: 'var(--adm-danger)', border: '1px solid rgba(229, 9, 20, 0.2)', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', textDecoration: 'none' }}
+                        >
+                            <AlertCircle size={16} style={{ display: 'inline', marginRight: 6, verticalAlign: 'middle' }} />
+                            Fallidos ({totalStats.failed})
+                        </Link>
                         <button
                             className="adm-btn"
                             onClick={handleDrainAndReset}
