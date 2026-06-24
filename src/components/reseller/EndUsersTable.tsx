@@ -164,11 +164,7 @@ export default function EndUsersTable({ users, loading, search, onSearchChange, 
                                                         <button className="adm-dropdown-item" onClick={() => { handlePause(u); setOpenMenu(null); }}>{u.status === 'ACTIVE' ? 'Pausar' : 'Reanudar'}</button>
                                                         <button className="adm-dropdown-item" onClick={() => { setDevicesModal(u); setOpenMenu(null); }}>Dispositivos</button>
                                                         <div style={{ height: 1, background: 'var(--adm-border)', margin: '4px 0' }} />
-                                                        {u.status === 'INACTIVE' ? (
-                                                            <button className="adm-dropdown-item text-red-400" onClick={() => { handleDelete(u); setOpenMenu(null); }}>Eliminar cuenta</button>
-                                                        ) : (
-                                                            <button className="adm-dropdown-item opacity-30 cursor-not-allowed text-xs" title="Solo inactivos" onClick={() => setOpenMenu(null)}>Eliminar (Solo Inactivos)</button>
-                                                        )}
+                                                        <button className="adm-dropdown-item text-red-400" onClick={() => { handleDelete(u); setOpenMenu(null); }}>Eliminar cuenta</button>
                                                     </div>
                                                 )}
                                             </div>
