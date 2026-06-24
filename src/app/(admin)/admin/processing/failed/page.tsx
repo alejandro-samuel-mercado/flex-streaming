@@ -56,6 +56,8 @@ export default function FailedVideosPage() {
             } finally {
                 setLoading(false);
             }
+        };
+
         fetchStatus();
         const interval = setInterval(fetchStatus, 5000);
         return () => clearInterval(interval);
