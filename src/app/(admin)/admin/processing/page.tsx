@@ -16,8 +16,20 @@ interface VideoStatus {
     createdAt: string;
     progress?: number;
     errorMessage?: string;
+    type?: string;
     content: {
         slug: string;
+        translations?: { title: string }[];
+    };
+    episode?: {
+        number: number;
+        season: {
+            number: number;
+            content?: {
+                slug: string;
+                translations?: { title: string }[];
+            };
+        };
     };
 }
 
@@ -259,6 +271,21 @@ export default function ProcessingMonitorPage() {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
+    const getVideoName = (v: VideoStatus) => {
+        let title = v.content?.translations?.[0]?.title || v.content?.slug || 'Sin título';
+        
+        if (v.type === 'EPISODE' && v.episode) {
+            const seriesTitle = v.episode.season.content?.translations?.[0]?.title || v.episode.season.content?.slug || title;
+            return `${seriesTitle} - T${v.episode.season.number} E${v.episode.number}`;
+        }
+        
+        if (v.type === 'TRAILER') {
+            return `Tráiler: ${title}`;
+        }
+        
+        return title;
+    };
+
     return (
         <div className="adm-page">
             <div className="adm-page-header">
@@ -444,8 +471,8 @@ export default function ProcessingMonitorPage() {
                                 {sortedVideos.map(v => (
                                     <tr key={v.id}>
                                         <td>
-                                            <div style={{ fontWeight: 600, color: 'white' }}>{v?.content?.slug || 'Sin título'}</div>
-                                            <div style={{ fontSize: '.7rem', color: 'var(--adm-muted)' }}>ID: {v?.id?.slice(-8)}</div>
+                                            <div style={{ fontWeight: 600, color: 'white' }}>{getVideoName(v)}</div>
+                                            <div style={{ fontSize: '.7rem', color: 'var(--adm-muted)' }}>ID: {v?.id?.slice(-8)} • {v.type || 'VIDEO'}</div>
                                         </td>
                                         <td>
                                             <span className="adm-badge" style={{
@@ -620,7 +647,7 @@ export default function ProcessingMonitorPage() {
                         </div>
                         <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
                             <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: 1.5, color: '#ccc' }}>
-                                El video <strong>{errorModal.content?.slug || 'Sin título'}</strong> ha fallado durante el procesamiento.
+                                El procesamiento de <strong>{getVideoName(errorModal)}</strong> ha fallado.
                             </p>
                             <div style={{ 
                                 padding: 16, background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.2)', 
