@@ -1,7 +1,7 @@
 'use client';
 import { adminFetch } from '@/lib/admin-api';
 import { useState, useEffect } from 'react';
-import { Settings, Globe, Bell, Shield, Palette, Save, MessageSquare, UploadCloud, FolderSearch, Clock, FolderOpen, Loader2, CheckCircle2 } from 'lucide-react';
+import { Settings, Globe, Bell, Shield, Palette, Save, MessageSquare, UploadCloud, FolderSearch, Clock, FolderOpen, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { API_ROUTES } from '@/lib/api-routes';
 
 export default function AdminSettingsPage() {
@@ -381,6 +381,54 @@ export default function AdminSettingsPage() {
                         <div className="adm-form-row">
                             <label>Enlace YouTube</label>
                             <input className="adm-input" value={settings['SOCIAL_YOUTUBE'] || ''} onChange={e => setSettings({ ...settings, SOCIAL_YOUTUBE: e.target.value })} placeholder="https://youtube.com/..." />
+                        </div>
+                    </div>
+                </div>
+
+                {/* ─── Zona de Peligro ─── */}
+                <div className="adm-settings-section" style={{ gridColumn: 'span 2', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                    <div className="adm-settings-section-header" style={{ color: '#ef4444' }}>
+                        <AlertTriangle size={18} className="adm-settings-icon" />
+                        <h2>Zona de Peligro</h2>
+                    </div>
+                    <div className="adm-settings-body">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                                <span style={{ fontWeight: 600, color: 'white' }}>Vaciar y Reiniciar Cola (Reset)</span>
+                                <p style={{ fontSize: '0.8rem', color: 'var(--adm-muted)', marginTop: 4, maxWidth: 600 }}>
+                                    Borra todos los trabajos atascados en Redis y elimina de la base de datos los registros en estado PENDING, QUEUED o PROCESSING. El sistema detectará los archivos como "nuevos" en el próximo escaneo.
+                                </p>
+                            </div>
+                            <button
+                                onClick={async () => {
+                                    if (confirm('¿Estás seguro? Esto vaciará la cola actual y requerirá un nuevo escaneo completo.')) {
+                                        try {
+                                            const token = localStorage.getItem('adminToken');
+                                            await adminFetch(API_ROUTES.MEDIA_SCANNER.DRAIN_AND_RESET, {
+                                                method: 'POST',
+                                                headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+                                            });
+                                            alert('Cola vaciada. Dale a Forzar Escaneo Ahora para retomar.');
+                                        } catch (err) {
+                                            alert('Error vaciando cola');
+                                        }
+                                    }
+                                }}
+                                style={{
+                                    background: 'rgba(239, 68, 68, 0.1)',
+                                    color: '#ef4444',
+                                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                                    padding: '8px 16px',
+                                    borderRadius: 8,
+                                    fontWeight: 500,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseOver={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'}
+                                onMouseOut={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+                            >
+                                Vaciar Cola Atascada
+                            </button>
                         </div>
                     </div>
                 </div>
