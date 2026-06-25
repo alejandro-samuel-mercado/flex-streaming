@@ -61,9 +61,6 @@ export default function TMDBSuggestions({ title, contentId, onApplied }: TMDBSug
     // The user must manually click 'Buscar' to see results.
 
     const handleApply = async (result: TMDBResult) => {
-        const confirmMsg = `¿Importar datos de "${result.title || result.name}"?\n\nEsto reemplazará el título, sinopsis, imágenes, géneros, actores y más.`;
-        if (!window.confirm(confirmMsg)) return;
-
         setApplying(result.id);
         setError(null);
 
@@ -140,6 +137,13 @@ export default function TMDBSuggestions({ title, contentId, onApplied }: TMDBSug
                     </p>
                 </div>
             </div>
+
+            {error && (
+                <div style={{ marginBottom: 16, padding: '10px 14px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderRadius: 8, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <AlertTriangle size={16} />
+                    {error}
+                </div>
+            )}
 
             {/* Search bar */}
             <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
