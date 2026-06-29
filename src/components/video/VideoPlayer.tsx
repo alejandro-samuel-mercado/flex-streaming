@@ -162,6 +162,11 @@ export default function VideoPlayer({
                 setCurrentLevel(hls?.currentLevel ?? -1);
             });
 
+            hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_event, data) => {
+                setAudioTracks(data.audioTracks || []);
+                setCurrentAudio(hls?.audioTrack ?? -1);
+            });
+
             hls.on(Hls.Events.FRAG_LOADED, (_event, data) => {
                 const stats = (data as any).stats;
                 if (stats) {
@@ -457,16 +462,21 @@ export default function VideoPlayer({
                         <button onClick={() => setIsAudioMenuOpen(false)} className="text-white/40 hover:text-white !p-1"><X size={16} /></button>
                     </div>
                     <div className="!py-2 max-h-64 overflow-y-auto">
-                        {audioTracks.length === 0 && (
-                            <p className="text-white/30 text-xs text-center !py-5">Sin pistas de audio disponibles</p>
-                        )}
-                        {audioTracks.map((track, i) => (
-                            <button key={i} onClick={() => { if (hlsRef.current) hlsRef.current.audioTrack = i; setCurrentAudio(i); setIsAudioMenuOpen(false); }}
-                                className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentAudio === i ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
-                                <span className="font-semibold">{track.name || track.lang || `Pista ${i + 1}`}</span>
-                                {currentAudio === i && <div className="w-2 h-2 rounded-full bg-purple-400" />}
+                        {audioTracks.length === 0 ? (
+                            <button onClick={() => setIsAudioMenuOpen(false)}
+                                className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors bg-purple-500/20 text-purple-300`}>
+                                <span className="font-semibold">Audio Predeterminado</span>
+                                <div className="w-2 h-2 rounded-full bg-purple-400" />
                             </button>
-                        ))}
+                        ) : (
+                            audioTracks.map((track, i) => (
+                                <button key={i} onClick={() => { if (hlsRef.current) hlsRef.current.audioTrack = i; setCurrentAudio(i); setIsAudioMenuOpen(false); }}
+                                    className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentAudio === i ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+                                    <span className="font-semibold">{track.name || track.lang || `Pista ${i + 1}`}</span>
+                                    {currentAudio === i && <div className="w-2 h-2 rounded-full bg-purple-400" />}
+                                </button>
+                            ))
+                        )}
                     </div>
                 </div>
             )}
