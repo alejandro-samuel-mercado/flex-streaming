@@ -742,7 +742,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                                                 if (resJson.success) {
                                                                                     const filename = video.masterPlaylist?.split('/').pop() || 'master.m3u8';
                                                                                     const streamHost = resJson.data.streamBaseUrl || API_ORIGIN;
-                                                                                    const streamUrl = `${streamHost}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}`;
+                                                                                    const streamUrl = `${streamHost}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}&_t=${Date.now()}`;
                                                                                     
                                                                                     setActiveVideo({
                                                                                         url: streamUrl,
@@ -879,7 +879,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                                         if (resJson.success) {
                                                                             const filename = video.masterPlaylist?.split('/').pop() || 'master.m3u8';
                                                                             const streamHost = resJson.data.streamBaseUrl || API_ORIGIN;
-                                                                            const streamUrl = `${streamHost}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}`;
+                                                                            const streamUrl = `${streamHost}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}&_t=${Date.now()}`;
 
                                                                             setActiveVideo({
                                                                                 url: streamUrl,

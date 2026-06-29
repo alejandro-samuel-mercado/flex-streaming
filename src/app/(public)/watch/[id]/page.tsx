@@ -145,7 +145,7 @@ export default function WatchPage() {
                 
                 // Use the storage node URL if provided, otherwise fall back to the main API
                 const streamHost = streamBaseUrl || backendUrl;
-                const hlsUrl = `${streamHost}/api/stream/hls/${videoFileId}/${filename}?token=${signedToken}`;
+                const hlsUrl = `${streamHost}/api/stream/hls/${videoFileId}/${filename}?token=${signedToken}&_t=${Date.now()}`;
                 setStreamSrc(hlsUrl);
             } catch (err: any) {
                 setError(err.message);
