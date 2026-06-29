@@ -136,12 +136,10 @@ export default function WatchPage() {
                 const resJson = await res.json();
                 if (!resJson.success) throw new Error(resJson.error || 'Acceso denegado.');
 
-                const { token: signedToken, videoFileId, streamBaseUrl } = resJson.data;
+                const { token: signedToken, videoFileId, streamBaseUrl, masterPlaylist } = resJson.data;
                 
-                // Get the actual playlist filename from the videoFile data
-                const targetVideos = currentEpisode ? currentEpisode.videoFiles : content.videoFiles;
-                const videoFile = targetVideos?.find((v: any) => v.id === videoFileId) || targetVideos?.[0];
-                const filename = videoFile?.masterPlaylist?.split('/').pop() || 'master.m3u8';
+                // Use masterPlaylist from the POST request (which is fresh) instead of content (which might be cached)
+                const filename = masterPlaylist?.split('/').pop() || 'master.m3u8';
                 
                 // Use the storage node URL if provided, otherwise fall back to the main API
                 const streamHost = streamBaseUrl || backendUrl;
