@@ -421,11 +421,13 @@ export default function AdminFilesPage() {
                             </thead>
                             <tbody>
                                 {filteredFiles.map(file => (
-                                    <tr key={file.filePath} onClick={() => toggleSelect(file.filePath)}
-                                        style={{ cursor: 'pointer', background: selected.has(file.filePath) ? 'rgba(99,102,241,0.08)' : undefined }}>
-                                        <td><input type="checkbox" checked={selected.has(file.filePath)} onChange={() => toggleSelect(file.filePath)} onClick={e => e.stopPropagation()} style={{ cursor: 'pointer', accentColor: '#818cf8' }} /></td>
+                                    <tr key={file.filePath} onClick={() => { if (file.extension !== 'VACÍA') toggleSelect(file.filePath); }}
+                                        style={{ cursor: file.extension === 'VACÍA' ? 'not-allowed' : 'pointer', background: selected.has(file.filePath) ? 'rgba(99,102,241,0.08)' : (file.extension === 'VACÍA' ? 'rgba(250, 204, 21, 0.05)' : undefined) }}>
+                                        <td><input type="checkbox" disabled={file.extension === 'VACÍA'} checked={selected.has(file.filePath)} onChange={() => toggleSelect(file.filePath)} onClick={e => e.stopPropagation()} style={{ cursor: file.extension === 'VACÍA' ? 'not-allowed' : 'pointer', accentColor: '#818cf8' }} /></td>
                                         <td>
-                                            {file.contentType === 'SERIES'
+                                            {file.extension === 'VACÍA'
+                                                ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', color: '#facc15', background: 'rgba(250,204,21,0.12)', padding: '2px 8px', borderRadius: 6 }}><AlertCircle size={11} />Vacía</span>
+                                                : file.contentType === 'SERIES'
                                                 ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', color: '#60a5fa', background: 'rgba(96,165,250,0.12)', padding: '2px 8px', borderRadius: 6 }}><Tv2 size={11} />Serie</span>
                                                 : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', color: '#86efac', background: 'rgba(74,222,128,0.12)', padding: '2px 8px', borderRadius: 6 }}><Film size={11} />Película</span>
                                             }
@@ -445,8 +447,8 @@ export default function AdminFilesPage() {
                                             </div>
                                         </td>
                                         <td style={{ color: 'var(--adm-muted)', fontSize: '0.8rem' }}>{file.cleanName}</td>
-                                        <td><span className="adm-badge adm-badge--gray" style={{ fontSize: '0.7rem' }}>{file.extension}</span></td>
-                                        <td className="adm-table-muted" style={{ fontSize: '0.8rem' }}>{formatFileSize(file.fileSize)}</td>
+                                        <td><span className="adm-badge adm-badge--gray" style={{ fontSize: '0.7rem', color: file.extension === 'VACÍA' ? '#facc15' : undefined }}>{file.extension}</span></td>
+                                        <td className="adm-table-muted" style={{ fontSize: '0.8rem' }}>{file.extension === 'VACÍA' ? 'Sin archivos' : formatFileSize(file.fileSize)}</td>
                                         <td className="adm-table-muted" style={{ fontSize: '0.8rem' }}>{new Date(file.lastModified).toLocaleDateString('es-AR')}</td>
                                     </tr>
                                 ))}
