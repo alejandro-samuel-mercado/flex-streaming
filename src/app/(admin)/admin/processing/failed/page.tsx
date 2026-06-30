@@ -133,8 +133,12 @@ export default function FailedVideosPage() {
         }
     };
 
-    const getVideoName = (v: VideoStatus) => {
-        let title = v.content?.translations?.[0]?.title || v.content?.slug || 'Sin título';
+    const getVideoName = (v: any) => {
+        let title = v.content?.translations?.[0]?.title || v.content?.slug;
+        if (!title && v.originalPath) {
+            title = v.originalPath.split('/').pop();
+        }
+        if (!title) title = 'Sin título';
 
         if (v.type === 'EPISODE' && v.episode) {
             const seriesTitle = v.episode.season.content?.translations?.[0]?.title || v.episode.season.content?.slug || title;
