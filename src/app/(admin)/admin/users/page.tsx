@@ -256,10 +256,12 @@ export default function AdminUsersPage() {
                         <button 
                             className={`adm-btn adm-btn--sm ${showDeleted ? 'adm-btn--red' : 'adm-btn--ghost'}`}
                             onClick={() => { setShowDeleted(!showDeleted); setPage(1); }}
-                            title="Ver usuarios eliminados"
-                            style={{ opacity: 0.5, border: 'none', background: 'transparent' }}
                         >
-                            <Trash2 size={16} />
+                            {showDeleted ? (
+                                <><X size={16} style={{ marginRight: 6 }} /> Ocultar Eliminados</>
+                            ) : (
+                                <><Trash2 size={16} style={{ marginRight: 6 }} /> Ver Eliminados</>
+                            )}
                         </button>
                         <button className="adm-btn adm-btn--primary" onClick={() => {
                             setEndUserForm({ username: '', password: '', planId: '' });
