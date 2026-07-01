@@ -61,6 +61,7 @@ export interface EndUserAccount {
   connectedDevicesCount: number;
   connectedDevices?: DeviceSession[];
   createdAt: string;
+  deletedAt?: string | null;
 }
 
 export interface CreditTransaction {

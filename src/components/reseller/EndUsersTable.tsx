@@ -21,6 +21,7 @@ function formatDate(d?: string | null) {
 }
 
 function expiryBadge(user: EndUserAccount) {
+    if (user.deletedAt) return <span className="adm-badge adm-badge--red">Eliminado</span>;
     if (!user.endDate) {
         if (user.plan) return <span className="adm-badge adm-badge--yellow">Pendiente Login</span>;
         return <span className="adm-badge adm-badge--gray">Sin plan</span>;
@@ -159,12 +160,20 @@ export default function EndUsersTable({ users, loading, search, onSearchChange, 
                                                 <button className="adm-icon-btn" onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === u.id ? null : u.id); }}><MoreVertical size={16} /></button>
                                                 {openMenu === u.id && (
                                                     <div className="adm-dropdown" style={{ position: 'absolute', right: 20, zIndex: 100, minWidth: 180, background: '#0a0f25', border: '1px solid var(--adm-border)', borderRadius: 12, padding: 6, boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
-                                                        <button className="adm-dropdown-item" onClick={() => { setPwModal(u); setOpenMenu(null); }}>Cambiar contraseña</button>
-                                                        <button className="adm-dropdown-item" onClick={() => { setPlanModal(u); setOpenMenu(null); }}>Agregar plan</button>
-                                                        <button className="adm-dropdown-item" onClick={() => { handlePause(u); setOpenMenu(null); }}>{u.status === 'ACTIVE' ? 'Pausar' : 'Reanudar'}</button>
-                                                        <button className="adm-dropdown-item" onClick={() => { setDevicesModal(u); setOpenMenu(null); }}>Dispositivos</button>
-                                                        <div style={{ height: 1, background: 'var(--adm-border)', margin: '4px 0' }} />
-                                                        <button className="adm-dropdown-item text-red-400" onClick={() => { handleDelete(u); setOpenMenu(null); }}>Eliminar cuenta</button>
+                                                        {u.deletedAt ? (
+                                                            <div style={{ padding: '8px 12px', fontSize: '.85rem', color: '#ef4444', textAlign: 'center' }}>
+                                                                Usuario Eliminado
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <button className="adm-dropdown-item" onClick={() => { setPwModal(u); setOpenMenu(null); }}>Cambiar contraseña</button>
+                                                                <button className="adm-dropdown-item" onClick={() => { setPlanModal(u); setOpenMenu(null); }}>Agregar plan</button>
+                                                                <button className="adm-dropdown-item" onClick={() => { handlePause(u); setOpenMenu(null); }}>{u.status === 'ACTIVE' ? 'Pausar' : 'Reanudar'}</button>
+                                                                <button className="adm-dropdown-item" onClick={() => { setDevicesModal(u); setOpenMenu(null); }}>Dispositivos</button>
+                                                                <div style={{ height: 1, background: 'var(--adm-border)', margin: '4px 0' }} />
+                                                                <button className="adm-dropdown-item text-red-400" onClick={() => { handleDelete(u); setOpenMenu(null); }}>Eliminar cuenta</button>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>

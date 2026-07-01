@@ -15,6 +15,7 @@ export default function AdminUsersPage() {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
+    const [showDeleted, setShowDeleted] = useState(false);
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -55,6 +56,7 @@ export default function AdminUsersPage() {
         try {
             const params = new URLSearchParams({ page: page.toString(), limit: '20', role: activeTab });
             if (searchQuery) params.append('search', searchQuery);
+            if (activeTab === 'END_USER' && showDeleted) params.append('showDeleted', 'true');
 
             const res = await adminFetch(`${API_ROUTES.ADMIN.BASE}/users?${params}`);
             if (res.ok) {
@@ -86,7 +88,7 @@ export default function AdminUsersPage() {
         } finally {
             setLoading(false);
         }
-    }, [page, activeTab, searchQuery]);
+    }, [page, activeTab, searchQuery, showDeleted]);
 
     useEffect(() => {
         fetchUsers();
@@ -250,13 +252,23 @@ export default function AdminUsersPage() {
                     <p className="adm-page-subtitle">Administra los roles, clientes y dispositivos de la plataforma</p>
                 </div>
                 {activeTab === 'END_USER' ? (
-                    <button className="adm-btn adm-btn--primary" onClick={() => {
-                        setEndUserForm({ username: '', password: '', planId: '' });
-                        setEndUserPlanFilter('normal');
-                        setShowEndUserCreate(true);
-                    }}>
-                        <Plus size={18} /> Nueva Cuenta Final
-                    </button>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                        <button 
+                            className={`adm-btn adm-btn--sm ${showDeleted ? 'adm-btn--red' : 'adm-btn--ghost'}`}
+                            onClick={() => { setShowDeleted(!showDeleted); setPage(1); }}
+                            title="Ver usuarios eliminados"
+                            style={{ opacity: 0.5, border: 'none', background: 'transparent' }}
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                        <button className="adm-btn adm-btn--primary" onClick={() => {
+                            setEndUserForm({ username: '', password: '', planId: '' });
+                            setEndUserPlanFilter('normal');
+                            setShowEndUserCreate(true);
+                        }}>
+                            <Plus size={18} /> Nueva Cuenta Final
+                        </button>
+                    </div>
                 ) : (
                     <button className="adm-btn adm-btn--primary" onClick={openCreateModal}>
                         <Plus size={18} /> Nuevo {activeTab === 'VENDOR' ? 'Super Revendedor' : 'Administrador'}
