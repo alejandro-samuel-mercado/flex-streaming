@@ -106,24 +106,24 @@ export default function FilmDetailPage() {
     }, [content?.id, authUser]);
 
     const handleToggleFavorite = async (e?: any) => {
-        console.log('[FAV] click disparado');
         e?.preventDefault();
         const token = localStorage.getItem('accessToken');
         const profileId = localStorage.getItem('profileId');
-        console.log('[FAV] token:', !!token, '| profileId:', !!profileId, '| content.id:', content?.id);
-        
+
         if (!token) {
             alert('Debes iniciar sesión para guardar favoritos.');
             return;
         }
-
         if (!profileId) {
             alert('Por favor, selecciona un perfil primero.');
             return;
         }
 
+        // Optimistic update
+        const prev = isFavorited;
+        setIsFavorited(!prev);
+
         try {
-            console.log('[FAV] llamando API...');
             const res = await userFetch(API_ROUTES.FAVORITES.TOGGLE, {
                 method: 'POST',
                 headers: {
@@ -134,9 +134,12 @@ export default function FilmDetailPage() {
                 body: JSON.stringify({ contentId: content?.id })
             });
             const json = await res.json();
-            console.log('[FAV] respuesta:', json);
             if (json.success) setIsFavorited(json.data.favorited);
-        } catch (err) { console.error('[FAV] error:', err); }
+            else setIsFavorited(prev); // rollback on error
+        } catch (err) {
+            console.error(err);
+            setIsFavorited(prev); // rollback on exception
+        }
     };
 
     const handleToggleLike = async (e?: any) => {
@@ -152,6 +155,10 @@ export default function FilmDetailPage() {
             return;
         }
 
+        // Optimistic update
+        const prev = isLiked;
+        setIsLiked(!prev);
+
         try {
             const res = await userFetch(API_ROUTES.LIKES.TOGGLE, {
                 method: 'POST',
@@ -164,7 +171,11 @@ export default function FilmDetailPage() {
             });
             const json = await res.json();
             if (json.success) setIsLiked(json.data.liked);
-        } catch (err) { console.error(err); }
+            else setIsLiked(prev); // rollback on error
+        } catch (err) {
+            console.error(err);
+            setIsLiked(prev); // rollback on exception
+        }
     };
 
     if (loading) return <div style={{ minHeight: '100vh', background: '#030612', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>Cargando...</div>;
