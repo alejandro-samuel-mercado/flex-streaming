@@ -65,12 +65,13 @@ export default function FilmDetailPage() {
 
     useEffect(() => {
         const checkFav = async () => {
+            if (!content?.id) return;
             const token = localStorage.getItem('accessToken');
             const profileId = localStorage.getItem('profileId');
             if (!token || !profileId) return;
 
             try {
-                const res = await fetch(`${API_ROUTES.FAVORITES.BASE}/check/${id}`, {
+                const res = await fetch(`${API_ROUTES.FAVORITES.BASE}/check/${content.id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'x-profile-id': profileId
@@ -80,17 +81,18 @@ export default function FilmDetailPage() {
                 if (json.success) setIsFavorited(json.data.isFavorited);
             } catch (err) { console.error(err); }
         };
-        if (authUser) checkFav();
-    }, [id, authUser]);
+        if (authUser && content?.id) checkFav();
+    }, [content?.id, authUser]);
 
     useEffect(() => {
         const checkLike = async () => {
+            if (!content?.id) return;
             const token = localStorage.getItem('accessToken');
             const profileId = localStorage.getItem('profileId');
             if (!token || !profileId) return;
 
             try {
-                const res = await userFetch(API_ROUTES.LIKES.CHECK(id), {
+                const res = await userFetch(API_ROUTES.LIKES.CHECK(content.id), {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'x-profile-id': profileId
@@ -100,10 +102,11 @@ export default function FilmDetailPage() {
                 if (json.success) setIsLiked(json.data.isLiked);
             } catch (err) { console.error(err); }
         };
-        if (authUser) checkLike();
-    }, [id, authUser]);
+        if (authUser && content?.id) checkLike();
+    }, [content?.id, authUser]);
 
-    const handleToggleFavorite = async () => {
+    const handleToggleFavorite = async (e?: any) => {
+        e?.preventDefault();
         const token = localStorage.getItem('accessToken');
         const profileId = localStorage.getItem('profileId');
         
@@ -125,14 +128,15 @@ export default function FilmDetailPage() {
                     'Authorization': `Bearer ${token}`,
                     'x-profile-id': profileId
                 },
-                body: JSON.stringify({ contentId: id })
+                body: JSON.stringify({ contentId: content?.id })
             });
             const json = await res.json();
             if (json.success) setIsFavorited(json.data.favorited);
         } catch (err) { console.error(err); }
     };
 
-    const handleToggleLike = async () => {
+    const handleToggleLike = async (e?: any) => {
+        e?.preventDefault();
         const token = localStorage.getItem('accessToken');
         const profileId = localStorage.getItem('profileId');
         if (!token) {
@@ -152,7 +156,7 @@ export default function FilmDetailPage() {
                     'Authorization': `Bearer ${token}`,
                     'x-profile-id': profileId
                 },
-                body: JSON.stringify({ contentId: id })
+                body: JSON.stringify({ contentId: content?.id })
             });
             const json = await res.json();
             if (json.success) setIsLiked(json.data.liked);
