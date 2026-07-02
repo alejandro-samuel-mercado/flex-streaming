@@ -206,12 +206,47 @@ function FavoriteCardButton({ contentId }: { contentId: string }) {
                 body: JSON.stringify({ contentId }),
             });
             const json = await res.json();
-            if (json.success && !json.data?.error) {
+            
+            if (json.success && json.data?.error === 'invalid_reference') {
+                console.warn('[FilmRow] invalid_reference detected, attempting to fix profileId...');
+                try {
+                    const profilesRes = await userFetch(API_ROUTES.PROFILES.LIST, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const profilesJson = await profilesRes.json();
+                    const firstProfile = profilesJson?.data?.[0] || profilesJson?.data?.profiles?.[0];
+                    if (firstProfile?.id) {
+                        console.log('[FilmRow] fixed profileId from', profileId, 'to', firstProfile.id);
+                        localStorage.setItem('profileId', firstProfile.id);
+                        
+                        const retryRes = await userFetch(API_ROUTES.FAVORITES.TOGGLE, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'x-profile-id': firstProfile.id },
+                            body: JSON.stringify({ contentId }),
+                        });
+                        const retryJson = await retryRes.json();
+                        if (retryJson.success && !retryJson.data?.error) {
+                            setFavorited(retryJson.data.favorited);
+                        } else {
+                            console.error('[FilmRow] retry failed:', retryJson);
+                            setFavorited(prev);
+                        }
+                    } else {
+                        console.error('[FilmRow] no valid profiles found during retry');
+                        setFavorited(prev);
+                    }
+                } catch (retryErr) {
+                    console.error('[FilmRow] retry exception:', retryErr);
+                    setFavorited(prev);
+                }
+            } else if (json.success && !json.data?.error) {
                 setFavorited(json.data.favorited);
             } else {
+                console.error('[FilmRow] normal toggle failed:', json);
                 setFavorited(prev);
             }
-        } catch {
+        } catch (err) {
+            console.error('[FilmRow] toggle exception:', err);
             setFavorited(prev);
         } finally {
             setLoading(false);

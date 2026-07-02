@@ -115,13 +115,47 @@ export default function FilmDetailPage() {
                 body: JSON.stringify({ contentId: content?.id })
             });
             const json = await res.json();
-            if (json.success && !json.data?.error) {
+            
+            if (json.success && json.data?.error === 'invalid_reference') {
+                console.warn('[Page] invalid_reference detected, attempting to fix profileId...');
+                try {
+                    const profilesRes = await userFetch(API_ROUTES.PROFILES.LIST, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const profilesJson = await profilesRes.json();
+                    const firstProfile = profilesJson?.data?.[0] || profilesJson?.data?.profiles?.[0];
+                    if (firstProfile?.id) {
+                        console.log('[Page] fixed profileId from', profileId, 'to', firstProfile.id);
+                        localStorage.setItem('profileId', firstProfile.id);
+                        
+                        const retryRes = await userFetch(API_ROUTES.FAVORITES.TOGGLE, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'x-profile-id': firstProfile.id },
+                            body: JSON.stringify({ contentId: content?.id })
+                        });
+                        const retryJson = await retryRes.json();
+                        if (retryJson.success && !retryJson.data?.error) {
+                            setIsFavorited(retryJson.data.favorited);
+                        } else {
+                            console.error('[Page] retry failed:', retryJson);
+                            setIsFavorited(prev);
+                        }
+                    } else {
+                        console.error('[Page] no valid profiles found during retry');
+                        setIsFavorited(prev);
+                    }
+                } catch (retryErr) {
+                    console.error('[Page] retry exception:', retryErr);
+                    setIsFavorited(prev);
+                }
+            } else if (json.success && !json.data?.error) {
                 setIsFavorited(json.data.favorited);
             } else {
+                console.error('[Page] normal toggle failed:', json);
                 setIsFavorited(prev);
             }
         } catch (err) {
-            console.error(err);
+            console.error('[Page] toggle exception:', err);
             setIsFavorited(prev);
         }
     };
@@ -144,11 +178,15 @@ export default function FilmDetailPage() {
                 body: JSON.stringify({ contentId: content?.id })
             });
             const json = await res.json();
-            if (json.success) setIsLiked(json.data.liked);
-            else setIsLiked(prev);
+            if (json.success && !json.data?.error) {
+                setIsLiked(json.data.liked);
+            } else {
+                console.error('[Page] normal toggle like failed:', json);
+                setIsLiked(prev); // rollback on error
+            }
         } catch (err) {
-            console.error(err);
-            setIsLiked(prev);
+            console.error('[Page] toggle like exception:', err);
+            setIsLiked(prev); // rollback on exception
         }
     };
     useEffect(() => {
