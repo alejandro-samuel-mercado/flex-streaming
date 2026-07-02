@@ -1,9 +1,11 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, Play, Plus, Star } from 'lucide-react';
+import { useRef, useState, useCallback } from 'react';
+import { ChevronLeft, ChevronRight, Play, Plus, Check, Star } from 'lucide-react';
 import Link from 'next/link';
 import { getContentTypeLabel } from '@/lib/content-types';
+import { API_ROUTES } from '@/lib/api-routes';
+import { userFetch } from '@/lib/api-client';
 
 interface FilmItem {
     id: string;
@@ -103,9 +105,7 @@ export default function FilmRow({ title, subtitle, items, variant = 'default', a
                                     <button className="film-card-action-btn film-card-action-play" aria-label="Reproducir" onClick={(e) => e.preventDefault()}>
                                         <Play size={16} fill="white" />
                                     </button>
-                                    <button className="film-card-action-btn" aria-label="Agregar a lista" onClick={(e) => e.preventDefault()}>
-                                        <Plus size={16} />
-                                    </button>
+                                    <FavoriteCardButton contentId={item.id} />
                                 </div>
 
                                 {/* Progress bar for "Continue Watching" */}
@@ -142,5 +142,66 @@ export default function FilmRow({ title, subtitle, items, variant = 'default', a
                 )}
             </div>
         </section>
+    );
+}
+
+// ── Favorite button for cards ──────────────────────────────────────────────────
+function FavoriteCardButton({ contentId }: { contentId: string }) {
+    const [favorited, setFavorited] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const handleClick = useCallback(async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const token = localStorage.getItem('accessToken');
+        const profileId = localStorage.getItem('profileId');
+
+        if (!token) {
+            alert('Debes iniciar sesión para guardar favoritos.');
+            return;
+        }
+        if (!profileId) {
+            alert('Por favor, selecciona un perfil primero.');
+            return;
+        }
+
+        if (loading) return;
+        setLoading(true);
+        const prev = favorited;
+        setFavorited(!prev);
+
+        try {
+            const res = await userFetch(API_ROUTES.FAVORITES.TOGGLE, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'x-profile-id': profileId,
+                },
+                body: JSON.stringify({ contentId }),
+            });
+            const json = await res.json();
+            if (json.success) {
+                setFavorited(json.data.favorited);
+            } else {
+                setFavorited(prev);
+            }
+        } catch {
+            setFavorited(prev);
+        } finally {
+            setLoading(false);
+        }
+    }, [contentId, favorited, loading]);
+
+    return (
+        <button
+            className="film-card-action-btn"
+            aria-label={favorited ? 'Quitar de mi lista' : 'Agregar a mi lista'}
+            onClick={handleClick}
+            style={{ color: favorited ? 'var(--color-primary)' : 'white', borderColor: favorited ? 'var(--color-primary)' : undefined }}
+        >
+            {favorited ? <Check size={16} /> : <Plus size={16} />}
+        </button>
     );
 }

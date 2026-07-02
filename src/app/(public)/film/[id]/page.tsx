@@ -106,9 +106,11 @@ export default function FilmDetailPage() {
     }, [content?.id, authUser]);
 
     const handleToggleFavorite = async (e?: any) => {
+        console.log('[FAV] click disparado');
         e?.preventDefault();
         const token = localStorage.getItem('accessToken');
         const profileId = localStorage.getItem('profileId');
+        console.log('[FAV] token:', !!token, '| profileId:', !!profileId, '| content.id:', content?.id);
         
         if (!token) {
             alert('Debes iniciar sesión para guardar favoritos.');
@@ -121,6 +123,7 @@ export default function FilmDetailPage() {
         }
 
         try {
+            console.log('[FAV] llamando API...');
             const res = await userFetch(API_ROUTES.FAVORITES.TOGGLE, {
                 method: 'POST',
                 headers: {
@@ -131,8 +134,9 @@ export default function FilmDetailPage() {
                 body: JSON.stringify({ contentId: content?.id })
             });
             const json = await res.json();
+            console.log('[FAV] respuesta:', json);
             if (json.success) setIsFavorited(json.data.favorited);
-        } catch (err) { console.error(err); }
+        } catch (err) { console.error('[FAV] error:', err); }
     };
 
     const handleToggleLike = async (e?: any) => {
