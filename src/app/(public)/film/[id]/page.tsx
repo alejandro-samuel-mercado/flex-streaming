@@ -31,7 +31,7 @@ export default function FilmDetailPage() {
     const [loading, setLoading] = useState(true);
     const [isTrailerOpen, setIsTrailerOpen] = useState(false);
     const [selectedSeason, setSelectedSeason] = useState(0);
-    const { user: authUser } = useAuth();
+    const { user: authUser, refreshUser } = useAuth();
     const [isFavorited, setIsFavorited] = useState(false);
     const [isLiked, setIsLiked] = useState(false);
     const favToggledRef = useRef(false);
@@ -137,12 +137,30 @@ export default function FilmDetailPage() {
                 body: JSON.stringify({ contentId: content?.id })
             });
             const json = await res.json();
-            console.log('[FAV TOGGLE] contentId enviado:', content?.id, '| respuesta:', JSON.stringify(json));
-            if (json.success) setIsFavorited(json.data.favorited);
-            else setIsFavorited(prev); // rollback on error
+            if (json.success && json.data?.error === 'invalid_reference') {
+                // profileId is stale — refresh user to re-sync and retry
+                await refreshUser();
+                const newProfileId = localStorage.getItem('profileId');
+                if (newProfileId && newProfileId !== profileId) {
+                    const retry = await userFetch(API_ROUTES.FAVORITES.TOGGLE, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'x-profile-id': newProfileId },
+                        body: JSON.stringify({ contentId: content?.id })
+                    });
+                    const retryJson = await retry.json();
+                    if (retryJson.success && !retryJson.data?.error) setIsFavorited(retryJson.data.favorited);
+                    else setIsFavorited(prev);
+                } else {
+                    setIsFavorited(prev);
+                }
+            } else if (json.success) {
+                setIsFavorited(json.data.favorited);
+            } else {
+                setIsFavorited(prev);
+            }
         } catch (err) {
             console.error(err);
-            setIsFavorited(prev); // rollback on exception
+            setIsFavorited(prev);
         }
     };
 
