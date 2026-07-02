@@ -69,9 +69,7 @@ export default function FilmDetailPage() {
             const profileId = localStorage.getItem('profileId');
             if (!token || !profileId) return;
             try {
-                const res = await userFetch(`${API_ROUTES.FAVORITES.BASE}/check/${content.id}`, {
-                    headers: { 'Authorization': `Bearer ${token}`, 'x-profile-id': profileId }
-                });
+                const res = await userFetch(`${API_ROUTES.FAVORITES.BASE}/check/${content.id}`);
                 const json = await res.json();
                 if (json.success && !favToggledRef.current) setIsFavorited(json.data.isFavorited);
             } catch (err) { console.error(err); }
@@ -86,9 +84,7 @@ export default function FilmDetailPage() {
             const profileId = localStorage.getItem('profileId');
             if (!token || !profileId) return;
             try {
-                const res = await userFetch(API_ROUTES.LIKES.CHECK(content.id), {
-                    headers: { 'Authorization': `Bearer ${token}`, 'x-profile-id': profileId }
-                });
+                const res = await userFetch(API_ROUTES.LIKES.CHECK(content.id));
                 const json = await res.json();
                 if (json.success && !likeToggledRef.current) setIsLiked(json.data.isLiked);
             } catch (err) { console.error(err); }

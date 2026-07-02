@@ -159,9 +159,7 @@ function FavoriteCardButton({ contentId }: { contentId: string }) {
             if (!token || !profileId) return;
 
             try {
-                const res = await userFetch(`${API_ROUTES.FAVORITES.BASE}/check/${contentId}`, {
-                    headers: { 'Authorization': `Bearer ${token}`, 'x-profile-id': profileId }
-                });
+                const res = await userFetch(`${API_ROUTES.FAVORITES.BASE}/check/${contentId}`);
                 const json = await res.json();
                 if (json.success) {
                     setFavorited(json.data.isFavorited);
