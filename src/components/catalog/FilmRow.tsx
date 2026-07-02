@@ -1,11 +1,11 @@
 'use client';
 
-import { useRef, useState, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Play, Plus, Check, Star } from 'lucide-react';
-import Link from 'next/link';
-import { getContentTypeLabel } from '@/lib/content-types';
-import { API_ROUTES } from '@/lib/api-routes';
 import { userFetch } from '@/lib/api-client';
+import { API_ROUTES } from '@/lib/api-routes';
+import { getContentTypeLabel } from '@/lib/content-types';
+import { Check, ChevronLeft, ChevronRight, Play, Plus, Star } from 'lucide-react';
+import Link from 'next/link';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface FilmItem {
     id: string;
