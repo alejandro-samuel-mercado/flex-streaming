@@ -73,7 +73,7 @@ export default function FilmDetailPage() {
             if (!token || !profileId) return;
 
             try {
-                const res = await fetch(`${API_ROUTES.FAVORITES.BASE}/check/${content.id}`, {
+                const res = await userFetch(`${API_ROUTES.FAVORITES.BASE}/check/${content.id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'x-profile-id': profileId
@@ -137,6 +137,7 @@ export default function FilmDetailPage() {
                 body: JSON.stringify({ contentId: content?.id })
             });
             const json = await res.json();
+            console.log('[FAV TOGGLE] contentId enviado:', content?.id, '| respuesta:', JSON.stringify(json));
             if (json.success) setIsFavorited(json.data.favorited);
             else setIsFavorited(prev); // rollback on error
         } catch (err) {
