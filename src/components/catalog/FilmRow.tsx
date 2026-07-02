@@ -199,9 +199,7 @@ function FavoriteCardButton({ contentId }: { contentId: string }) {
             const res = await userFetch(API_ROUTES.FAVORITES.TOGGLE, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                    'x-profile-id': profileId,
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ contentId }),
             });

@@ -111,7 +111,7 @@ export default function FilmDetailPage() {
         try {
             const res = await userFetch(API_ROUTES.FAVORITES.TOGGLE, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'x-profile-id': profileId },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ contentId: content?.id })
             });
             const json = await res.json();
@@ -130,7 +130,7 @@ export default function FilmDetailPage() {
                         
                         const retryRes = await userFetch(API_ROUTES.FAVORITES.TOGGLE, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'x-profile-id': firstProfile.id },
+                            headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ contentId: content?.id })
                         });
                         const retryJson = await retryRes.json();
@@ -174,7 +174,7 @@ export default function FilmDetailPage() {
         try {
             const res = await userFetch(API_ROUTES.LIKES.TOGGLE, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'x-profile-id': profileId },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ contentId: content?.id })
             });
             const json = await res.json();
