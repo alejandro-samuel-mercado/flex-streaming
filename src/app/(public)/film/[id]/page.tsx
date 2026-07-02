@@ -138,21 +138,27 @@ export default function FilmDetailPage() {
             });
             const json = await res.json();
             if (json.success && json.data?.error === 'invalid_reference') {
-                // profileId is stale — refresh user to re-sync and retry
-                await refreshUser();
-                const newProfileId = localStorage.getItem('profileId');
-                if (newProfileId && newProfileId !== profileId) {
-                    const retry = await userFetch(API_ROUTES.FAVORITES.TOGGLE, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'x-profile-id': newProfileId },
-                        body: JSON.stringify({ contentId: content?.id })
+                // profileId is stale — fetch real profiles and fix localStorage
+                try {
+                    const profilesRes = await userFetch(API_ROUTES.PROFILES.LIST, {
+                        headers: { 'Authorization': `Bearer ${token}` }
                     });
-                    const retryJson = await retry.json();
-                    if (retryJson.success && !retryJson.data?.error) setIsFavorited(retryJson.data.favorited);
-                    else setIsFavorited(prev);
-                } else {
-                    setIsFavorited(prev);
-                }
+                    const profilesJson = await profilesRes.json();
+                    const firstProfile = profilesJson?.data?.[0] || profilesJson?.data?.profiles?.[0];
+                    if (firstProfile?.id) {
+                        localStorage.setItem('profileId', firstProfile.id);
+                        const retry = await userFetch(API_ROUTES.FAVORITES.TOGGLE, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'x-profile-id': firstProfile.id },
+                            body: JSON.stringify({ contentId: content?.id })
+                        });
+                        const retryJson = await retry.json();
+                        if (retryJson.success && !retryJson.data?.error) setIsFavorited(retryJson.data.favorited);
+                        else setIsFavorited(prev);
+                    } else {
+                        setIsFavorited(prev);
+                    }
+                } catch { setIsFavorited(prev); }
             } else if (json.success) {
                 setIsFavorited(json.data.favorited);
             } else {
