@@ -2,7 +2,7 @@
 import { userFetch } from '@/lib/api-client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
 import { Play, Plus, ThumbsUp, Star, ArrowLeft, MonitorPlay, Clock, Globe, Calendar, DollarSign, Users, Clapperboard, ChevronDown } from 'lucide-react';
 import FilmRow from '@/components/catalog/FilmRow';
@@ -33,7 +33,9 @@ export default function FilmDetailPage() {
     const [selectedSeason, setSelectedSeason] = useState(0);
     const { user: authUser } = useAuth();
     const [isFavorited, setIsFavorited] = useState(false);
-    const [isLiked, setIsLiked] = useState(false); // Visual feedback only
+    const [isLiked, setIsLiked] = useState(false);
+    const favToggledRef = useRef(false);
+    const likeToggledRef = useRef(false);
 
     useEffect(() => {
         const fetchContent = async () => {
@@ -78,7 +80,7 @@ export default function FilmDetailPage() {
                     }
                 });
                 const json = await res.json();
-                if (json.success) setIsFavorited(json.data.isFavorited);
+                if (json.success && !favToggledRef.current) setIsFavorited(json.data.isFavorited);
             } catch (err) { console.error(err); }
         };
         if (authUser && content?.id) checkFav();
@@ -99,7 +101,7 @@ export default function FilmDetailPage() {
                     }
                 });
                 const json = await res.json();
-                if (json.success) setIsLiked(json.data.isLiked);
+                if (json.success && !likeToggledRef.current) setIsLiked(json.data.isLiked);
             } catch (err) { console.error(err); }
         };
         if (authUser && content?.id) checkLike();
@@ -119,7 +121,8 @@ export default function FilmDetailPage() {
             return;
         }
 
-        // Optimistic update
+        // Optimistic update — mark as toggled so stale checkFav won't overwrite
+        favToggledRef.current = true;
         const prev = isFavorited;
         setIsFavorited(!prev);
 
@@ -155,7 +158,8 @@ export default function FilmDetailPage() {
             return;
         }
 
-        // Optimistic update
+        // Optimistic update — mark as toggled so stale checkLike won't overwrite
+        likeToggledRef.current = true;
         const prev = isLiked;
         setIsLiked(!prev);
 
