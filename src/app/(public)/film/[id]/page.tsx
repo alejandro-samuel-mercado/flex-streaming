@@ -37,6 +37,120 @@ export default function FilmDetailPage() {
     const favToggledRef = useRef(false);
     const likeToggledRef = useRef(false);
 
+    // ── Sync profileId from server on page load ──────────────────────────────
+    useEffect(() => {
+        if (!authUser) return;
+        const syncProfileId = async () => {
+            const token = localStorage.getItem('accessToken');
+            if (!token) return;
+            try {
+                const res = await userFetch(API_ROUTES.PROFILES.LIST, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+                const profiles: any[] = json?.data ?? [];
+                if (profiles.length > 0) {
+                    const stored = localStorage.getItem('profileId');
+                    const isValid = profiles.some((p: any) => p.id === stored);
+                    if (!isValid) {
+                        localStorage.setItem('profileId', profiles[0].id);
+                    }
+                }
+            } catch (e) { console.error('[profileSync]', e); }
+        };
+        syncProfileId();
+    }, [authUser]);
+
+    // ── Check initial favorite/like state ────────────────────────────────────
+    useEffect(() => {
+        const checkFav = async () => {
+            if (!content?.id) return;
+            const token = localStorage.getItem('accessToken');
+            const profileId = localStorage.getItem('profileId');
+            if (!token || !profileId) return;
+            try {
+                const res = await userFetch(`${API_ROUTES.FAVORITES.BASE}/check/${content.id}`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'x-profile-id': profileId }
+                });
+                const json = await res.json();
+                if (json.success && !favToggledRef.current) setIsFavorited(json.data.isFavorited);
+            } catch (err) { console.error(err); }
+        };
+        if (authUser && content?.id) checkFav();
+    }, [content?.id, authUser]);
+
+    useEffect(() => {
+        const checkLike = async () => {
+            if (!content?.id) return;
+            const token = localStorage.getItem('accessToken');
+            const profileId = localStorage.getItem('profileId');
+            if (!token || !profileId) return;
+            try {
+                const res = await userFetch(API_ROUTES.LIKES.CHECK(content.id), {
+                    headers: { 'Authorization': `Bearer ${token}`, 'x-profile-id': profileId }
+                });
+                const json = await res.json();
+                if (json.success && !likeToggledRef.current) setIsLiked(json.data.isLiked);
+            } catch (err) { console.error(err); }
+        };
+        if (authUser && content?.id) checkLike();
+    }, [content?.id, authUser]);
+
+    // ── Handlers ─────────────────────────────────────────────────────────────
+    const handleToggleFavorite = async (e?: any) => {
+        e?.preventDefault();
+        const token = localStorage.getItem('accessToken');
+        const profileId = localStorage.getItem('profileId');
+        if (!token) { alert('Debes iniciar sesión para guardar favoritos.'); return; }
+        if (!profileId) { alert('Por favor, selecciona un perfil primero.'); return; }
+
+        favToggledRef.current = true;
+        const prev = isFavorited;
+        setIsFavorited(!prev);
+
+        try {
+            const res = await userFetch(API_ROUTES.FAVORITES.TOGGLE, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'x-profile-id': profileId },
+                body: JSON.stringify({ contentId: content?.id })
+            });
+            const json = await res.json();
+            if (json.success && !json.data?.error) {
+                setIsFavorited(json.data.favorited);
+            } else {
+                setIsFavorited(prev);
+            }
+        } catch (err) {
+            console.error(err);
+            setIsFavorited(prev);
+        }
+    };
+
+    const handleToggleLike = async (e?: any) => {
+        e?.preventDefault();
+        const token = localStorage.getItem('accessToken');
+        const profileId = localStorage.getItem('profileId');
+        if (!token) { alert('Debes iniciar sesión para dar me gusta.'); return; }
+        if (!profileId) { alert('Por favor, selecciona un perfil primero.'); return; }
+
+        likeToggledRef.current = true;
+        const prev = isLiked;
+        setIsLiked(!prev);
+
+        try {
+            const res = await userFetch(API_ROUTES.LIKES.TOGGLE, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'x-profile-id': profileId },
+                body: JSON.stringify({ contentId: content?.id })
+            });
+            const json = await res.json();
+            if (json.success) setIsLiked(json.data.liked);
+            else setIsLiked(prev);
+        } catch (err) {
+            console.error(err);
+            setIsLiked(prev);
+        }
+    };
     useEffect(() => {
         const fetchContent = async () => {
             try {
@@ -64,148 +178,6 @@ export default function FilmDetailPage() {
         };
         fetchContent();
     }, [id]);
-
-    useEffect(() => {
-        const checkFav = async () => {
-            if (!content?.id) return;
-            const token = localStorage.getItem('accessToken');
-            const profileId = localStorage.getItem('profileId');
-            if (!token || !profileId) return;
-
-            try {
-                const res = await userFetch(`${API_ROUTES.FAVORITES.BASE}/check/${content.id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'x-profile-id': profileId
-                    }
-                });
-                const json = await res.json();
-                if (json.success && !favToggledRef.current) setIsFavorited(json.data.isFavorited);
-            } catch (err) { console.error(err); }
-        };
-        if (authUser && content?.id) checkFav();
-    }, [content?.id, authUser]);
-
-    useEffect(() => {
-        const checkLike = async () => {
-            if (!content?.id) return;
-            const token = localStorage.getItem('accessToken');
-            const profileId = localStorage.getItem('profileId');
-            if (!token || !profileId) return;
-
-            try {
-                const res = await userFetch(API_ROUTES.LIKES.CHECK(content.id), {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'x-profile-id': profileId
-                    }
-                });
-                const json = await res.json();
-                if (json.success && !likeToggledRef.current) setIsLiked(json.data.isLiked);
-            } catch (err) { console.error(err); }
-        };
-        if (authUser && content?.id) checkLike();
-    }, [content?.id, authUser]);
-
-    const handleToggleFavorite = async (e?: any) => {
-        e?.preventDefault();
-        const token = localStorage.getItem('accessToken');
-        const profileId = localStorage.getItem('profileId');
-
-        if (!token) {
-            alert('Debes iniciar sesión para guardar favoritos.');
-            return;
-        }
-        if (!profileId) {
-            alert('Por favor, selecciona un perfil primero.');
-            return;
-        }
-
-        // Optimistic update — mark as toggled so stale checkFav won't overwrite
-        favToggledRef.current = true;
-        const prev = isFavorited;
-        setIsFavorited(!prev);
-
-        try {
-            const res = await userFetch(API_ROUTES.FAVORITES.TOGGLE, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                    'x-profile-id': profileId
-                },
-                body: JSON.stringify({ contentId: content?.id })
-            });
-            const json = await res.json();
-            if (json.success && json.data?.error === 'invalid_reference') {
-                // profileId is stale — fetch real profiles and fix localStorage
-                try {
-                    const profilesRes = await userFetch(API_ROUTES.PROFILES.LIST, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    const profilesJson = await profilesRes.json();
-                    const firstProfile = profilesJson?.data?.[0] || profilesJson?.data?.profiles?.[0];
-                    if (firstProfile?.id) {
-                        localStorage.setItem('profileId', firstProfile.id);
-                        const retry = await userFetch(API_ROUTES.FAVORITES.TOGGLE, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'x-profile-id': firstProfile.id },
-                            body: JSON.stringify({ contentId: content?.id })
-                        });
-                        const retryJson = await retry.json();
-                        if (retryJson.success && !retryJson.data?.error) setIsFavorited(retryJson.data.favorited);
-                        else setIsFavorited(prev);
-                    } else {
-                        setIsFavorited(prev);
-                    }
-                } catch { setIsFavorited(prev); }
-            } else if (json.success) {
-                setIsFavorited(json.data.favorited);
-            } else {
-                setIsFavorited(prev);
-            }
-        } catch (err) {
-            console.error(err);
-            setIsFavorited(prev);
-        }
-    };
-
-    const handleToggleLike = async (e?: any) => {
-        e?.preventDefault();
-        const token = localStorage.getItem('accessToken');
-        const profileId = localStorage.getItem('profileId');
-        if (!token) {
-            alert('Debes iniciar sesión para dar me gusta.');
-            return;
-        }
-        if (!profileId) {
-            alert('Por favor, selecciona un perfil primero.');
-            return;
-        }
-
-        // Optimistic update — mark as toggled so stale checkLike won't overwrite
-        likeToggledRef.current = true;
-        const prev = isLiked;
-        setIsLiked(!prev);
-
-        try {
-            const res = await userFetch(API_ROUTES.LIKES.TOGGLE, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                    'x-profile-id': profileId
-                },
-                body: JSON.stringify({ contentId: content?.id })
-            });
-            const json = await res.json();
-            if (json.success) setIsLiked(json.data.liked);
-            else setIsLiked(prev); // rollback on error
-        } catch (err) {
-            console.error(err);
-            setIsLiked(prev); // rollback on exception
-        }
-    };
 
     if (loading) return <div style={{ minHeight: '100vh', background: '#030612', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>Cargando...</div>;
     if (!content) return <div style={{ minHeight: '100vh', background: '#030612', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>No encontrado</div>;

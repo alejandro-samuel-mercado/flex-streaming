@@ -149,6 +149,30 @@ export default function FilmRow({ title, subtitle, items, variant = 'default', a
 function FavoriteCardButton({ contentId }: { contentId: string }) {
     const [favorited, setFavorited] = useState(false);
     const [loading, setLoading] = useState(false);
+    const fetchedRef = useRef(false);
+
+    useEffect(() => {
+        const checkInitialState = async () => {
+            if (fetchedRef.current) return;
+            const token = localStorage.getItem('accessToken');
+            const profileId = localStorage.getItem('profileId');
+            if (!token || !profileId) return;
+
+            try {
+                const res = await userFetch(`${API_ROUTES.FAVORITES.BASE}/check/${contentId}`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'x-profile-id': profileId }
+                });
+                const json = await res.json();
+                if (json.success) {
+                    setFavorited(json.data.isFavorited);
+                    fetchedRef.current = true;
+                }
+            } catch (e) {
+                console.error('Error checking favorite:', e);
+            }
+        };
+        checkInitialState();
+    }, [contentId]);
 
     const handleClick = useCallback(async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -182,7 +206,7 @@ function FavoriteCardButton({ contentId }: { contentId: string }) {
                 body: JSON.stringify({ contentId }),
             });
             const json = await res.json();
-            if (json.success) {
+            if (json.success && !json.data?.error) {
                 setFavorited(json.data.favorited);
             } else {
                 setFavorited(prev);
