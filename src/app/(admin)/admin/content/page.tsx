@@ -368,6 +368,7 @@ export default function AdminContentPage() {
                                                     {(() => {
                                                         const completed = (item as any).episodeCount ?? 0;
                                                         const failed = (item as any).failedCount ?? 0;
+                                                        const empty = (item as any).emptyEpisodesCount ?? 0;
 
                                                         return (
                                                             <>
@@ -376,11 +377,16 @@ export default function AdminContentPage() {
                                                                         <Film size={11} style={{ marginRight: 4 }} /> {completed} Episodios
                                                                     </div>
                                                                 ) : (
-                                                                    <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)' }}>Sin episodios</span>
+                                                                    <span style={{ fontSize: '0.7rem', color: 'var(--adm-muted)' }}>Sin episodios listos</span>
                                                                 )}
                                                                 {failed > 0 && (
                                                                     <div className="adm-badge" style={{ background: 'rgba(244, 63, 94, 0.1)', color: '#f43f5e', width: 'fit-content', border: '1px solid rgba(244, 63, 94, 0.2)' }}>
                                                                         <AlertTriangle size={11} style={{ marginRight: 4 }} /> {failed} Fallidos
+                                                                    </div>
+                                                                )}
+                                                                {empty > 0 && (
+                                                                    <div className="adm-badge" style={{ background: 'rgba(250, 204, 21, 0.1)', color: '#facc15', width: 'fit-content', border: '1px solid rgba(250, 204, 21, 0.2)' }}>
+                                                                        <AlertTriangle size={11} style={{ marginRight: 4 }} /> {empty} Sin videos
                                                                     </div>
                                                                 )}
                                                             </>
