@@ -180,6 +180,31 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
         fetchData();
     }, [fetchData]);
 
+    const handlePinToggle = async () => {
+        if (!data) return;
+        const newPin = !data.isPinned;
+        const confirmMsg = newPin 
+            ? '¿Fijar contenido? No podrá ser modificado o borrado por scripts ni por panel.'
+            : '¿Desfijar contenido? Volverá a poder ser modificado.';
+        if (!confirm(confirmMsg)) return;
+        
+        try {
+            const res = await adminFetch(`${API_ROUTES.CONTENT.BASE}/${id}/pin`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isPinned: newPin })
+            });
+            if (res.ok) {
+                setData(prev => prev ? { ...prev, isPinned: newPin } : null);
+            } else {
+                alert('Error al cambiar el estado de fijado');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Error de red');
+        }
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!data) return;
@@ -450,6 +475,14 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                 </div>
                 <div style={{ display: 'flex', gap: 12 }}>
                     <button
+                        className="adm-btn"
+                        style={{ background: data?.isPinned ? '#ef4444' : '#3b82f6', color: 'white' }}
+                        onClick={handlePinToggle}
+                        title={data?.isPinned ? "Desfijar contenido" : "Fijar contenido"}
+                    >
+                        📌 {data?.isPinned ? 'Desfijar' : 'Fijar'}
+                    </button>
+                    <button
                         className="adm-btn adm-btn--primary"
                         onClick={handleSave}
                         disabled={saving || data?.isPinned}
@@ -474,7 +507,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                     gap: 10
                 }}>
                     <AlertTriangle size={18} />
-                    <span><strong>Contenido Fijado:</strong> Este título está protegido. Desfíjado desde la lista de contenidos para poder modificarlo.</span>
+                    <span><strong>Contenido Fijado:</strong> Este título está protegido. Presiona el botón "Desfijar" arriba para poder modificarlo.</span>
                 </div>
             )}
 

@@ -154,7 +154,7 @@ export default function AdminContentPage() {
     const handlePinToggle = async (id: string, currentPin: boolean) => {
         try {
             const token = localStorage.getItem('adminToken');
-            const res = await adminFetch(`/api/admin/content/${id}/pin`, {
+            const res = await adminFetch(`${API_ROUTES.CONTENT.BASE}/${id}/pin`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
