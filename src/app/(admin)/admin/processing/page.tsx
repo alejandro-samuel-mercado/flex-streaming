@@ -17,6 +17,7 @@ interface VideoStatus {
     progress?: number;
     errorMessage?: string;
     type?: string;
+    sourceNode?: string;
     content: {
         slug: string;
         translations?: { title: string }[];
@@ -47,6 +48,10 @@ export default function ProcessingMonitorPage() {
         queued: 0
     });
     const [errorModal, setErrorModal] = useState<VideoStatus | null>(null);
+
+    // Rejected Imports state
+    const [rejectedImports, setRejectedImports] = useState<any[]>([]);
+    const [loadingRejected, setLoadingRejected] = useState(true);
 
     // Filters state
     const [searchTerm, setSearchTerm] = useState('');
@@ -79,6 +84,21 @@ export default function ProcessingMonitorPage() {
                 console.error('Error fetching video status:', err);
             } finally {
                 setLoading(false);
+            }
+
+            try {
+                const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
+                const resRejected = await adminFetch('/api/admin/videos/rejected-imports', {
+                    headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+                });
+                if (resRejected.ok) {
+                    const data = await resRejected.json();
+                    setRejectedImports(data.data || []);
+                }
+            } catch (err) {
+                console.error('Error fetching rejected imports:', err);
+            } finally {
+                setLoadingRejected(false);
             }
         };
 
@@ -464,7 +484,14 @@ export default function ProcessingMonitorPage() {
                                     <tr key={v.id}>
                                         <td>
                                             <div style={{ fontWeight: 600, color: 'white' }}>{getVideoName(v)}</div>
-                                            <div style={{ fontSize: '.7rem', color: 'var(--adm-muted)' }}>ID: {v?.id?.slice(-8)} • {v.type || 'VIDEO'}</div>
+                                            <div style={{ fontSize: '.7rem', color: 'var(--adm-muted)' }}>
+                                                ID: {v?.id?.slice(-8)} • {v.type || 'VIDEO'} 
+                                                {v.sourceNode && v.sourceNode !== 'ALL' && (
+                                                    <span style={{ marginLeft: 6, background: '#4c1d95', color: '#c4b5fd', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>
+                                                        {v.sourceNode}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td>
                                             <span className="adm-badge" style={{
@@ -551,6 +578,63 @@ export default function ProcessingMonitorPage() {
                                                     </button>
                                                 )}
                                             </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+
+            {/* REJECTED IMPORTS SECTION */}
+            <div className="adm-table-card" style={{ marginTop: 24 }}>
+                <div className="adm-table-card-header">
+                    <h2 className="adm-table-card-title" style={{ color: 'var(--adm-danger)' }}>
+                        <AlertCircle size={20} style={{ display: 'inline', marginRight: 8, verticalAlign: 'middle' }} />
+                        Rechazos de Escaneo (Archivos en carpeta incorrecta)
+                    </h2>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--adm-muted)', marginTop: 4 }}>
+                        Archivos ignorados porque el servidor escaneador detectó un tipo incorrecto en TMDB (ej: una serie en la carpeta de películas).
+                    </p>
+                </div>
+                
+                {loadingRejected ? (
+                    <div style={{ padding: 40, display: 'flex', justifyContent: 'center' }}><Loader2 className="animate-spin" size={32} color="var(--adm-primary)" /></div>
+                ) : rejectedImports.length === 0 ? (
+                    <div style={{ padding: 40, textAlign: 'center', color: 'var(--adm-muted)' }}>
+                        No hay archivos rechazados recientemente.
+                    </div>
+                ) : (
+                    <div className="adm-table-wrapper">
+                        <table className="adm-table">
+                            <thead>
+                                <tr>
+                                    <th>Archivo</th>
+                                    <th>Motivo</th>
+                                    <th>Servidor</th>
+                                    <th>Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {rejectedImports.map(r => (
+                                    <tr key={r.id}>
+                                        <td>
+                                            <div style={{ fontWeight: 600, color: 'white', wordBreak: 'break-all' }}>{r.fileName}</div>
+                                            <div style={{ fontSize: '.7rem', color: 'var(--adm-muted)' }}>{r.filePath}</div>
+                                        </td>
+                                        <td>
+                                            <span style={{ color: '#f43f5e', fontSize: '0.85rem' }}>{r.reason}</span>
+                                            {r.tmdbTitle && <div style={{ fontSize: '.7rem', color: 'var(--adm-muted)' }}>TMDB: {r.tmdbTitle} ({r.tmdbType})</div>}
+                                        </td>
+                                        <td>
+                                            <span style={{ background: '#4c1d95', color: '#c4b5fd', padding: '2px 6px', borderRadius: 4, fontSize: '0.75rem', fontWeight: 700 }}>
+                                                {r.serverMode}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div style={{ fontSize: '.8rem' }}>{new Date(r.createdAt).toLocaleDateString()}</div>
+                                            <div style={{ fontSize: '.7rem', color: 'var(--adm-muted)' }}>{new Date(r.createdAt).toLocaleTimeString()}</div>
                                         </td>
                                     </tr>
                                 ))}

@@ -52,7 +52,7 @@ export default function EndUsersTable({ users, loading, search, onSearchChange, 
     const [planModal, setPlanModal] = useState<EndUserAccount | null>(null);
     const [devicesModal, setDevicesModal] = useState<EndUserAccount | null>(null);
     const [pwModal, setPwModal] = useState<EndUserAccount | null>(null);
- 
+
     useEffect(() => {
         if (!openMenu) return;
         const handleOutsideClick = () => setOpenMenu(null);
