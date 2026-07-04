@@ -40,7 +40,8 @@ interface ContentData {
     originalLanguage?: string;
     budget?: number;
     revenue?: number;
-    isAdult?: boolean;
+    isAdult: boolean;
+    isPinned?: boolean;
     isFreeWithMembership?: boolean;
     translations: Translation[];
     platforms: { id: string; name: string }[];
@@ -441,7 +442,9 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                         <ChevronLeft size={18} />
                     </button>
                     <div>
-                        <h1 className="adm-page-title">Editar Contenido</h1>
+                        <h1 className="adm-page-title">
+                            Editar Contenido {data?.isPinned && <span title="Fijado (Protegido)">📌</span>}
+                        </h1>
                         <p className="adm-page-subtitle">ID: {id}</p>
                     </div>
                 </div>
@@ -449,13 +452,31 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                     <button
                         className="adm-btn adm-btn--primary"
                         onClick={handleSave}
-                        disabled={saving}
+                        disabled={saving || data?.isPinned}
+                        title={data?.isPinned ? "El contenido está fijado y no se puede modificar." : ""}
                     >
                         {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                         {saving ? 'Guardando...' : 'Guardar cambios'}
                     </button>
                 </div>
             </div>
+
+            {data?.isPinned && (
+                <div style={{
+                    background: 'rgba(59, 130, 246, 0.1)',
+                    border: '1px solid rgba(59, 130, 246, 0.3)',
+                    color: '#60a5fa',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    marginBottom: 20,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10
+                }}>
+                    <AlertTriangle size={18} />
+                    <span><strong>Contenido Fijado:</strong> Este título está protegido. Desfíjado desde la lista de contenidos para poder modificarlo.</span>
+                </div>
+            )}
 
             {success && (
                 <div style={{

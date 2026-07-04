@@ -23,6 +23,7 @@ interface ContentItem {
     genres?: { genre: { name: string } }[];
     videoFiles?: { status: string; qualities?: { resolution: string }[] }[];
     thumbnails?: { type: string; url: string }[];
+    isPinned?: boolean;
 }
 
 const STATUS_CLASS: Record<string, string> = {
@@ -147,6 +148,28 @@ export default function AdminContentPage() {
         } catch (err) {
             console.error(err);
             alert('Error de conexión');
+        }
+    };
+
+    const handlePinToggle = async (id: string, currentPin: boolean) => {
+        try {
+            const token = localStorage.getItem('adminToken');
+            const res = await adminFetch(`/api/admin/content/${id}/pin`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({ isPinned: !currentPin })
+            });
+            if (res.ok) {
+                fetchContents();
+            } else {
+                const err = await res.json();
+                alert(`Error: ${err.error || 'No se pudo fijar/desfijar'}`);
+            }
+        } catch (error: any) {
+            alert(error.message || 'Error al fijar/desfijar el contenido');
         }
     };
 
@@ -410,8 +433,31 @@ export default function AdminContentPage() {
                                     </td>
                                     <td>
                                         <div className="adm-table-actions" style={{ justifyContent: 'flex-end' }}>
-                                            <Link href={`/admin/content/${item.id}`} className="adm-icon-btn" title="Editar"><Edit2 size={14} /></Link>
-                                            <button className="adm-icon-btn adm-icon-btn--danger" title="Eliminar" onClick={() => handleDelete(item.id, title)}><Trash2 size={14} /></button>
+                                            <button 
+                                                className="adm-icon-btn" 
+                                                title={item.isPinned ? "Desfijar (Permitir edición/borrado)" : "Fijar (Proteger contra cambios y borrados)"}
+                                                onClick={() => handlePinToggle(item.id, !!item.isPinned)}
+                                                style={{ color: item.isPinned ? '#3b82f6' : 'var(--adm-muted)' }}
+                                            >
+                                                📌
+                                            </button>
+                                            <Link 
+                                                href={`/admin/content/${item.id}`} 
+                                                className={`adm-icon-btn ${item.isPinned ? 'disabled' : ''}`} 
+                                                title="Editar"
+                                                style={{ pointerEvents: item.isPinned ? 'none' : 'auto', opacity: item.isPinned ? 0.5 : 1 }}
+                                            >
+                                                <Edit2 size={14} />
+                                            </Link>
+                                            <button 
+                                                className="adm-icon-btn adm-icon-btn--danger" 
+                                                title="Eliminar" 
+                                                onClick={() => handleDelete(item.id, title)}
+                                                disabled={item.isPinned}
+                                                style={{ opacity: item.isPinned ? 0.5 : 1, cursor: item.isPinned ? 'not-allowed' : 'pointer' }}
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
