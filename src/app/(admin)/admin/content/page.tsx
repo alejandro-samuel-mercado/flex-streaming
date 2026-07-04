@@ -368,7 +368,7 @@ export default function AdminContentPage() {
                                                 </span>
                                             )}
 
-                                            {item.type === 'MOVIE' ? (
+                                            {item.type === 'MOVIE' || (item.videoFiles && item.videoFiles.length > 0) ? (
                                                 (item.videoFiles || []).map((v, i) => {
                                                     const isFailed = v.status === 'FAILED' || v.status === 'ERROR';
                                                     const isProcessing = v.status === 'PROCESSING' || v.status === 'QUEUED';
