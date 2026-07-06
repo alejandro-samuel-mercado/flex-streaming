@@ -224,7 +224,7 @@ export default function ProcessingMonitorPage() {
     };
 
     const handleDrainAndReset = async () => {
-        if (!window.confirm('CUIDADO: Esto vaciará toda la cola de procesamiento en memoria (Redis) y reiniciará TODOS los trabajos en curso o atascados a PENDING para que el sistema empiece de cero. ¡Solo haz esto si la cola está trabada! ¿Estás totalmente seguro?')) return;
+        if (!window.confirm('CUIDADO: Esto detendrá codificaciones activas (mata FFmpeg), vaciará toda la cola en Redis y reiniciará todos los servicios en PM2 de forma segura. ¡Solo haz esto si el sistema está colgado! ¿Estás totalmente seguro?')) return;
 
         try {
             const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken');
@@ -236,7 +236,7 @@ export default function ProcessingMonitorPage() {
             });
 
             if (res.ok) {
-                alert('¡Sistema purgado y reseteado exitosamente! El escáner automático pronto recogerá los trabajos pendientes.');
+                alert('¡Sistema purgado y reiniciándose! El servidor PM2 se está volviendo a encender; espera unos segundos y recarga la página.');
                 // Forzar recarga completa para ver los nuevos estados
                 window.location.reload();
             } else {

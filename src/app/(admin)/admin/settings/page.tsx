@@ -394,23 +394,23 @@ export default function AdminSettingsPage() {
                     <div className="adm-settings-body">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
-                                <span style={{ fontWeight: 600, color: 'white' }}>Vaciar y Reiniciar Cola (Reset)</span>
+                                <span style={{ fontWeight: 600, color: 'white' }}>Reiniciar Sistema y Cola (Reset Nuclear)</span>
                                 <p style={{ fontSize: '0.8rem', color: 'var(--adm-muted)', marginTop: 4, maxWidth: 600 }}>
-                                    Borra todos los trabajos atascados en Redis y elimina de la base de datos los registros en estado PENDING, QUEUED o PROCESSING. El sistema detectará los archivos como "nuevos" en el próximo escaneo.
+                                    Cancela todos los procesos de codificación activos (mata FFmpeg), vacía la cola en Redis y reinicia de forma segura los servicios en PM2. El sistema detectará los archivos como "nuevos" en el próximo escaneo.
                                 </p>
                             </div>
                             <button
                                 onClick={async () => {
-                                    if (confirm('¿Estás seguro? Esto vaciará la cola actual y requerirá un nuevo escaneo completo.')) {
+                                    if (confirm('¿Estás seguro? Esto cancelará todas las codificaciones activas, reiniciará los servicios y requerirá un nuevo escaneo completo.')) {
                                         try {
                                             const token = localStorage.getItem('adminToken');
                                             await adminFetch(API_ROUTES.MEDIA_SCANNER.DRAIN_AND_RESET, {
                                                 method: 'POST',
                                                 headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
                                             });
-                                            alert('Cola vaciada. Dale a Forzar Escaneo Ahora para retomar.');
+                                            alert('Sistema reiniciado y cola limpia. El servidor PM2 está volviendo a encenderse; espera unos segundos y dale a Forzar Escaneo.');
                                         } catch (err) {
-                                            alert('Error vaciando cola');
+                                            alert('Error reiniciando sistema y vaciando cola');
                                         }
                                     }
                                 }}
@@ -427,7 +427,7 @@ export default function AdminSettingsPage() {
                                 onMouseOver={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'}
                                 onMouseOut={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
                             >
-                                Vaciar Cola Atascada
+                                Reiniciar Sistema y Cola
                             </button>
                         </div>
                     </div>
