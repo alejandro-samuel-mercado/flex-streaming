@@ -62,6 +62,7 @@ export default function AdminContentPage() {
 
     // Selection State
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [bulkStatus, setBulkStatus] = useState<string>('');
 
     useEffect(() => {
         const saved = sessionStorage.getItem('admin_content_selected');
@@ -201,26 +202,15 @@ export default function AdminContentPage() {
         setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
     };
 
-    const handleBulkAction = async (action: 'delete' | 'changeStatus' | 'pin' | 'unpin') => {
+    const handleBulkAction = async (action: 'delete' | 'changeStatus' | 'pin' | 'unpin', statusToApply?: string) => {
         const confirmMsg = {
             delete: '¿Estás seguro de que deseas eliminar los contenidos seleccionados? Esta acción no se puede deshacer.',
-            changeStatus: '¿Estás seguro de cambiar el estado de los contenidos seleccionados?',
+            changeStatus: `¿Estás seguro de cambiar el estado a ${statusToApply} de los contenidos seleccionados?`,
             pin: '¿Estás seguro de fijar los contenidos seleccionados?',
             unpin: '¿Estás seguro de desfijar los contenidos seleccionados?',
         }[action];
 
         if (!window.confirm(confirmMsg)) return;
-        
-        let status = undefined;
-        if (action === 'changeStatus') {
-            const newStatus = window.prompt('Ingresa el nuevo estado (ACTIVE, READY, PENDING, PROCESSING, ERROR):');
-            if (!newStatus) return;
-            status = newStatus.toUpperCase().trim();
-            if (!['ACTIVE', 'READY', 'PENDING', 'PROCESSING', 'ERROR'].includes(status)) {
-                alert('Estado no válido.');
-                return;
-            }
-        }
 
         try {
             const token = localStorage.getItem('adminToken');
@@ -230,11 +220,12 @@ export default function AdminContentPage() {
                     'Content-Type': 'application/json',
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 },
-                body: JSON.stringify({ action, ids: selectedIds, status })
+                body: JSON.stringify({ action, ids: selectedIds, status: statusToApply })
             });
 
             if (res.ok) {
                 setSelectedIds([]);
+                setBulkStatus('');
                 fetchContents();
             } else {
                 const err = await res.json();
@@ -371,9 +362,30 @@ export default function AdminContentPage() {
                         <Hash size={14} />
                         {selectedIds.length} elemento{selectedIds.length !== 1 ? 's' : ''} seleccionado{selectedIds.length !== 1 ? 's' : ''}
                     </span>
-                    <button className="adm-btn adm-btn--sm adm-btn--ghost" onClick={() => handleBulkAction('changeStatus')} style={{ color: '#a78bfa', borderColor: 'rgba(167,139,250,0.3)' }}>
-                        Cambiar Estado
-                    </button>
+                    
+                    <div style={{ display: 'flex', gap: 4, alignItems: 'center', background: 'rgba(167, 139, 250, 0.1)', padding: '2px 4px 2px 8px', borderRadius: 6, border: '1px solid rgba(167, 139, 250, 0.2)' }}>
+                        <select 
+                            className="adm-select adm-select--sm" 
+                            value={bulkStatus} 
+                            onChange={e => setBulkStatus(e.target.value)} 
+                            style={{ padding: '4px 24px 4px 8px', border: 'none', background: 'transparent', color: '#a78bfa' }}
+                        >
+                            <option value="">Cambiar a...</option>
+                            <option value="ACTIVE">ACTIVO</option>
+                            <option value="READY">LISTO</option>
+                            <option value="PENDING">PENDIENTE</option>
+                            <option value="PROCESSING">PROCESANDO</option>
+                            <option value="ERROR">ERROR</option>
+                        </select>
+                        <button 
+                            className="adm-btn adm-btn--sm adm-btn--ghost" 
+                            onClick={() => bulkStatus ? handleBulkAction('changeStatus', bulkStatus) : alert('Selecciona un estado primero')} 
+                            style={{ color: '#a78bfa' }}
+                        >
+                            Aplicar
+                        </button>
+                    </div>
+
                     <button className="adm-btn adm-btn--sm adm-btn--ghost" onClick={() => handleBulkAction('pin')} style={{ color: '#3b82f6', borderColor: 'rgba(59,130,246,0.3)' }}>
                         Fijar
                     </button>
