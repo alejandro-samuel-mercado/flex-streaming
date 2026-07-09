@@ -178,7 +178,7 @@ export default function AdminContentPage() {
                 body: JSON.stringify({ isPinned: !currentPin })
             });
             if (res.ok) {
-                fetchContents();
+                setContents(prev => prev.map(c => c.id === id ? { ...c, isPinned: !currentPin } : c));
             } else {
                 const err = await res.json();
                 alert(`Error: ${err.error || 'No se pudo fijar/desfijar'}`);
@@ -224,9 +224,18 @@ export default function AdminContentPage() {
             });
 
             if (res.ok) {
+                if (action === 'delete') {
+                    setContents(prev => prev.filter(c => !selectedIds.includes(c.id)));
+                    setTotalItems(prev => prev - selectedIds.length);
+                } else if (action === 'changeStatus') {
+                    setContents(prev => prev.map(c => selectedIds.includes(c.id) ? { ...c, status: statusToApply! } : c));
+                } else if (action === 'pin') {
+                    setContents(prev => prev.map(c => selectedIds.includes(c.id) ? { ...c, isPinned: true } : c));
+                } else if (action === 'unpin') {
+                    setContents(prev => prev.map(c => selectedIds.includes(c.id) ? { ...c, isPinned: false } : c));
+                }
                 setSelectedIds([]);
                 setBulkStatus('');
-                fetchContents();
             } else {
                 const err = await res.json();
                 alert(`Error: ${err.error || 'No se pudo completar la acción'}`);
