@@ -60,6 +60,20 @@ export default function AdminContentPage() {
     const [totalItems, setTotalItems] = useState(0);
     const limit = 30;
 
+    // Selection State
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+    useEffect(() => {
+        const saved = sessionStorage.getItem('admin_content_selected');
+        if (saved) {
+            try { setSelectedIds(JSON.parse(saved)); } catch (e) {}
+        }
+    }, []);
+
+    useEffect(() => {
+        sessionStorage.setItem('admin_content_selected', JSON.stringify(selectedIds));
+    }, [selectedIds]);
+
     // Data
     const [contents, setContents] = useState<ContentItem[]>([]);
     const [platforms, setPlatforms] = useState<any[]>([]);
@@ -172,6 +186,67 @@ export default function AdminContentPage() {
             alert(error.message || 'Error al fijar/desfijar el contenido');
         }
     };
+
+    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.checked) {
+            const newIds = contents.map(c => c.id);
+            setSelectedIds(prev => Array.from(new Set([...prev, ...newIds])));
+        } else {
+            const pageIds = contents.map(c => c.id);
+            setSelectedIds(prev => prev.filter(id => !pageIds.includes(id)));
+        }
+    };
+
+    const toggleSelection = (id: string) => {
+        setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    };
+
+    const handleBulkAction = async (action: 'delete' | 'changeStatus' | 'pin' | 'unpin') => {
+        const confirmMsg = {
+            delete: '¿Estás seguro de que deseas eliminar los contenidos seleccionados? Esta acción no se puede deshacer.',
+            changeStatus: '¿Estás seguro de cambiar el estado de los contenidos seleccionados?',
+            pin: '¿Estás seguro de fijar los contenidos seleccionados?',
+            unpin: '¿Estás seguro de desfijar los contenidos seleccionados?',
+        }[action];
+
+        if (!window.confirm(confirmMsg)) return;
+        
+        let status = undefined;
+        if (action === 'changeStatus') {
+            const newStatus = window.prompt('Ingresa el nuevo estado (ACTIVE, READY, PENDING, PROCESSING, ERROR):');
+            if (!newStatus) return;
+            status = newStatus.toUpperCase().trim();
+            if (!['ACTIVE', 'READY', 'PENDING', 'PROCESSING', 'ERROR'].includes(status)) {
+                alert('Estado no válido.');
+                return;
+            }
+        }
+
+        try {
+            const token = localStorage.getItem('adminToken');
+            const res = await adminFetch(API_ROUTES.CONTENT.BULK_ACTION, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({ action, ids: selectedIds, status })
+            });
+
+            if (res.ok) {
+                setSelectedIds([]);
+                fetchContents();
+            } else {
+                const err = await res.json();
+                alert(`Error: ${err.error || 'No se pudo completar la acción'}`);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Error de conexión');
+        }
+    };
+
+    const isAllSelected = contents.length > 0 && contents.every(c => selectedIds.includes(c.id));
 
     const toggleSort = () => {
         if (sort === 'az') setSort('za');
@@ -290,10 +365,37 @@ export default function AdminContentPage() {
                 </button>
             </div>
 
+            {selectedIds.length > 0 && (
+                <div className="adm-toolbar" style={{ display: 'flex', gap: 12, alignItems: 'center', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                    <span style={{ fontWeight: 600, color: '#60a5fa', marginRight: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Hash size={14} />
+                        {selectedIds.length} elemento{selectedIds.length !== 1 ? 's' : ''} seleccionado{selectedIds.length !== 1 ? 's' : ''}
+                    </span>
+                    <button className="adm-btn adm-btn--sm adm-btn--ghost" onClick={() => handleBulkAction('changeStatus')} style={{ color: '#a78bfa', borderColor: 'rgba(167,139,250,0.3)' }}>
+                        Cambiar Estado
+                    </button>
+                    <button className="adm-btn adm-btn--sm adm-btn--ghost" onClick={() => handleBulkAction('pin')} style={{ color: '#3b82f6', borderColor: 'rgba(59,130,246,0.3)' }}>
+                        Fijar
+                    </button>
+                    <button className="adm-btn adm-btn--sm adm-btn--ghost" onClick={() => handleBulkAction('unpin')} style={{ color: '#94a3b8', borderColor: 'rgba(148,163,184,0.3)' }}>
+                        Desfijar
+                    </button>
+                    <button className="adm-btn adm-btn--sm adm-btn--ghost" onClick={() => handleBulkAction('delete')} style={{ color: '#f43f5e', borderColor: 'rgba(244,63,94,0.3)' }}>
+                        <Trash2 size={14} /> Eliminar
+                    </button>
+                    <button className="adm-btn adm-btn--sm" onClick={() => setSelectedIds([])} style={{ marginLeft: 8 }}>
+                        Cancelar
+                    </button>
+                </div>
+            )}
+
             <div className="adm-table-card">
                 <table className="adm-table">
                     <thead>
                         <tr>
+                            <th style={{ width: 40, textAlign: 'center' }}>
+                                <input type="checkbox" checked={isAllSelected} onChange={handleSelectAll} style={{ cursor: 'pointer' }} />
+                            </th>
                             <th style={{ width: 60 }}>Poster</th>
                             <th>Título / Slug</th>
                             <th>Información</th>
@@ -305,17 +407,20 @@ export default function AdminContentPage() {
                     </thead>
                     <tbody>
                         {loading ? (
-                            <tr><td colSpan={7} style={{ textAlign: 'center', padding: '60px' }}>
+                            <tr><td colSpan={8} style={{ textAlign: 'center', padding: '60px' }}>
                                 <Loader2 className="animate-spin" size={32} style={{ margin: '0 auto', color: 'var(--adm-primary)' }} />
                             </td></tr>
                         ) : contents.length === 0 ? (
-                            <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: 'var(--adm-muted)' }}>No se encontró contenido con los filtros aplicados.</td></tr>
+                            <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: 'var(--adm-muted)' }}>No se encontró contenido con los filtros aplicados.</td></tr>
                         ) : contents.map(item => {
                             const title = item.translations?.[0]?.title || 'Sin título';
                             const poster = item.thumbnails?.find(t => t.type === 'POSTER')?.url;
 
                             return (
-                                <tr key={item.id}>
+                                <tr key={item.id} style={{ background: selectedIds.includes(item.id) ? 'rgba(59, 130, 246, 0.05)' : '' }}>
+                                    <td style={{ textAlign: 'center' }}>
+                                        <input type="checkbox" checked={selectedIds.includes(item.id)} onChange={() => toggleSelection(item.id)} style={{ cursor: 'pointer' }} />
+                                    </td>
                                     <td>
                                         <div style={{ width: 40, height: 56, borderRadius: 6, overflow: 'hidden', background: 'var(--adm-bg-alt)' }}>
                                             {poster ? <img src={resolveImageUrl(poster)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Film size={16} style={{ margin: '20px auto', display: 'block', opacity: 0.2 }} />}
