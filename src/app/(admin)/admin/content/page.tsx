@@ -47,6 +47,7 @@ export default function AdminContentPage() {
 
     // States for filters
     const [search, setSearch] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [filterType, setFilterType] = useState('');
     const [filterPlatform, setFilterPlatform] = useState('');
     const [filterGenre, setFilterGenre] = useState('');
@@ -100,7 +101,7 @@ export default function AdminContentPage() {
         }
     }, []);
 
-    const fetchContents = useCallback(async () => {
+    const fetchContents = useCallback(async (abortController?: AbortController) => {
         setLoading(true);
         try {
             const token = localStorage.getItem('adminToken');
@@ -110,7 +111,7 @@ export default function AdminContentPage() {
                 sort,
             });
 
-            if (search) params.append('search', search);
+            if (debouncedSearch) params.append('search', debouncedSearch);
             if (filterType) params.append('type', filterType);
             if (filterPlatform) params.append('platformId', filterPlatform);
             if (filterGenre) params.append('genreId', filterGenre);
@@ -120,26 +121,38 @@ export default function AdminContentPage() {
             const res = await adminFetch(`${API_ROUTES.CONTENT.LIST}?${params}`, {
                 headers: {
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                }
+                },
+                signal: abortController?.signal
             });
             const d = await res.json();
 
             setContents(d.data ?? []);
             setTotalItems(d.meta?.total || d.pagination?.total || 0);
             setTotalPages(d.meta?.totalPages || d.pagination?.totalPages || 1);
-        } catch (err) {
+        } catch (err: any) {
+            if (err.name === 'AbortError') return;
             console.error('Fetch error:', err);
         } finally {
             setLoading(false);
         }
-    }, [page, sort, filterType, filterPlatform, filterStatus, search, showIncomplete]);
+    }, [page, sort, filterType, filterPlatform, filterStatus, debouncedSearch, showIncomplete]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(search);
+            if (search !== debouncedSearch) setPage(1);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [search, debouncedSearch]);
 
     useEffect(() => {
         fetchMetadata();
     }, [fetchMetadata]);
 
     useEffect(() => {
-        fetchContents();
+        const controller = new AbortController();
+        fetchContents(controller);
+        return () => controller.abort();
     }, [fetchContents]);
 
     const handleDelete = async (id: string, title: string) => {
