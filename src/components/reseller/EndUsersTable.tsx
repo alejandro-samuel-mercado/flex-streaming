@@ -188,6 +188,7 @@ export default function EndUsersTable({ users, loading, search, onSearchChange, 
                 }
                 .vendor-uc-actions {
                     display: flex;
+                    flex-wrap: wrap;
                     gap: 8px;
                     margin-top: auto;
                     padding-top: 4px;

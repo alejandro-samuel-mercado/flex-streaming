@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { adminFetch } from '@/lib/admin-api';
 import { API_ROUTES } from '@/lib/api-routes';
 import { Users, Search, Loader2, User, Mail, Calendar, Shield, Crown, UserCheck, Coins, Monitor, Smartphone, Tv, Plus, Edit2, Trash2, X, Check, AlertCircle, Package, Zap } from 'lucide-react';
-import type { SubscriptionPlan } from '@/types/reseller.types';
+import type { SubscriptionPlan, UserRole } from '@/types/reseller.types';
 import EndUsersTable from '@/components/reseller/EndUsersTable';
 
 export default function AdminUsersPage() {
@@ -470,7 +470,7 @@ export default function AdminUsersPage() {
                                     />
                                 </div>
 
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                                <div className="adm-grid-2-form">
                                     <div className="adm-form-group">
                                         <label className="adm-label">Nº de Teléfono</label>
                                         <input
@@ -509,18 +509,18 @@ export default function AdminUsersPage() {
                                     />
                                 </div>
 
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                                <div className="adm-grid-2-form">
                                     <div className="adm-form-group">
                                         <label className="adm-label">Rol de Usuario</label>
                                         <select
                                             className="adm-input"
                                             value={formData.role}
-                                            onChange={e => setFormData({ ...formData, role: e.target.value })}
-                                            disabled={modalMode === 'create' && (activeTab === 'VENDOR' || activeTab === 'ADMIN')}
+                                            onChange={e => setFormData({ ...formData, role: e.target.value as UserRole })}
                                             style={{ backgroundColor: '#151515', color: '#f3f4f6', borderColor: 'rgba(255,255,255,0.15)', width: '100%' }}
                                         >
                                             <option value="ADMIN" style={{ backgroundColor: '#151515', color: '#f3f4f6' }}>Administrador</option>
                                             <option value="SUPER_VENDOR" style={{ backgroundColor: '#151515', color: '#f3f4f6' }}>Super Revendedor</option>
+                                            <option value="VENDOR" style={{ backgroundColor: '#151515', color: '#f3f4f6' }}>Revendedor</option>
                                         </select>
                                     </div>
 
