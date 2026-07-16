@@ -136,7 +136,7 @@ export default function ResellersPage() {
                     <button className="adm-btn adm-btn--ghost" style={{ padding: '.3rem .5rem' }} onClick={() => setShowCreditsModal(v.id)} title="Cargar Paquete de Créditos">
                       <Package size={14} />
                     </button>
-                    <button className="adm-btn adm-btn--ghost" style={{ padding: '.3rem .5rem', color: '#a78bfa' }} onClick={() => setShowPlanModal(v.id)} title="Asignar Plan de Suscripción">
+                    <button className="adm-btn adm-btn--ghost" style={{ padding: '.3rem .5rem', color: '#FFD700' }} onClick={() => setShowPlanModal(v.id)} title="Asignar Plan de Suscripción">
                       <Calendar size={14} /> <span style={{ fontSize: '.75rem', fontWeight: 600 }}>Plan</span>
                     </button>
                     <button className="adm-btn adm-btn--ghost" style={{ padding: '.3rem .5rem' }} onClick={() => handleToggleStatus(v.id, v.isActive)} title={v.isActive ? 'Desactivar' : 'Activar'}>{v.isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}</button>
@@ -178,8 +178,8 @@ export default function ResellersPage() {
                 (() => {
                   const p = plans.find(p => p.id === form.planId)!;
                   return (
-                    <div style={{ padding: '.75rem', background: 'rgba(167,139,250,0.05)', borderRadius: '10px', fontSize: '.82rem', border: '1px solid rgba(167,139,250,0.2)' }}>
-                      <div style={{ fontWeight: 700, marginBottom: '.4rem', color: '#a78bfa', textTransform: 'uppercase', fontSize: '.75rem', letterSpacing: '0.05em' }}>Resumen del Plan</div>
+                    <div style={{ padding: '.75rem', background: 'rgba(255, 215, 0,0.05)', borderRadius: '10px', fontSize: '.82rem', border: '1px solid rgba(255, 215, 0,0.2)' }}>
+                      <div style={{ fontWeight: 700, marginBottom: '.4rem', color: '#FFD700', textTransform: 'uppercase', fontSize: '.75rem', letterSpacing: '0.05em' }}>Resumen del Plan</div>
                       <div style={{ marginBottom: '.2rem' }}>Plan: <strong style={{ color: 'white' }}>{p.name}</strong></div>
                       <div style={{ marginBottom: '.2rem' }}>Duración: <strong style={{ color: 'white' }}>{p.durationDays} días</strong></div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -230,7 +230,7 @@ export default function ResellersPage() {
       {showPlanModal && (
         <div className="adm-modal-overlay" onClick={() => setShowPlanModal(null)}>
           <div className="adm-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', marginBottom: '1rem', color: '#a78bfa' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', marginBottom: '1rem', color: '#FFD700' }}>
               <Calendar size={20} />
               <h2 style={{ margin: 0, fontSize: '1.1rem' }}>Asignar Plan de Suscripción</h2>
             </div>
@@ -252,8 +252,8 @@ export default function ResellersPage() {
               (() => {
                 const p = plans.find(p => p.id === selectedPlanId)!;
                 return (
-                  <div style={{ padding: '.75rem', marginTop: '1rem', background: 'rgba(167,139,250,0.05)', borderRadius: '10px', fontSize: '.82rem', border: '1px solid rgba(167,139,250,0.2)' }}>
-                    <div style={{ fontWeight: 700, marginBottom: '.4rem', color: '#a78bfa', textTransform: 'uppercase', fontSize: '.75rem', letterSpacing: '0.05em' }}>Resumen</div>
+                  <div style={{ padding: '.75rem', marginTop: '1rem', background: 'rgba(255, 215, 0,0.05)', borderRadius: '10px', fontSize: '.82rem', border: '1px solid rgba(255, 215, 0,0.2)' }}>
+                    <div style={{ fontWeight: 700, marginBottom: '.4rem', color: '#FFD700', textTransform: 'uppercase', fontSize: '.75rem', letterSpacing: '0.05em' }}>Resumen</div>
                     <div style={{ marginBottom: '.2rem' }}>Plan: <strong style={{ color: 'white' }}>{p.name}</strong></div>
                     <div style={{ marginBottom: '.2rem' }}>Duración: <strong style={{ color: 'white' }}>{p.durationDays} días</strong></div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

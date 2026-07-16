@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { CreditHistoryModal } from '@/components/reseller/CreditHistoryModal';
 
 const COLOR: Record<string, string> = {
-    blue: '#60a5fa', green: '#4ade80', yellow: '#facc15', purple: '#a78bfa',
+    blue: '#60a5fa', green: '#4ade80', yellow: '#facc15', purple: '#FFD700',
 };
 
 export default function SuperVendorDashboard() {

@@ -274,9 +274,9 @@ export default function UploadManagerPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: "100%" }}>
                     {/* ACTIVE UPLOADS SECTION - Only show REAL UPLOADING files */}
                     {files.filter(f => f.status === 'uploading' || f.status === 'success').length > 0 && (
-                        <div className="adm-table-card" style={{ padding: 20, border: '1px solid rgba(167,139,250,0.3)', background: 'rgba(167,139,250,0.02)' }}>
+                        <div className="adm-table-card" style={{ padding: 20, border: '1px solid rgba(255, 215, 0,0.3)', background: 'rgba(255, 215, 0,0.02)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                                <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: '#a78bfa', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
+                                <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: '#FFD700', display: 'flex', alignItems: 'center', gap: 8, margin: 0 }}>
                                     <Activity size={16} /> Subidas en curso
                                 </h3>
                                 <button
@@ -290,11 +290,11 @@ export default function UploadManagerPage() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                                 {files.filter(f => f.status === 'uploading' || f.status === 'success').map(f => (
                                     <div key={f.fileName} className="adm-upload-file" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                                        <FileVideo size={16} style={{ color: '#a78bfa' }} />
+                                        <FileVideo size={16} style={{ color: '#FFD700' }} />
                                         <div style={{ flex: 1 }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                                                 <span style={{ fontSize: '0.8rem', fontWeight: 500 }}>{f.fileName}</span>
-                                                <span style={{ fontSize: '0.75rem', color: '#a78bfa' }}>{f.progress}%</span>
+                                                <span style={{ fontSize: '0.75rem', color: '#FFD700' }}>{f.progress}%</span>
                                             </div>
                                             <div className="adm-progress-bar" style={{ height: 6 }}>
                                                 <div className={`adm-progress-fill ${f.status === 'success' ? 'success' : ''}`} style={{ width: `${f.progress}%` }} />
@@ -404,7 +404,7 @@ export default function UploadManagerPage() {
 
                                                                 return (
                                                                     <div key={f.fileName} className="adm-upload-file" style={{ padding: '12px', border: isDup ? '1px solid var(--adm-danger)' : undefined }}>
-                                                                        <FileVideo size={16} style={{ color: isDup ? 'var(--adm-danger)' : '#a78bfa' }} />
+                                                                        <FileVideo size={16} style={{ color: isDup ? 'var(--adm-danger)' : '#FFD700' }} />
                                                                         <div style={{ flex: 1 }}>
                                                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                                                                                 <div style={{ display: 'flex', flexDirection: 'column' }}>

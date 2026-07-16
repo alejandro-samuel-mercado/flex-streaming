@@ -10,7 +10,7 @@ import { API_ROUTES } from '@/lib/api-routes';
 import { adminFetch } from '@/lib/admin-api';
 
 const COLOR: Record<string, string> = {
-  blue: '#60a5fa', purple: '#a78bfa', green: '#4ade80', yellow: '#facc15', red: '#f87171',
+  blue: '#60a5fa', purple: '#FFD700', green: '#4ade80', yellow: '#facc15', red: '#f87171',
 };
 
 // Helper for relative time
@@ -134,48 +134,50 @@ export default function AdminDashboardPage() {
             <h2 className="adm-table-card-title">Actividad de Procesamiento</h2>
             <span className="adm-badge adm-badge--blue">Live</span>
           </div>
-          <table className="adm-table">
-            <thead>
-              <tr>
-                <th>Proceso</th>
-                <th>Estado</th>
-                <th>Actualizado</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {activities.length === 0 && (
+          <div className="adm-table-wrapper">
+            <table className="adm-table">
+              <thead>
                 <tr>
-                  <td colSpan={4} className="text-center !py-6 text-[var(--adm-muted)]">No hay actividad reciente</td>
+                  <th>Proceso</th>
+                  <th>Estado</th>
+                  <th>Actualizado</th>
+                  <th></th>
                 </tr>
-              )}
-              {activities.map((row: any, i: number) => (
-                <tr key={i}>
-                  <td>
-                    <div className="adm-table-process">
-                      <row.icon size={15} style={{ color: COLOR[row.color], flexShrink: 0 }}
-                        className={row.color === 'yellow' ? 'animate-spin' : ''} />
-                      {row.name}
-                    </div>
-                  </td>
-                  <td>
-                    <span className={`adm-badge adm-badge--${row.color}`}>{row.status}</span>
-                  </td>
-                  <td className="adm-table-muted">{row.time}</td>
-                  <td>
-                    <button className="adm-link">Ver</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {activities.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="text-center !py-6 text-[var(--adm-muted)]">No hay actividad reciente</td>
+                  </tr>
+                )}
+                {activities.map((row: any, i: number) => (
+                  <tr key={i}>
+                    <td>
+                      <div className="adm-table-process">
+                        <row.icon size={15} style={{ color: COLOR[row.color], flexShrink: 0 }}
+                          className={row.color === 'yellow' ? 'animate-spin' : ''} />
+                        {row.name}
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`adm-badge adm-badge--${row.color}`}>{row.status}</span>
+                    </td>
+                    <td className="adm-table-muted">{row.time}</td>
+                    <td>
+                      <button className="adm-link">Ver</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Top content */}
         <div className="adm-table-card" style={{ flex: 2 }}>
           <div className="adm-table-card-header">
             <h2 className="adm-table-card-title">Top Contenido (Vistas)</h2>
-            <TrendingUp size={16} style={{ color: '#a78bfa' }} />
+            <TrendingUp size={16} style={{ color: '#FFD700' }} />
           </div>
           <div className="adm-top-list">
             {(data?.topContent || []).length === 0 && (

@@ -210,7 +210,7 @@ export default function AdminHomepageConfigPage() {
             id: 'COMBINED',
             name: 'Mix Dinámico',
             desc: 'Mezcla tu lista manual con estrenos y tendencias.',
-            icon: <Monitor className="!text-purple-400" size={24} />
+            icon: <Monitor className="!text-yellow-400" size={24} />
         }
     ];
 

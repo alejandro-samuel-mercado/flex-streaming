@@ -251,7 +251,7 @@ export default function AdminTaxonomyPage() {
 
       {activeTab === 'categories' && (
         <div className="animate-fadeIn">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+          <div className="adm-grid-2">
             {/* Genres */}
             <div className="adm-table-card">
               <div className="adm-table-card-header">
@@ -316,7 +316,7 @@ export default function AdminTaxonomyPage() {
                     <tr key={tag.id}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <Tag size={13} style={{ color: '#a78bfa' }} />
+                          <Tag size={13} style={{ color: '#FFD700' }} />
                           <span style={{ fontWeight: 600, color: 'white' }}>{tag.name}</span>
                         </div>
                       </td>
@@ -376,8 +376,8 @@ export default function AdminTaxonomyPage() {
                   <tr key={p.id}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(124,58,237,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {p.logoUrl ? <img src={p.logoUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8 }} /> : <Server size={14} style={{ color: '#a78bfa' }} />}
+                        <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(255, 215, 0,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {p.logoUrl ? <img src={p.logoUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8 }} /> : <Server size={14} style={{ color: '#FFD700' }} />}
                         </div>
                         <span style={{ fontWeight: 600, color: 'white' }}>{p.name}</span>
                       </div>

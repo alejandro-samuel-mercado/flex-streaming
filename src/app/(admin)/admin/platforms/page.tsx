@@ -152,13 +152,13 @@ export default function AdminPlatformsPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{
                       width: 32, height: 32, borderRadius: 8,
-                      background: 'rgba(124,58,237,.2)', display: 'flex',
+                      background: 'rgba(255, 215, 0,.2)', display: 'flex',
                       alignItems: 'center', justifyContent: 'center'
                     }}>
                       {p.logoUrl ? (
                         <img src={p.logoUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 8 }} />
                       ) : (
-                        <Server size={14} style={{ color: '#a78bfa' }} />
+                        <Server size={14} style={{ color: '#FFD700' }} />
                       )}
                     </div>
                     <span style={{ fontWeight: 600, color: 'white' }}>{p.name}</span>

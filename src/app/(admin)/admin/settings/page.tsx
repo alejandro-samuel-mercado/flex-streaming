@@ -194,7 +194,7 @@ export default function AdminSettingsPage() {
                             <div className={`adm-toggle${settings['AUTO_SCAN_ENABLED'] === 'true' ? ' adm-toggle--on' : ''}`} />
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
+                        <div className="adm-grid-2" style={{ marginTop: 16 }}>
                             {/* Interval */}
                             <div className="adm-form-row">
                                 <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -261,7 +261,7 @@ export default function AdminSettingsPage() {
                         </div>
 
                         {/* Two directory inputs: Movies + Series */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
+                        <div className="adm-grid-2" style={{ marginTop: 16 }}>
                             <div className="adm-form-row">
                                 <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                     <FolderOpen size={14} />
@@ -349,7 +349,7 @@ export default function AdminSettingsPage() {
                         <Globe size={18} className="adm-settings-icon" />
                         <h2>General & Footer</h2>
                     </div>
-                    <div className="adm-settings-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                    <div className="adm-settings-body adm-grid-2">
                         <div className="adm-form-row">
                             <label>Nombre del sitio</label>
                             <input className="adm-input" value={settings['SITE_NAME'] || 'Nuba'} onChange={e => setSettings({ ...settings, SITE_NAME: e.target.value })} />

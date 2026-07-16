@@ -278,7 +278,7 @@ export default function AdminUsersPage() {
                 )}
             </div>
 
-            <div style={{ display: 'flex', gap: 12, marginBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 16 }}>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 16, flexWrap: 'wrap' }}>
                 <button
                     className={`adm-btn ${activeTab === 'VENDOR' ? 'adm-btn--primary' : 'adm-btn--ghost'}`}
                     onClick={() => { setActiveTab('VENDOR'); setPage(1); }}
@@ -337,142 +337,81 @@ export default function AdminUsersPage() {
                             <p>Cargando usuarios...</p>
                         </div>
                     ) : (
-                        <div className="adm-table-wrapper">
-                            <table className="adm-table">
-                                <thead>
-                                    <tr>
+                        <div className="adm-cards-grid">
+                            {users.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--adm-muted)' }}>No se encontraron registros.</div>
+                            ) : users.map(user => (
+                                <div key={user.id} className="adm-user-card">
+                                    <div className="adm-user-card-header">
+                                        <div className="adm-user-avatar">
+                                            <User size={24} />
+                                        </div>
+                                        <div className="adm-user-info">
+                                            <div className="adm-user-name">
+                                                {user.name}
+                                                {activeTab !== 'VENDOR' && user._count?.memberships > 0 && <Crown size={14} color="#fbbf24" style={{ display: 'inline', marginLeft: 4 }} />}
+                                            </div>
+                                            <div className="adm-user-sub">
+                                                {activeTab === 'VENDOR' ? (
+                                                    <span style={{ color: '#FFD700', fontWeight: 600 }}>{user.username || '-'}</span>
+                                                ) : (
+                                                    <span style={{ color: '#60a5fa', fontWeight: 600 }}>{user.username || '-'}</span>
+                                                )}
+                                                <span style={{ opacity: 0.5 }}>•</span>
+                                                <span>{user.phone || '-'}</span>
+                                            </div>
+                                        </div>
+                                        <div className="adm-user-badge">
+                                            <span className={`adm-badge ${user.isActive ? 'adm-badge--green' : 'adm-badge--red'}`}>
+                                                {user.isActive ? 'Activo' : 'Inactivo'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="adm-user-stats">
                                         {activeTab === 'VENDOR' ? (
                                             <>
-                                                <th style={{ textAlign: 'center' }}>Nombre</th>
-                                                <th style={{ textAlign: 'center' }}>Usuario</th>
-                                                <th style={{ textAlign: 'center' }}>Nº de teléfono</th>
-                                                <th style={{ textAlign: 'center' }}>Créditos</th>
-                                                <th style={{ textAlign: 'center' }}>Clientes</th>
-                                                <th style={{ textAlign: 'center' }}>Estados</th>
-                                                <th style={{ textAlign: 'center' }}>Acciones</th>
+                                                <div className="adm-stat-col">
+                                                    <span className="adm-stat-label">Créditos</span>
+                                                    <span className="adm-stat-val" style={{ color: '#facc15' }}>{user.credits}</span>
+                                                </div>
+                                                <div className="adm-stat-col">
+                                                    <span className="adm-stat-label">Clientes</span>
+                                                    <span className="adm-stat-val">{user._count?.managedEndUsers || 0}</span>
+                                                </div>
                                             </>
                                         ) : (
                                             <>
-                                                <th style={{ textAlign: 'center' }}>Usuario</th>
-                                                <th style={{ textAlign: 'center' }}>Nº de teléfono</th>
-                                                <th style={{ textAlign: 'center' }}>Rol</th>
-                                                <th style={{ textAlign: 'center' }}>Estado</th>
-                                                <th style={{ textAlign: 'center' }}>Perfiles</th>
-                                                <th style={{ textAlign: 'center' }}>Registro</th>
-                                                <th style={{ textAlign: 'center' }}>Acciones</th>
+                                                <div className="adm-stat-col">
+                                                    <span className="adm-stat-label">Rol</span>
+                                                    <span className="adm-stat-val" style={{ fontSize: '0.8rem' }}>
+                                                        {user.role === 'ADMIN' && <Shield size={12} style={{ display: 'inline', marginRight: 4, color: '#c084fc' }} />}
+                                                        {getRoleLabel(user.role)}
+                                                    </span>
+                                                </div>
+                                                <div className="adm-stat-col">
+                                                    <span className="adm-stat-label">Perfiles</span>
+                                                    <span className="adm-stat-val">{user._count?.profiles || 0}</span>
+                                                </div>
                                             </>
                                         )}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {users.length === 0 ? (
-                                        <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>No se encontraron registros.</td></tr>
-                                    ) : users.map(user => (
-                                        <tr key={user.id}>
-                                            {activeTab === 'VENDOR' ? (
-                                                <>
-                                                    <td>
-                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-                                                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--adm-bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                                <User size={20} color="var(--adm-muted)" />
-                                                            </div>
-                                                            <div style={{ fontWeight: 600, color: 'white' }}>{user.name}</div>
-                                                        </div>
-                                                    </td>
-                                                    <td style={{ textAlign: 'center' }}>
-                                                        <div className="flex flex-col items-center justify-center">
-                                                            <span style={{ color: '#a78bfa', fontWeight: 600 }}>{user.username || '-'}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td style={{ textAlign: 'center' }}>
-                                                        <span style={{ fontSize: '.85rem' }}>{user.phone || '-'}</span>
-                                                    </td>
-                                                    <td style={{ textAlign: 'center' }}>
-                                                        <span style={{ fontWeight: 700, color: '#facc15' }}>
-                                                            {user.credits}
-                                                        </span>
-                                                    </td>
-                                                    <td style={{ textAlign: 'center' }}>{user._count?.managedEndUsers || 0}</td>
-                                                    <td style={{ textAlign: 'center' }}>
-                                                        <span className={`adm-badge ${user.isActive ? 'adm-badge--green' : 'adm-badge--red'}`}>
-                                                            {user.isActive ? 'Activo' : 'Inactivo'}
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-                                                            <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => setShowCreditsModal(user.id)} title="Cargar Créditos" style={{ color: '#facc15' }}><Package size={14} /></button>
-                                                            <button className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => openEditModal(user)}><Edit2 size={14} /></button>
-                                                            <button className="adm-btn adm-btn--ghost adm-btn--sm adm-btn--red" onClick={() => setUserToDelete(user)}><Trash2 size={14} /></button>
-                                                        </div>
-                                                    </td>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <td>
-                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-                                                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--adm-bg-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                                <User size={20} color="var(--adm-muted)" />
-                                                            </div>
-                                                            <div style={{ textAlign: 'center' }}>
-                                                                <div style={{ fontWeight: 600, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                                                                    {user.name}
-                                                                    {user._count?.memberships > 0 && <Crown size={14} color="#fbbf24" />}
-                                                                </div>
-                                                                <div style={{ fontSize: '.8rem', color: 'var(--adm-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                                                                    <span style={{ color: '#60a5fa', fontWeight: 600 }}>{user.username || '-'}</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td style={{ textAlign: 'center' }}>
-                                                        <span style={{ fontSize: '.85rem' }}>{user.phone || '-'}</span>
-                                                    </td>
-                                                    <td style={{ textAlign: 'center' }}>
-                                                        <span className={`adm-badge ${user.role === 'ADMIN' ? 'adm-badge--purple' : 'adm-badge--blue'}`}>
-                                                            {user.role === 'ADMIN' && <Shield size={12} style={{ marginRight: 4 }} />}
-                                                            {getRoleLabel(user.role)}
-                                                        </span>
-                                                    </td>
-                                                    <td style={{ textAlign: 'center' }}>
-                                                        <span className={`adm-badge ${user.isActive ? 'adm-badge--green' : 'adm-badge--red'}`}>
-                                                            {user.isActive ? 'Activo' : 'Inactivo'}
-                                                        </span>
-                                                    </td>
-                                                    <td style={{ textAlign: 'center' }}>
-                                                        <span style={{ fontSize: '.9rem', color: 'var(--adm-muted)' }}>
-                                                            {user._count?.profiles || 0} perfiles
-                                                        </span>
-                                                    </td>
-                                                    <td style={{ textAlign: 'center' }}>
-                                                        <span style={{ fontSize: '.85rem', color: 'var(--adm-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                                                            <Calendar size={14} />
-                                                            {new Date(user.createdAt).toLocaleDateString()}
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-                                                            <button
-                                                                className="adm-btn adm-btn--ghost adm-btn--sm"
-                                                                onClick={() => openEditModal(user)}
-                                                                title="Editar usuario"
-                                                            >
-                                                                <Edit2 size={14} />
-                                                            </button>
-                                                            <button
-                                                                className="adm-btn adm-btn--ghost adm-btn--sm adm-btn--red"
-                                                                onClick={() => setUserToDelete(user)}
-                                                                title="Eliminar usuario"
-                                                            >
-                                                                <Trash2 size={14} />
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </>
-                                            )}
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </div>
+
+                                    <div className="adm-user-actions">
+                                        {activeTab === 'VENDOR' && (
+                                            <button className="adm-btn adm-btn-full adm-btn--ghost" onClick={() => setShowCreditsModal(user.id)} style={{ color: '#facc15' }}>
+                                                <Package size={16} /> Cargar
+                                            </button>
+                                        )}
+                                        <button className="adm-btn adm-btn-full adm-btn--ghost" onClick={() => openEditModal(user)}>
+                                            <Edit2 size={16} /> Editar
+                                        </button>
+                                        <button className="adm-btn adm-btn-full adm-btn--ghost adm-btn--red" onClick={() => setUserToDelete(user)}>
+                                            <Trash2 size={16} /> Eliminar
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
 
@@ -815,7 +754,7 @@ export default function AdminUsersPage() {
                             </div>
                             <form onSubmit={handleCreateEndUser}>
                                 <div className="adm-modal-body">
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '.4rem', marginBottom: '1rem', padding: '.5rem .75rem', background: 'rgba(139,92,246,0.08)', borderRadius: '8px', fontSize: '.82rem', color: '#a78bfa' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '.4rem', marginBottom: '1rem', padding: '.5rem .75rem', background: 'rgba(255, 215, 0,0.08)', borderRadius: '8px', fontSize: '.82rem', color: '#FFD700' }}>
                                         <Shield size={14} />
                                         Como administrador, no se te descuentan créditos.
                                     </div>
@@ -858,8 +797,8 @@ export default function AdminUsersPage() {
                                                 <button key={p.id} type="button" onClick={() => setEndUserForm(f => ({ ...f, planId: p.id }))}
                                                     style={{
                                                         padding: '.6rem .8rem', cursor: 'pointer', textAlign: 'left',
-                                                        border: endUserForm.planId === p.id ? '2px solid #a78bfa' : '1px solid rgba(255,255,255,.08)',
-                                                        borderRadius: '10px', background: endUserForm.planId === p.id ? 'rgba(167,139,250,0.08)' : 'rgba(255,255,255,0.02)',
+                                                        border: endUserForm.planId === p.id ? '2px solid #FFD700' : '1px solid rgba(255,255,255,.08)',
+                                                        borderRadius: '10px', background: endUserForm.planId === p.id ? 'rgba(255, 215, 0,0.08)' : 'rgba(255,255,255,0.02)',
                                                         transition: 'all .2s', color: 'white',
                                                     }}>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -880,8 +819,8 @@ export default function AdminUsersPage() {
 
                                     {/* Summary */}
                                     {euSelectedPlan && (
-                                        <div style={{ padding: '.75rem', background: 'rgba(139,92,246,0.05)', borderRadius: '10px', fontSize: '.85rem', border: '1px solid rgba(139,92,246,0.2)', marginTop: '1rem' }}>
-                                            <div style={{ fontWeight: 700, marginBottom: '.4rem', color: '#a78bfa', textTransform: 'uppercase', fontSize: '.75rem', letterSpacing: '0.05em' }}>Resumen de Suscripción</div>
+                                        <div style={{ padding: '.75rem', background: 'rgba(255, 215, 0,0.05)', borderRadius: '10px', fontSize: '.85rem', border: '1px solid rgba(255, 215, 0,0.2)', marginTop: '1rem' }}>
+                                            <div style={{ fontWeight: 700, marginBottom: '.4rem', color: '#FFD700', textTransform: 'uppercase', fontSize: '.75rem', letterSpacing: '0.05em' }}>Resumen de Suscripción</div>
                                             <div style={{ marginBottom: '.2rem' }}>Plan: <strong style={{ color: 'white' }}>{euSelectedPlan.name}</strong></div>
                                             <div style={{ marginBottom: '.2rem' }}>Duración: <strong style={{ color: 'white' }}>{euSelectedPlan.isDemo ? `${euSelectedPlan.demoHours}h` : `${euSelectedPlan.durationDays} días`}{euSelectedPlan.bonusDays ? ` (+${euSelectedPlan.bonusDays} bonus)` : ''}</strong></div>
                                             <div style={{ marginBottom: '.2rem', display: 'flex', alignItems: 'center', gap: '4px' }}>

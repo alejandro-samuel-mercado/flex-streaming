@@ -322,9 +322,9 @@ export default function ProcessingMonitorPage() {
                 gap: 20,
                 marginBottom: 24
             }}>
-                <div className="adm-table-card" style={{ padding: 24, background: 'linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%)', border: '1px solid rgba(167, 139, 250, 0.2)' }}>
+                <div className="adm-table-card" style={{ padding: 24, background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%)', border: '1px solid rgba(255, 215, 0, 0.2)' }}>
                     <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-                        <div style={{ background: 'var(--adm-primary)', color: 'white', padding: 12, borderRadius: 16, boxShadow: '0 8px 16px rgba(139, 92, 246, 0.3)' }}>
+                        <div style={{ background: 'var(--adm-primary)', color: 'white', padding: 12, borderRadius: 16, boxShadow: '0 8px 16px rgba(255, 215, 0, 0.3)' }}>
                             <Activity size={24} className="animate-pulse" />
                         </div>
                         <div>
@@ -519,7 +519,7 @@ export default function ProcessingMonitorPage() {
                                                         <div style={{ fontSize: '.7rem', textAlign: 'right', fontWeight: 700 }}>{v.progress}%</div>
                                                     </div>
                                                 ) : (
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#a78bfa', fontSize: '.75rem' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#FFD700', fontSize: '.75rem' }}>
                                                         <Loader2 size={12} className="animate-spin" />
                                                         Cargando...
                                                     </div>

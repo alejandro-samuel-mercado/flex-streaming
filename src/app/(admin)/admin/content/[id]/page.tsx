@@ -897,9 +897,9 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                     <div style={{ display: 'flex', gap: 12 }}>
                                                         <div style={{
                                                             width: 40, height: 40, borderRadius: 10,
-                                                            background: video.status === 'COMPLETED' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(167, 139, 250, 0.1)',
+                                                            background: video.status === 'COMPLETED' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(255, 215, 0, 0.1)',
                                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                            color: video.status === 'COMPLETED' ? '#4ade80' : '#a78bfa'
+                                                            color: video.status === 'COMPLETED' ? '#4ade80' : '#FFD700'
                                                         }}>
                                                             <Film size={20} />
                                                         </div>

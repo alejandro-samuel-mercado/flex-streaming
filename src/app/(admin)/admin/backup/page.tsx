@@ -232,7 +232,7 @@ export default function BackupPage() {
                     <div className="adm-stat-label">Programación automática</div>
                 </div>
                 <div className="adm-stat-card">
-                    <Shield size={22} className="text-purple-400 !mb-2" />
+                    <Shield size={22} className="text-yellow-400 !mb-2" />
                     <div className="adm-stat-value">{settings.retentionCount}</div>
                     <div className="adm-stat-label">Backups a retener</div>
                 </div>

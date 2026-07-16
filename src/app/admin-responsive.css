@@ -1,0 +1,296 @@
+/* Responsive Admin UI - Mobile First but Desktop Ready */
+
+/* ── BOTTOM NAV (Mobile Only) ── */
+.adm-bottom-nav {
+  display: flex;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: var(--adm-sidebar-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom);
+  justify-content: space-around;
+  align-items: center;
+}
+
+.adm-bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--adm-muted);
+  text-decoration: none;
+  font-size: 0.7rem;
+  font-weight: 500;
+  width: 100%;
+  height: 100%;
+  transition: all 0.2s;
+}
+
+.adm-bottom-nav-item.active {
+  color: var(--color-primary);
+}
+
+.adm-bottom-nav-icon {
+  margin-bottom: 2px;
+}
+
+/* ── CARDS (Replacing Tables) ── */
+.adm-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 16px;
+}
+
+.adm-user-card {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: all 0.2s;
+}
+
+.adm-user-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.adm-user-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.adm-user-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--adm-muted);
+  flex-shrink: 0;
+}
+
+.adm-user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.adm-user-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.adm-user-sub {
+  font-size: 0.8rem;
+  color: var(--adm-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.adm-user-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+.adm-user-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.adm-stat-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.adm-stat-label {
+  font-size: 0.7rem;
+  color: var(--adm-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.adm-stat-val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: white;
+}
+
+.adm-user-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.adm-btn-full {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px; /* Touch friendly */
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* ── DESKTOP ADAPTATIONS (Responsive) ── */
+@media (min-width: 1024px) {
+  /* Make cards form a nice grid on desktop instead of stretching full width */
+  .adm-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    padding: 24px;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .adm-content-wrapper {
+    margin-left: 0 !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  .adm-root {
+    padding-left: 0 !important;
+    overflow-x: hidden !important;
+  }
+
+  .adm-main {
+    margin: 0 !important;
+    padding: 16px !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Make sure the page padding doesn't cause overflow */
+  .adm-page {
+    padding: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Shrink cards to fit screen */
+  .adm-cards-grid {
+    padding: 0 !important;
+    gap: 12px !important;
+    display: flex;
+    flex-direction: column;
+    width: 100% !important;
+  }
+
+  .adm-user-card {
+    width: 100% !important;
+    padding: 12px !important;
+    border-radius: 16px !important;
+    box-sizing: border-box !important;
+  }
+
+  .adm-user-name {
+    font-size: 0.95rem !important;
+  }
+
+  .adm-user-stats {
+    gap: 8px !important;
+    padding: 8px !important;
+  }
+
+  /* ── FIX FOR INPUTS AND FILTERS ON MOBILE ── */
+  .adm-input, select.adm-input {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .adm-table-filters {
+    padding: 12px 16px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+  
+  .adm-table-filters form {
+    flex-direction: column !important;
+  }
+
+  .adm-page-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+    padding: 16px !important;
+  }
+
+  .adm-page-header > div:last-child {
+    width: 100% !important;
+    flex-direction: column !important;
+  }
+  
+  .adm-page-header button {
+    width: 100% !important;
+  }
+}
+
+/* ── GLOBAL FIX FOR ALL TABLES (Desktop & Mobile) ── */
+.adm-table-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  box-sizing: border-box !important;
+}
+
+.adm-table {
+  min-width: 800px !important; /* Force table to maintain a readable width */
+  width: 100% !important;
+}
+
+/* Fix flex containers breaking overflow */
+.adm-dashboard-cols,
+.adm-table-card {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.adm-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 1023px) {
+  .adm-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+}

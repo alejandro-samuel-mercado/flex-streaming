@@ -385,12 +385,12 @@ export default function AdminContentPage() {
                         {selectedIds.length} elemento{selectedIds.length !== 1 ? 's' : ''} seleccionado{selectedIds.length !== 1 ? 's' : ''}
                     </span>
                     
-                    <div style={{ display: 'flex', gap: 4, alignItems: 'center', background: 'rgba(167, 139, 250, 0.1)', padding: '2px 4px 2px 8px', borderRadius: 6, border: '1px solid rgba(167, 139, 250, 0.2)' }}>
+                    <div style={{ display: 'flex', gap: 4, alignItems: 'center', background: 'rgba(255, 215, 0, 0.1)', padding: '2px 4px 2px 8px', borderRadius: 6, border: '1px solid rgba(255, 215, 0, 0.2)' }}>
                         <select 
                             className="adm-select adm-select--sm" 
                             value={bulkStatus} 
                             onChange={e => setBulkStatus(e.target.value)} 
-                            style={{ padding: '4px 24px 4px 8px', border: 'none', background: 'transparent', color: '#a78bfa' }}
+                            style={{ padding: '4px 24px 4px 8px', border: 'none', background: 'transparent', color: '#FFD700' }}
                         >
                             <option value="">Cambiar a...</option>
                             <option value="ACTIVE">ACTIVO</option>
@@ -402,7 +402,7 @@ export default function AdminContentPage() {
                         <button 
                             className="adm-btn adm-btn--sm adm-btn--ghost" 
                             onClick={() => bulkStatus ? handleBulkAction('changeStatus', bulkStatus) : alert('Selecciona un estado primero')} 
-                            style={{ color: '#a78bfa' }}
+                            style={{ color: '#FFD700' }}
                         >
                             Aplicar
                         </button>
@@ -424,7 +424,8 @@ export default function AdminContentPage() {
             )}
 
             <div className="adm-table-card">
-                <table className="adm-table">
+                <div className="adm-table-wrapper">
+                    <table className="adm-table">
                     <thead>
                         <tr>
                             <th style={{ width: 40, textAlign: 'center' }}>
@@ -515,8 +516,8 @@ export default function AdminContentPage() {
 
                                                     return (
                                                         <div key={i} title={`Video ${i + 1}: ${v.status}`} className="adm-badge" style={{
-                                                            background: isFailed ? 'rgba(244, 63, 94, 0.1)' : isCompleted ? 'rgba(74, 222, 128, 0.1)' : 'rgba(167, 139, 250, 0.1)',
-                                                            color: isFailed ? '#f43f5e' : isCompleted ? '#4ade80' : '#a78bfa',
+                                                            background: isFailed ? 'rgba(244, 63, 94, 0.1)' : isCompleted ? 'rgba(74, 222, 128, 0.1)' : 'rgba(255, 215, 0, 0.1)',
+                                                            color: isFailed ? '#f43f5e' : isCompleted ? '#4ade80' : '#FFD700',
                                                             width: 'fit-content',
                                                             border: isFailed ? '1px solid rgba(244, 63, 94, 0.2)' : 'none'
                                                         }}>
@@ -604,6 +605,7 @@ export default function AdminContentPage() {
                         })}
                     </tbody>
                 </table>
+                </div>
 
                 <div className="adm-table-footer" style={{ padding: '12px 20px' }}>
                     <span style={{ fontSize: '0.85rem', color: 'var(--adm-muted)' }}>Mostrando {contents.length} de {totalItems} elementos</span>

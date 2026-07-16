@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Coins, Send, ToggleLeft, ToggleRight, UserPlus, Trash2, Key, Users, UserCheck, Edit3 } from 'lucide-react';
+import { Coins, Send, ToggleLeft, ToggleRight, UserPlus, Trash2, Key, Users, UserCheck, Edit3, Copy, MoreVertical } from 'lucide-react';
 import { resellerFetch } from '@/lib/reseller-api';
 import { API_ROUTES } from '@/lib/api-routes';
 import type { ResellerVendor } from '@/types/reseller.types';
@@ -167,6 +167,153 @@ export default function SuperVendorVendorsPage() {
                 </div>
             </div>
 
+            <style dangerouslySetInnerHTML={{ __html: `
+                .vendor-cards-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                    gap: 20px;
+                    padding: 10px 0;
+                }
+                .vendor-user-card {
+                    background: rgba(15, 20, 35, 0.6);
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    border-radius: 20px;
+                    padding: 20px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 16px;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                }
+                .vendor-user-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                    border-color: rgba(255, 255, 255, 0.1);
+                }
+                .vendor-uc-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                }
+                .vendor-uc-avatar-wrapper {
+                    display: flex;
+                    align-items: center;
+                    gap: 14px;
+                }
+                .vendor-uc-avatar {
+                    width: 50px;
+                    height: 50px;
+                    border-radius: 14px;
+                    background: linear-gradient(135deg, rgba(250, 204, 21, 0.15), rgba(245, 158, 11, 0.15));
+                    color: #facc15;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.2rem;
+                    font-weight: 700;
+                    box-shadow: inset 0 0 0 1px rgba(250, 204, 21, 0.2);
+                }
+                .vendor-uc-status {
+                    padding: 4px 10px;
+                    border-radius: 8px;
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+                .vendor-copy-btn {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    background: rgba(255, 255, 255, 0.08);
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    color: white;
+                    padding: 6px 12px;
+                    border-radius: 8px;
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                .vendor-copy-btn:hover {
+                    background: rgba(255, 255, 255, 0.15);
+                    border-color: rgba(255, 255, 255, 0.1);
+                }
+                .vendor-uc-stats {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 12px;
+                    background: rgba(0, 0, 0, 0.3);
+                    padding: 14px;
+                    border-radius: 14px;
+                    border: 1px solid rgba(255,255,255,0.02);
+                }
+                .vendor-uc-stat {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
+                .vendor-uc-stat-label {
+                    font-size: 0.7rem;
+                    color: #64748b;
+                    text-transform: uppercase;
+                    font-weight: 600;
+                    letter-spacing: 0.5px;
+                }
+                .vendor-uc-stat-value {
+                    font-size: 0.9rem;
+                    color: #e2e8f0;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+                .vendor-uc-actions {
+                    display: flex;
+                    gap: 8px;
+                    margin-top: auto;
+                    padding-top: 4px;
+                }
+                .vendor-uc-btn {
+                    flex: 1;
+                    height: 42px;
+                    border-radius: 12px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.05);
+                    color: #e2e8f0;
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                .vendor-uc-btn:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                    color: white;
+                }
+                .vendor-uc-btn-primary {
+                    background: rgba(250, 204, 21, 0.15);
+                    color: #facc15;
+                    border-color: rgba(250, 204, 21, 0.3);
+                }
+                .vendor-uc-btn-primary:hover {
+                    background: rgba(250, 204, 21, 0.25);
+                    color: #fde047;
+                }
+                .vendor-uc-btn-icon {
+                    flex: 0 0 42px;
+                    width: 42px;
+                    height: 42px;
+                    padding: 0;
+                }
+                @media (max-width: 600px) {
+                    .vendor-cards-grid {
+                        grid-template-columns: 1fr;
+                    }
+                }
+            `}} />
             <div className="adm-table-card">
                 <div className="adm-table-card-header">
                     <div className="flex items-center !gap-3">
@@ -175,68 +322,87 @@ export default function SuperVendorVendorsPage() {
                     </div>
                     <div className="adm-badge adm-badge--gray">{vendors.length} Total</div>
                 </div>
-                <div className="adm-table-wrapper">
-                    <table className="adm-table">
-                        <thead>
-                            <tr>
-                                <th style={{ textAlign: 'center' }}>Nombre</th>
-                                <th style={{ textAlign: 'center' }}>Usuario</th>
-                                <th style={{ textAlign: 'center' }}>Nº de teléfono</th>
-                                <th style={{ textAlign: 'center' }}>Créditos</th>
-                                <th style={{ textAlign: 'center' }}>Clientes</th>
-                                <th style={{ textAlign: 'center' }}>Estados</th>
-                                <th style={{ textAlign: 'center' }}>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {vendors.map(v => (
-                                <tr key={v.id}>
-                                    <td>
-                                        <div className="adm-table-user justify-center">
-                                            <div className="adm-table-avatar" style={{ background: `linear-gradient(135deg, #7c3aed22, #3b82f644)` }}>
-                                                {v.name ? v.name.charAt(0).toUpperCase() : 'V'}
+                <div className="vendor-cards-grid">
+                    {vendors.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--adm-muted)', gridColumn: '1 / -1' }}>
+                            <Users size={36} className="mx-auto mb-3 opacity-50" />
+                            <p>No hay vendedores registrados todavía</p>
+                        </div>
+                    ) : (
+                        vendors.map(v => (
+                            <div key={v.id} className="vendor-user-card">
+                                <div className="vendor-uc-header">
+                                    <div className="vendor-uc-avatar-wrapper">
+                                        <div className="vendor-uc-avatar">
+                                            {v.name ? v.name.charAt(0).toUpperCase() : 'V'}
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span style={{ fontWeight: 700, fontSize: '1.15rem', color: 'white', letterSpacing: '-0.3px', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }}>{v.name}</span>
+                                            <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>ID: {v.id.substring(0,6)}...</span>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+                                        <span className={`vendor-uc-status adm-badge--${v.isActive ? 'green' : 'red'}`}>{v.isActive ? 'Activo' : 'Inactivo'}</span>
+                                    </div>
+                                </div>
+
+                                {/* Credentials Box */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: 'rgba(0,0,0,0.2)', padding: '12px 16px', borderRadius: 14, border: '1px solid rgba(255,255,255,0.03)' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.5px' }}>Usuario</span>
+                                            <span style={{ fontWeight: 600, color: '#e2e8f0', fontSize: '0.95rem' }}>{v.username || '-'}</span>
+                                        </div>
+                                        <button onClick={() => { if(v.username) navigator.clipboard.writeText(v.username) }} className="vendor-copy-btn">
+                                            <Copy size={14} /> Copiar
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="vendor-uc-stats">
+                                    <div className="vendor-uc-stat">
+                                        <span className="vendor-uc-stat-label">Créditos</span>
+                                        <span className="vendor-uc-stat-value" style={{ color: '#facc15' }}>
+                                            <Coins size={14} /> {v.credits}
+                                        </span>
+                                    </div>
+                                    <div className="vendor-uc-stat">
+                                        <span className="vendor-uc-stat-label">Clientes</span>
+                                        <span className="vendor-uc-stat-value">
+                                            <UserCheck size={14} className="opacity-40" /> {v._count?.managedEndUsers || 0}
+                                        </span>
+                                    </div>
+                                    {v.phone && (
+                                        <div className="vendor-uc-stat" style={{ gridColumn: '1 / -1' }}>
+                                            <span className="vendor-uc-stat-label">Teléfono</span>
+                                            <span className="vendor-uc-stat-value" style={{ fontSize: '0.8rem' }}>{v.phone}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="vendor-uc-actions">
+                                    <button className="vendor-uc-btn vendor-uc-btn-primary" onClick={() => { setShowCredits(v.id); setSelectedPackageId(''); setPkgTab('NORMAL'); }}>
+                                        <Send size={16} /> Enviar Créditos
+                                    </button>
+                                    <button className="vendor-uc-btn" onClick={() => handleToggle(v.id, v.isActive)}>
+                                        {v.isActive ? 'Desactivar' : 'Activar'}
+                                    </button>
+                                    
+                                    <div style={{ position: 'relative' }}>
+                                        <button className="vendor-uc-btn vendor-uc-btn-icon" onClick={(e) => { e.stopPropagation(); setShowCredits(showCredits === v.id ? null : v.id); /* hack using showCredits to toggle menu */ }}><MoreVertical size={18} /></button>
+                                        {showCredits === v.id && !selectedPackageId && ( /* if pkg is selected, it's modal, else it's menu */
+                                            <div className="adm-dropdown" style={{ position: 'absolute', right: 0, bottom: '110%', zIndex: 100, minWidth: 200, background: '#0a0f25', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 8, boxShadow: '0 10px 40px rgba(0,0,0,0.5)' }}>
+                                                <button className="adm-dropdown-item" onClick={(e) => { e.stopPropagation(); setShowEdit(v); setEditForm({ name: v.name || '', username: v.username || '', phone: v.phone || '', password: '' }); setShowCredits(null); }}>Editar Datos</button>
+                                                <button className="adm-dropdown-item" onClick={(e) => { e.stopPropagation(); setShowResetPwd({ id: v.id, name: v.name }); setNewPwd(''); setShowCredits(null); }}>Cambiar Contraseña</button>
+                                                <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', margin: '6px 0' }} />
+                                                <button className="adm-dropdown-item text-red-400" onClick={(e) => { e.stopPropagation(); handleDelete(v.id, v.name); setShowCredits(null); }}>Eliminar Vendedor</button>
                                             </div>
-                                            <div className="adm-table-user-info">
-                                                <span className="adm-table-user-name">{v.name}</span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td style={{ textAlign: 'center' }}>
-                                        <div className="flex flex-col items-center justify-center">
-                                            <span className="adm-table-user-email">{v.username || '-'}</span>
-                                        </div>
-                                    </td>
-                                    <td style={{ textAlign: 'center' }}>
-                                        <span className="adm-table-user-email">{v.phone || '-'}</span>
-                                    </td>
-                                    <td>
-                                        <div className="adm-table-credits justify-center">
-                                            <Coins size={14} /> <span>{v.credits}</span>
-                                        </div>
-                                    </td>
-                                    <td className="adm-table-muted">
-                                        <div className="flex items-center justify-center !gap-2">
-                                            <UserCheck size={14} className="opacity-40" />
-                                            {v._count.managedEndUsers}
-                                        </div>
-                                    </td>
-                                    <td style={{ textAlign: 'center' }}>
-                                        <span className={`adm-badge ${v.isActive ? 'adm-badge--green' : 'adm-badge--red'}`}>{v.isActive ? 'Activo' : 'Inactivo'}</span>
-                                    </td>
-                                    <td>
-                                        <div className="adm-table-actions justify-center">
-                                            <button className="adm-icon-btn" onClick={() => { setShowCredits(v.id); setSelectedPackageId(''); setPkgTab('NORMAL'); }} title="Asignar Paquete"><Send size={14} /></button>
-                                            <button className="adm-icon-btn" onClick={() => { setShowEdit(v); setEditForm({ name: v.name || '', username: v.username || '', phone: v.phone || '', password: '' }); }} title="Editar Vendedor"><Edit3 size={14} /></button>
-                                            <button className="adm-icon-btn" onClick={() => { setShowResetPwd({ id: v.id, name: v.name }); setNewPwd(''); }} title="Cambiar Contraseña"><Key size={14} /></button>
-                                            <button className="adm-icon-btn" onClick={() => handleToggle(v.id, v.isActive)} title={v.isActive ? 'Desactivar' : 'Activar'}>{v.isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}</button>
-                                            <button className="adm-icon-btn adm-icon-btn--danger" onClick={() => handleDelete(v.id, v.name)} title="Eliminar"><Trash2 size={14} /></button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            {vendors.length === 0 && <tr><td colSpan={7} className="adm-table-empty"><Users size={32} style={{ margin: '0 auto' }} /><p>No hay vendedores registrados todavía</p></td></tr>}
-                        </tbody>
-                    </table>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
 
@@ -272,7 +438,7 @@ export default function SuperVendorVendorsPage() {
 
                                 {/* Visual Tabs */}
                                 <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '10px', marginBottom: '10px' }}>
-                                    <button type="button" onClick={() => setPkgTab('NORMAL')} style={{ flex: 1, padding: '6px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '.75rem', fontWeight: 600, background: pkgTab === 'NORMAL' ? 'rgba(167,139,250,0.2)' : 'transparent', color: pkgTab === 'NORMAL' ? '#a78bfa' : 'var(--adm-muted)' }}>
+                                    <button type="button" onClick={() => setPkgTab('NORMAL')} style={{ flex: 1, padding: '6px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '.75rem', fontWeight: 600, background: pkgTab === 'NORMAL' ? 'rgba(255, 215, 0,0.2)' : 'transparent', color: pkgTab === 'NORMAL' ? '#FFD700' : 'var(--adm-muted)' }}>
                                         Normal
                                     </button>
                                     <button type="button" onClick={() => setPkgTab('PROMO')} style={{ flex: 1, padding: '6px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '.75rem', fontWeight: 600, background: pkgTab === 'PROMO' ? 'rgba(234,179,8,0.2)' : 'transparent', color: pkgTab === 'PROMO' ? '#facc15' : 'var(--adm-muted)' }}>
@@ -293,9 +459,9 @@ export default function SuperVendorVendorsPage() {
                                                 padding: '.6rem .85rem',
                                                 cursor: 'pointer',
                                                 textAlign: 'left',
-                                                border: form.packageId === pkg.id ? '2px solid #a78bfa' : '1px solid rgba(255,255,255,.08)',
+                                                border: form.packageId === pkg.id ? '2px solid #FFD700' : '1px solid rgba(255,255,255,.08)',
                                                 borderRadius: '10px',
-                                                background: form.packageId === pkg.id ? 'rgba(167,139,250,0.08)' : 'rgba(255,255,255,0.02)',
+                                                background: form.packageId === pkg.id ? 'rgba(255, 215, 0,0.08)' : 'rgba(255,255,255,0.02)',
                                                 transition: 'all .2s',
                                             }}
                                         >
@@ -304,7 +470,7 @@ export default function SuperVendorVendorsPage() {
                                                     <strong style={{ fontSize: '.88rem', color: 'white' }}>{pkg.name}</strong>
                                                     {pkg.isPromo && <span style={{ fontSize: '0.65rem', background: 'rgba(234,179,8,0.2)', color: '#facc15', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>PROMO</span>}
                                                 </div>
-                                                <span style={{ fontSize: '.82rem', fontWeight: 700, color: pkg.isPromo ? '#facc15' : '#a78bfa' }}>
+                                                <span style={{ fontSize: '.82rem', fontWeight: 700, color: pkg.isPromo ? '#facc15' : '#FFD700' }}>
                                                     {pkg.baseCredits + (pkg.bonusCredits || 0)} créditos
                                                 </span>
                                             </div>
@@ -347,7 +513,7 @@ export default function SuperVendorVendorsPage() {
 
                             {/* Visual Tabs */}
                             <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '10px', marginBottom: '10px' }}>
-                                <button type="button" onClick={() => setPkgTab('NORMAL')} style={{ flex: 1, padding: '6px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '.75rem', fontWeight: 600, background: pkgTab === 'NORMAL' ? 'rgba(167,139,250,0.2)' : 'transparent', color: pkgTab === 'NORMAL' ? '#a78bfa' : 'var(--adm-muted)' }}>
+                                <button type="button" onClick={() => setPkgTab('NORMAL')} style={{ flex: 1, padding: '6px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '.75rem', fontWeight: 600, background: pkgTab === 'NORMAL' ? 'rgba(255, 215, 0,0.2)' : 'transparent', color: pkgTab === 'NORMAL' ? '#FFD700' : 'var(--adm-muted)' }}>
                                     Normal
                                 </button>
                                 <button type="button" onClick={() => setPkgTab('PROMO')} style={{ flex: 1, padding: '6px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '.75rem', fontWeight: 600, background: pkgTab === 'PROMO' ? 'rgba(234,179,8,0.2)' : 'transparent', color: pkgTab === 'PROMO' ? '#facc15' : 'var(--adm-muted)' }}>
@@ -368,9 +534,9 @@ export default function SuperVendorVendorsPage() {
                                             padding: '.6rem .85rem',
                                             cursor: 'pointer',
                                             textAlign: 'left',
-                                            border: selectedPackageId === pkg.id ? '2px solid #a78bfa' : '1px solid rgba(255,255,255,.08)',
+                                            border: selectedPackageId === pkg.id ? '2px solid #FFD700' : '1px solid rgba(255,255,255,.08)',
                                             borderRadius: '10px',
-                                            background: selectedPackageId === pkg.id ? 'rgba(167,139,250,0.08)' : 'rgba(255,255,255,0.02)',
+                                            background: selectedPackageId === pkg.id ? 'rgba(255, 215, 0,0.08)' : 'rgba(255,255,255,0.02)',
                                             transition: 'all .2s',
                                         }}
                                     >
@@ -379,7 +545,7 @@ export default function SuperVendorVendorsPage() {
                                                 <strong style={{ fontSize: '.88rem', color: 'white' }}>{pkg.name}</strong>
                                                 {pkg.isPromo && <span style={{ fontSize: '0.65rem', background: 'rgba(234,179,8,0.2)', color: '#facc15', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>PROMO</span>}
                                             </div>
-                                            <span style={{ fontSize: '.82rem', fontWeight: 700, color: pkg.isPromo ? '#facc15' : '#a78bfa' }}>
+                                            <span style={{ fontSize: '.82rem', fontWeight: 700, color: pkg.isPromo ? '#facc15' : '#FFD700' }}>
                                                 {pkg.baseCredits + (pkg.bonusCredits || 0)} créditos
                                             </span>
                                         </div>

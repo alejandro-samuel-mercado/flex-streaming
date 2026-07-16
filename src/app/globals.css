@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
+@import "./admin-responsive.css";
 @source "./(user)/**/*.tsx";
 @source "../**/*.{js,ts,jsx,tsx}";
 
@@ -244,15 +245,15 @@
     --adm-sidebar-w: 240px;
     --adm-sidebar-w-collapsed: 68px;
     --adm-header-h: 100px !important;
-    --adm-bg: #030512;
-    --adm-surface: #080d25;
-    --adm-sidebar-bg: rgba(5, 8, 28, .92);
-    --adm-header-bg: rgba(5, 8, 28, .92);
-    --adm-border: rgba(100, 80, 255, .13);
-    --adm-accent: #7c3aed;
-    --adm-accent2: #3b82f6;
-    --adm-text: #dde4f5;
-    --adm-muted: #4a5680;
+    --adm-bg: #0b0f19;
+    --adm-surface: rgba(34, 36, 42, 0.6);
+    --adm-sidebar-bg: rgba(17, 18, 24, 0.75);
+    --adm-header-bg: rgba(17, 18, 24, 0.75);
+    --adm-border: rgba(255, 255, 255, 0.08);
+    --adm-accent: #FFD700;
+    --adm-accent2: #FF6B00;
+    --adm-text: #ffffff;
+    --adm-muted: #8b8d98;
     --adm-radius-content: 28px;
 }
 
@@ -1364,7 +1365,7 @@ body {
     height: 500px;
     top: -100px;
     left: -120px;
-    background: radial-gradient(circle, rgba(88, 40, 200, .45) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(255, 107, 0, .45) 0%, transparent 70%);
     animation: adm-float 8s ease-in-out infinite;
 }
 
@@ -1406,12 +1407,12 @@ body {
     height: 52px;
     border-radius: 16px;
     flex-shrink: 0;
-    background: linear-gradient(135deg, #7c3aed, #3b82f6);
+    background: linear-gradient(135deg, #FFD700, #FF6B00);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    box-shadow: 0 0 30px rgba(124, 58, 237, .5);
+    box-shadow: 0 0 30px rgba(255, 215, 0, .5);
     animation: adm-pulse-glow 3s ease-in-out infinite;
 }
 
@@ -1419,7 +1420,7 @@ body {
     font-family: var(--font-display);
     font-size: 2rem;
     letter-spacing: 3px;
-    background: linear-gradient(135deg, #a78bfa, #60a5fa);
+    background: linear-gradient(135deg, #FF6B00, #FFD700);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     line-height: 1;
@@ -1496,7 +1497,7 @@ body {
 .admin-form-input:focus {
     background: rgba(255, 255, 255, .08);
     border-color: rgba(120, 100, 255, .6);
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, .15);
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, .15);
 }
 
 .admin-form-input.error {
@@ -1520,7 +1521,7 @@ body {
 }
 
 .admin-form-eye:hover {
-    color: #a78bfa;
+    color: #FF6B00;
 }
 
 .admin-form-eye:active {
@@ -1536,7 +1537,7 @@ body {
 .admin-login-btn {
     width: 100%;
     padding: 14px;
-    background: linear-gradient(135deg, #7c3aed, #3b82f6);
+    background: linear-gradient(135deg, #FFD700, #FF6B00);
     border: none;
     border-radius: 12px;
     color: white;
@@ -1547,11 +1548,11 @@ body {
     position: relative;
     overflow: hidden;
     transition: all 200ms ease;
-    box-shadow: 0 4px 20px rgba(124, 58, 237, .4);
+    box-shadow: 0 4px 20px rgba(255, 215, 0, .4);
 }
 
 .admin-login-btn:hover {
-    box-shadow: 0 6px 30px rgba(124, 58, 237, .6);
+    box-shadow: 0 6px 30px rgba(255, 215, 0, .6);
     filter: brightness(1.05);
 }
 
@@ -1588,14 +1589,18 @@ body {
    The adm-main island has a slightly different tint + border-radius for
    the curved L-junction effect. */
 
-.adm-root {
+.adm-root, .vendor-root {
     display: flex;
     min-height: 100vh;
     position: relative;
     font-family: var(--font-body);
     color: var(--adm-text);
-    /* Base space color */
-    background: #030512;
+    /* Base space color matching NexoPlay */
+    background: 
+        radial-gradient(circle at 10% 20%, rgba(71, 85, 105, 0.4) 0%, transparent 35%),
+        radial-gradient(circle at 90% 70%, rgba(51, 65, 85, 0.4) 0%, transparent 40%),
+        radial-gradient(circle at 50% 10%, rgba(30, 41, 59, 0.4) 0%, transparent 50%),
+        #0b0f19;
 }
 
 /* ── Starfield layers rendered as pseudo-elements on the root ── */
@@ -1637,7 +1642,7 @@ body {
     z-index: 0;
     pointer-events: none;
     background:
-        radial-gradient(ellipse 70% 55% at 5% 90%, rgba(88, 40, 200, .22) 0%, transparent 60%),
+        radial-gradient(ellipse 70% 55% at 5% 90%, rgba(255, 107, 0, .22) 0%, transparent 60%),
         radial-gradient(ellipse 55% 70% at 95% 5%, rgba(30, 80, 220, .18) 0%, transparent 60%),
         radial-gradient(ellipse 80% 40% at 50% 50%, rgba(10, 15, 50, .6) 0%, transparent 100%);
 }
@@ -1653,7 +1658,9 @@ body {
 /* ── Sidebar ── */
 .adm-sidebar {
     width: var(--adm-sidebar-w);
-    background: #02040a;
+    background: var(--adm-sidebar-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-right: none;
     display: flex;
     flex-direction: column;
@@ -1734,7 +1741,7 @@ body {
 }
 
 .adm-logo-icon {
-    color: #a78bfa;
+    color: #FF6B00;
     flex-shrink: 0;
 }
 
@@ -1742,7 +1749,7 @@ body {
     font-family: var(--font-display);
     font-size: 1.4rem;
     letter-spacing: 2px;
-    background: linear-gradient(135deg, #a78bfa, #60a5fa);
+    background: linear-gradient(135deg, #FF6B00, #FFD700);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     white-space: nowrap;
@@ -1772,9 +1779,9 @@ body {
 }
 
 .adm-collapse-btn:hover {
-    background: rgba(124, 58, 237, .2);
+    background: rgba(255, 215, 0, .2);
     color: white;
-    border-color: rgba(124, 58, 237, .4);
+    border-color: rgba(255, 215, 0, .4);
 }
 
 .adm-collapse-chevron {
@@ -1836,17 +1843,17 @@ body {
 }
 
 .adm-nav-link:hover {
-    background: rgba(124, 58, 237, .1);
+    background: rgba(255, 215, 0, .1);
     color: #c4b5fd;
 }
 
 .adm-nav-link--active {
-    background: rgba(124, 58, 237, .15) !important;
+    background: rgba(255, 215, 0, .15) !important;
     color: #ddd6fe !important;
 }
 
 .adm-nav-link--active .adm-nav-icon {
-    color: #a78bfa;
+    color: #FF6B00;
 }
 
 .adm-nav-link--muted {
@@ -1882,8 +1889,8 @@ body {
     width: 5px;
     height: 5px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #a78bfa, #60a5fa);
-    box-shadow: 0 0 8px rgba(167, 139, 250, .8);
+    background: linear-gradient(135deg, #FF6B00, #FFD700);
+    box-shadow: 0 0 8px rgba(255, 107, 0, .8);
     transition: opacity var(--transition-base);
 }
 
@@ -1929,7 +1936,9 @@ body {
     height: var(--adm-header-h);
     /* Exact same bg + blur as sidebar → they are visually ONE piece (the L-frame).
      NO border-bottom: the adm-main top-edge is the only separator. */
-    background: #02040a;
+    background: var(--adm-header-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1947,7 +1956,7 @@ body {
     left: -40%;
     width: 25%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(167, 139, 250, .05), rgba(96, 165, 250, .04), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 107, 0, .05), rgba(96, 165, 250, .04), transparent);
     animation: adm-glint 13s ease-in-out infinite;
     animation-delay: 5s;
     pointer-events: none;
@@ -2016,9 +2025,9 @@ body {
 }
 
 .adm-header-btn:hover {
-    background: rgba(124, 58, 237, .15);
+    background: rgba(255, 215, 0, .15);
     color: white;
-    border-color: rgba(124, 58, 237, .3);
+    border-color: rgba(255, 215, 0, .3);
 }
 
 .adm-notif-dot {
@@ -2028,16 +2037,16 @@ body {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #a78bfa, #60a5fa);
-    border: 1.5px solid #05081e;
-    box-shadow: 0 0 5px rgba(167, 139, 250, .8);
+    background: linear-gradient(135deg, #FF6B00, #FFD700);
+    border: 1.5px solid #0b0f19;
+    box-shadow: 0 0 5px rgba(255, 107, 0, .8);
 }
 
 .adm-avatar {
     width: 34px;
     height: 34px;
     border-radius: 10px;
-    background: linear-gradient(135deg, #7c3aed, #3b82f6);
+    background: linear-gradient(135deg, #FFD700, #FF6B00);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2045,7 +2054,7 @@ body {
     font-size: .8rem;
     color: white;
     cursor: pointer;
-    box-shadow: 0 0 12px rgba(124, 58, 237, .4);
+    box-shadow: 0 0 12px rgba(255, 215, 0, .4);
 }
 
 /* ── THE CURVED MAIN ISLAND ──
@@ -2054,9 +2063,9 @@ body {
    The TOP edge of adm-main (just below the header) creates the seamless junction. */
 .adm-main {
     flex: 1;
-    background: rgba(8, 12, 40, .78);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background: rgba(15, 17, 21, 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     margin: 0 10px 10px 10px;
     border-radius: 24px 24px 16px 16px;
     padding: 28px;
@@ -2130,14 +2139,14 @@ body {
 }
 
 .adm-btn--primary {
-    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    background: linear-gradient(135deg, #FFD700, #B34700);
     color: white;
-    box-shadow: 0 3px 14px rgba(124, 58, 237, .35);
+    box-shadow: 0 3px 14px rgba(255, 215, 0, .35);
 }
 
 .adm-btn--primary:hover {
     filter: brightness(1.1);
-    box-shadow: 0 4px 20px rgba(124, 58, 237, .5);
+    box-shadow: 0 4px 20px rgba(255, 215, 0, .5);
 }
 
 .adm-btn--ghost {
@@ -2189,7 +2198,7 @@ body {
 }
 
 .adm-search-input:focus {
-    border-color: rgba(124, 58, 237, .5);
+    border-color: rgba(255, 215, 0, .5);
     background: rgba(255, 255, 255, .06);
 }
 
@@ -2209,13 +2218,15 @@ body {
 }
 
 .adm-select:focus {
-    border-color: rgba(124, 58, 237, .5);
+    border-color: rgba(255, 215, 0, .5);
 }
 
 /* ─── TABLE CARD ─────────────────────────────────────────────────────────────── */
 
 .adm-table-card {
-    background: rgba(255, 255, 255, .025);
+    background: var(--adm-surface);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--adm-border);
     border-radius: 16px;
 
@@ -2259,7 +2270,7 @@ body {
 .adm-table td {
     padding: 13px 16px;
     color: #c4b5fd99;
-    border-bottom: 1px solid rgba(100, 80, 255, .06);
+    border-bottom: 1px solid rgba(255, 215, 0, .06);
 }
 
 .adm-table tbody tr:last-child td {
@@ -2271,7 +2282,7 @@ body {
 }
 
 .adm-table tbody tr:hover {
-    background: rgba(124, 58, 237, .06);
+    background: rgba(255, 215, 0, .06);
 }
 
 .adm-table tbody tr:hover td {
@@ -2304,7 +2315,7 @@ body {
     height: 32px;
     border-radius: 9px;
     flex-shrink: 0;
-    background: linear-gradient(135deg, #7c3aed, #3b82f6);
+    background: linear-gradient(135deg, #FFD700, #FF6B00);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2326,7 +2337,7 @@ body {
 
 .adm-table-plan {
     font-size: .78rem;
-    color: #a78bfa;
+    color: #FF6B00;
     font-weight: 600;
 }
 
@@ -2373,7 +2384,7 @@ body {
     background: none;
     border: none;
     cursor: pointer;
-    color: #a78bfa;
+    color: #FF6B00;
     font-size: .78rem;
     transition: color var(--transition-fast);
 }
@@ -2404,14 +2415,14 @@ body {
 }
 
 .adm-page-btn:hover:not(:disabled) {
-    background: rgba(124, 58, 237, .2);
+    background: rgba(255, 215, 0, .2);
     color: white;
 }
 
 .adm-page-btn--active {
-    background: rgba(124, 58, 237, .3) !important;
-    color: #a78bfa !important;
-    border-color: rgba(124, 58, 237, .5) !important;
+    background: rgba(255, 215, 0, .3) !important;
+    color: #FF6B00 !important;
+    border-color: rgba(255, 215, 0, .5) !important;
 }
 
 .adm-page-btn:disabled {
@@ -2440,9 +2451,9 @@ body {
 }
 
 .adm-badge--purple {
-    background: rgba(167, 139, 250, .14);
+    background: rgba(255, 107, 0, .14);
     color: #c4b5fd;
-    border: 1px solid rgba(167, 139, 250, .2);
+    border: 1px solid rgba(255, 107, 0, .2);
 }
 
 .adm-badge--green {
@@ -2489,7 +2500,7 @@ body {
 }
 
 .adm-kpi:hover {
-    border-color: rgba(124, 58, 237, .3);
+    border-color: rgba(255, 215, 0, .3);
     box-shadow: 0 4px 20px rgba(0, 0, 0, .2);
 }
 
@@ -2566,7 +2577,7 @@ body {
     align-items: center;
     gap: 12px;
     padding: 13px 20px;
-    border-bottom: 1px solid rgba(100, 80, 255, .06);
+    border-bottom: 1px solid rgba(255, 215, 0, .06);
     transition: background var(--transition-fast);
 }
 
@@ -2575,7 +2586,7 @@ body {
 }
 
 .adm-top-item:hover {
-    background: rgba(124, 58, 237, .06);
+    background: rgba(255, 215, 0, .06);
 }
 
 .adm-top-rank {
@@ -2583,8 +2594,8 @@ body {
     height: 22px;
     border-radius: 6px;
     flex-shrink: 0;
-    background: rgba(124, 58, 237, .2);
-    color: #a78bfa;
+    background: rgba(255, 215, 0, .2);
+    color: #FF6B00;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2652,7 +2663,7 @@ body {
 }
 
 .adm-settings-icon {
-    color: #a78bfa;
+    color: #FF6B00;
 }
 
 .adm-settings-body {
@@ -2688,8 +2699,8 @@ body {
 }
 
 .adm-input:focus {
-    border-color: rgba(124, 58, 237, .5);
-    background: rgba(124, 58, 237, .06);
+    border-color: rgba(255, 215, 0, .5);
+    background: rgba(255, 215, 0, .06);
 }
 
 .adm-toggle-row {
@@ -2725,7 +2736,7 @@ body {
 }
 
 .adm-toggle--on {
-    background: linear-gradient(135deg, #7c3aed, #3b82f6);
+    background: linear-gradient(135deg, #FFD700, #FF6B00);
 }
 
 .adm-toggle--on::after {
@@ -2751,7 +2762,7 @@ body {
 }
 
 .kpi-card:hover {
-    border-color: rgba(124, 58, 237, .3);
+    border-color: rgba(255, 215, 0, .3);
     transform: translateY(-2px);
     box-shadow: 0 8px 30px rgba(0, 0, 0, .4);
 }
@@ -2839,8 +2850,8 @@ body {
 
 .adm-dropzone:hover,
 .adm-dropzone.dragging {
-    border-color: rgba(124, 58, 237, .5);
-    background: rgba(124, 58, 237, .05);
+    border-color: rgba(255, 215, 0, .5);
+    background: rgba(255, 215, 0, .05);
 }
 
 .adm-dropzone-icon {
@@ -2851,7 +2862,7 @@ body {
 
 .adm-dropzone:hover .adm-dropzone-icon,
 .adm-dropzone.dragging .adm-dropzone-icon {
-    color: #a78bfa;
+    color: #FF6B00;
 }
 
 .adm-dropzone-label {
@@ -2887,7 +2898,7 @@ body {
 
 .adm-progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #3b82f6, #a78bfa);
+    background: linear-gradient(90deg, #FF6B00, #FF6B00);
     transition: width 0.3s ease;
 }
 
@@ -5656,7 +5667,7 @@ body {
 }
 
 .adm-link {
-    color: #60a5fa;
+    color: #FFD700;
     background: none;
     border: none;
     cursor: pointer;

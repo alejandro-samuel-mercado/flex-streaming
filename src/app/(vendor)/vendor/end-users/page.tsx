@@ -133,7 +133,7 @@ export default function VendorEndUsersPage() {
                                         Normal
                                     </button>
                                     {plans.some(p => p.isPromo && !p.isDemo) && (
-                                        <button type="button" className={`adm-btn ${planFilter === 'promo' ? 'adm-btn--primary' : 'adm-btn--ghost'}`} style={{ flex: 1, padding: '.4rem', fontSize: '.8rem', borderColor: planFilter === 'promo' ? undefined : '#a78bfa', color: planFilter === 'promo' ? undefined : '#a78bfa' }} onClick={() => { setPlanFilter('promo'); setForm(f => ({ ...f, planId: '' })); }}>
+                                        <button type="button" className={`adm-btn ${planFilter === 'promo' ? 'adm-btn--primary' : 'adm-btn--ghost'}`} style={{ flex: 1, padding: '.4rem', fontSize: '.8rem', borderColor: planFilter === 'promo' ? undefined : '#FFD700', color: planFilter === 'promo' ? undefined : '#FFD700' }} onClick={() => { setPlanFilter('promo'); setForm(f => ({ ...f, planId: '' })); }}>
                                             🎉 Promo
                                         </button>
                                     )}
@@ -154,8 +154,8 @@ export default function VendorEndUsersPage() {
                                         <button key={p.id} type="button" onClick={() => setForm(f => ({ ...f, planId: p.id }))}
                                             style={{
                                                 padding: '.6rem .8rem', cursor: 'pointer', textAlign: 'left',
-                                                border: form.planId === p.id ? '2px solid #a78bfa' : '1px solid rgba(255,255,255,.08)',
-                                                borderRadius: '10px', background: form.planId === p.id ? 'rgba(167,139,250,0.08)' : 'rgba(255,255,255,0.02)',
+                                                border: form.planId === p.id ? '2px solid #FFD700' : '1px solid rgba(255,255,255,.08)',
+                                                borderRadius: '10px', background: form.planId === p.id ? 'rgba(255, 215, 0,0.08)' : 'rgba(255,255,255,0.02)',
                                                 transition: 'all .2s',
                                             }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

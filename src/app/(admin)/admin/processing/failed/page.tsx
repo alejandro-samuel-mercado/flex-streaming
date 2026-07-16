@@ -173,7 +173,7 @@ export default function FailedVideosPage() {
                         <button
                             className="adm-btn"
                             onClick={handleRetryAll}
-                            style={{ background: 'var(--adm-primary)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(139, 92, 246, 0.2)' }}
+                            style={{ background: 'var(--adm-primary)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(255, 215, 0, 0.2)' }}
                         >
                             Reintentar Todos
                         </button>

@@ -58,7 +58,7 @@ export default function CreditPackagesPage() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem', marginBottom: '1rem', fontSize: '.85rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '.4rem' }}><Coins size={14} style={{ opacity: .6 }} />{p.baseCredits} base</div>
-              {p.bonusCredits > 0 && <div style={{ display: 'flex', alignItems: 'center', gap: '.4rem' }}><Gift size={14} style={{ opacity: .6, color: '#a78bfa' }} />+{p.bonusCredits} bonus</div>}
+              {p.bonusCredits > 0 && <div style={{ display: 'flex', alignItems: 'center', gap: '.4rem' }}><Gift size={14} style={{ opacity: .6, color: '#FFD700' }} />+{p.bonusCredits} bonus</div>}
               <div style={{ display: 'flex', alignItems: 'center', gap: '.4rem' }}><Package size={14} style={{ opacity: .6 }} />Total: {p.baseCredits + p.bonusCredits}</div>
             </div>
             <div style={{ display: 'flex', gap: '.5rem', borderTop: '1px solid rgba(255,255,255,.06)', paddingTop: '.75rem' }}>

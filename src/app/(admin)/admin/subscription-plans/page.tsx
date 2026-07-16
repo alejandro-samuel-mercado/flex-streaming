@@ -153,7 +153,7 @@ export default function SubscriptionPlansPage() {
             </div>
 
             {/* Tabs for Normal vs Promo vs Disabled */}
-            <div style={{ display: 'flex', gap: 12, marginBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 16 }}>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 16, flexWrap: 'wrap' }}>
                 <button
                     className={`adm-btn ${activeTab === 'NORMAL' ? 'adm-btn--primary' : 'adm-btn--ghost'}`}
                     onClick={() => setActiveTab('NORMAL')}
@@ -175,7 +175,7 @@ export default function SubscriptionPlansPage() {
                 </button>
             </div>
 
-            <div className="adm-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+            <div className="adm-cards-grid">
                 {filteredPlans.map(plan => {
                     const badge = getBadge(plan);
                     return (
@@ -308,7 +308,7 @@ export default function SubscriptionPlansPage() {
                                 </>
                             )}
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.75rem' }}>
+                            <div className="adm-grid-2" style={{ marginTop: '.75rem' }}>
                                 <div className="adm-field">
                                     <label className="adm-label">Máx. dispositivos</label>
                                     <input className="adm-input" type="number" min={1} value={form.maxDevices} onChange={e => setForm(f => ({ ...f, maxDevices: parseInt(e.target.value) || 1 }))} />

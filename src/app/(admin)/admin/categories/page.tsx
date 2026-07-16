@@ -203,7 +203,7 @@ export default function AdminCategoriesPage() {
                 <tr key={tag.id}>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Tag size={13} style={{ color: '#a78bfa' }} />
+                      <Tag size={13} style={{ color: '#FFD700' }} />
                       <span style={{ fontWeight: 600, color: 'white' }}>{tag.name}</span>
                     </div>
                   </td>
