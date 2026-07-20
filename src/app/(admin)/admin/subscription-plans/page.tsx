@@ -104,7 +104,7 @@ export default function SubscriptionPlansPage() {
     };
 
     const handleDelete = async (id: string, name: string) => {
-        if (!confirm(`¿Eliminar el plan "${name}"?`)) return;
+        if (!confirm(`¿Eliminar de forma forzada el plan "${name}"?\n\nADVERTENCIA: Esto desvinculará este plan de todas las cuentas que lo tengan asignado y eliminará el historial de compras asociado a este plan. Esta acción no se puede deshacer.`)) return;
         try {
             const res = await adminFetch(API_ROUTES.SUBSCRIPTION_PLANS.BY_ID(id), { method: 'DELETE' });
             const json = await res.json();
@@ -215,8 +215,11 @@ export default function SubscriptionPlansPage() {
                                     {plan.isActive ? <ToggleRight size={15} /> : <ToggleLeft size={15} />}
                                     {plan.isActive ? 'Activo' : 'Inactivo'}
                                 </button>
-                                <button className="adm-btn adm-btn--ghost" style={{ padding: '.35rem .5rem' }} onClick={() => openEdit(plan)}>
+                                <button className="adm-btn adm-btn--ghost" style={{ padding: '.35rem .5rem' }} onClick={() => openEdit(plan)} title="Editar">
                                     <Pencil size={14} />
+                                </button>
+                                <button className="adm-btn adm-btn--ghost" style={{ padding: '.35rem .5rem', color: '#f87171' }} onClick={() => handleDelete(plan.id, plan.name)} title="Eliminar">
+                                    <Trash2 size={14} />
                                 </button>
                             </div>
                         </div>
