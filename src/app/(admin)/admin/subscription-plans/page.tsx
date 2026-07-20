@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Calendar, Plus, Pencil, Trash2, ToggleLeft, ToggleRight, Gift, Clock, Zap, Package } from 'lucide-react';
 import { adminFetch } from '@/lib/admin-api';
 import { API_ROUTES } from '@/lib/api-routes';
-import type { SubscriptionPlan, CreditPackage } from '@/types/reseller.types';
+import type { CreditPackage, SubscriptionPlan } from '@/types/reseller.types';
+import { Calendar, Clock, Gift, Pencil, Plus, ToggleLeft, ToggleRight, Zap } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 export default function SubscriptionPlansPage() {
     const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
@@ -102,9 +102,8 @@ export default function SubscriptionPlansPage() {
             fetchData();
         } catch (err) { console.error(err); }
     };
-
     const handleDelete = async (id: string, name: string) => {
-        if (!confirm(`¿Eliminar el plan "${name}"?`)) return;
+        if (!confirm(`¿Eliminar de forma forzada el plan "${name}"?\n\nADVERTENCIA: Esto desvinculará este plan de todas las cuentas que lo tengan asignado y eliminará el historial de compras asociado a este plan. Esta acción no se puede deshacer.`)) return;
         try {
             const res = await adminFetch(API_ROUTES.SUBSCRIPTION_PLANS.BY_ID(id), { method: 'DELETE' });
             const json = await res.json();

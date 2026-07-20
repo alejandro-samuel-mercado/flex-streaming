@@ -27,13 +27,14 @@ interface VideoPlayerProps {
     onEpisodeSelect?: (episodeId: string) => void;
     onBack?: () => void;
     currentEpisodeId?: string;
+    showAds?: boolean;
 }
 
 export default function VideoPlayer({
     src, title, poster, initialTime = 0, externalSubtitles = [],
     onProgressUpdate, onEnded, onNextEpisode, onPrevEpisode,
     hasNextEpisode, hasPrevEpisode, onShowEpisodes,
-    episodes = [], onEpisodeSelect, onBack, currentEpisodeId
+    episodes = [], onEpisodeSelect, onBack, currentEpisodeId, showAds = false
 }: VideoPlayerProps) {
     const router = useRouter();
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -73,6 +74,28 @@ export default function VideoPlayer({
     const [isBuffering, setIsBuffering] = useState(true);
     const [showLoading, setShowLoading] = useState(true);
     const [loadingStats, setLoadingStats] = useState({ loaded: 0, total: 0, speed: 0 });
+
+    // Ads State
+    const [isPreRollAdPlaying, setIsPreRollAdPlaying] = useState(showAds);
+    const [preRollTimeLeft, setPreRollTimeLeft] = useState(5);
+    
+    // Countdown for pre-roll
+    useEffect(() => {
+        if (!isPreRollAdPlaying) return;
+        const timer = setInterval(() => {
+            setPreRollTimeLeft((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timer);
+                    setIsPreRollAdPlaying(false);
+                    // Start video once ad is done
+                    videoRef.current?.play().catch(() => {});
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [isPreRollAdPlaying]);
 
     useEffect(() => {
         const acquireWakeLock = async () => {
@@ -143,7 +166,36 @@ export default function VideoPlayer({
                             xhr.open('GET', newUrl.toString(), true);
                         }
                     } catch { }
-                }
+                },
+                pLoader: function (this: any, config: any) {
+                    const loader = new Hls.DefaultConfig.loader(config);
+                    this.abort = () => loader.abort();
+                    this.destroy = () => loader.destroy();
+                    this.load = (context: any, config: any, callbacks: any) => {
+                        const { onSuccess } = callbacks;
+                        callbacks.onSuccess = (response: any, stats: any, context: any) => {
+                            if (response.data && typeof response.data === 'string') {
+                                // Fix double DEFAULT=YES in M3U8 for audio tracks!
+                                let groupDefaults: Record<string, boolean> = {};
+                                response.data = response.data.split('\n').map((line: string) => {
+                                    if (line.includes('#EXT-X-MEDIA:TYPE=AUDIO') && line.includes('DEFAULT=YES')) {
+                                        const match = line.match(/GROUP-ID="([^"]+)"/);
+                                        if (match) {
+                                            const groupId = match[1];
+                                            if (groupDefaults[groupId]) {
+                                                return line.replace('DEFAULT=YES', 'DEFAULT=NO');
+                                            }
+                                            groupDefaults[groupId] = true;
+                                        }
+                                    }
+                                    return line;
+                                }).join('\n');
+                            }
+                            onSuccess(response, stats, context);
+                        };
+                        loader.load(context, config, callbacks);
+                    };
+                } as any
             });
             hlsRef.current = hls;
             hls.loadSource(src);
@@ -358,7 +410,7 @@ export default function VideoPlayer({
             <video
                 ref={videoRef}
                 poster={poster}
-                autoPlay
+                autoPlay={!showAds}
                 crossOrigin="anonymous"
                 className="w-full h-full object-contain pointer-events-none"
                 onTimeUpdate={handleTimeUpdate}
@@ -369,10 +421,49 @@ export default function VideoPlayer({
                 onPlaying={() => setIsBuffering(false)}
                 onCanPlay={() => {
                     setIsBuffering(false);
-                    videoRef.current?.play().catch(() => { }); // Try to force play if autoplay blocked
+                    if (!isPreRollAdPlaying) {
+                        videoRef.current?.play().catch(() => { }); // Try to force play if autoplay blocked
+                    }
                 }}
                 onLoadedData={() => setIsBuffering(false)}
             />
+
+            {/* PRE-ROLL AD */}
+            {isPreRollAdPlaying && (
+                <div className="absolute inset-0 bg-black/90 z-[300] flex flex-col items-center justify-center">
+                    <div className="max-w-2xl text-center flex flex-col items-center">
+                        <span className="text-[10px] font-black uppercase tracking-[4px] text-yellow-500 mb-4 block">Publicidad</span>
+                        <h2 className="text-3xl md:text-5xl font-black text-white italic tracking-tighter mb-4">
+                            Nexoplay Patrocinado
+                        </h2>
+                        <p className="text-white/60 mb-8 max-w-lg mx-auto">
+                            Estás usando el plan Básico o sin suscripción. Disfruta de esta breve publicidad antes de tu contenido. Para quitar los anuncios, actualiza a nuestro plan Premium.
+                        </p>
+                        
+                        <div className="w-16 h-16 rounded-full border-4 border-yellow-500 flex items-center justify-center mb-8">
+                            <span className="text-2xl font-black text-yellow-500">{preRollTimeLeft}</span>
+                        </div>
+                    </div>
+                    {preRollTimeLeft === 0 && (
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); setIsPreRollAdPlaying(false); videoRef.current?.play().catch(()=>{}); }}
+                            className="mt-4 px-8 py-3 bg-white text-black font-bold rounded-full hover:scale-105 transition-transform"
+                        >
+                            Saltar Anuncio
+                        </button>
+                    )}
+                </div>
+            )}
+
+            {/* BANNER AD (Shown during playback if showAds is true) */}
+            {showAds && !isPreRollAdPlaying && (
+                <div className={`absolute bottom-32 left-1/2 -translate-x-1/2 z-[90] transition-opacity duration-500 ${isControlsVisible && !isLocked ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                    <div className="bg-black/60 backdrop-blur-xl border border-yellow-500/30 px-6 py-2 rounded-xl flex items-center gap-4 cursor-pointer hover:bg-black/80 transition-colors">
+                        <span className="bg-yellow-500 text-black text-[10px] font-black uppercase px-2 py-0.5 rounded">Ad</span>
+                        <span className="text-white/80 text-xs md:text-sm">¿Quieres ver sin publicidad? ¡Actualiza a Premium hoy mismo!</span>
+                    </div>
+                </div>
+            )}
 
 
 
@@ -388,11 +479,11 @@ export default function VideoPlayer({
             {/* Top Bar */}
             <div className={`absolute top-0 left-0 right-0 !p-8 flex items-center justify-between transition-all duration-700 z-[110] ${isControlsVisible && !isLocked ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-10 pointer-events-none'}`}>
                 <div className="flex items-center !gap-6">
-                    <button onClick={(e) => { e.stopPropagation(); if (onBack) onBack(); else router.back(); }} className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-all">
-                        <ArrowLeft size={24} />
+                    <button onClick={(e) => { e.stopPropagation(); if (onBack) onBack(); else router.back(); }} className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white/70 hover:text-black hover:bg-[var(--color-primary)] hover:border-[var(--color-primary)] hover:scale-105 transition-all shadow-lg group">
+                        <ArrowLeft size={24} className="group-hover:text-black transition-colors" />
                     </button>
                     <div>
-                        <span className="text-[10px] font-black uppercase tracking-[4px] text-purple-400 mb-1 block">Reproduciendo</span>
+                        <span className="text-[10px] font-black uppercase tracking-[4px] text-[var(--color-primary)] mb-1 block">Reproduciendo</span>
                         <h1 className="text-xl font-black text-white uppercase italic tracking-tight">{title || 'Cargando...'}</h1>
                     </div>
                 </div>
@@ -405,9 +496,9 @@ export default function VideoPlayer({
                                 if (onShowEpisodes) onShowEpisodes();
                                 else setShowEpisodesSidebar(true);
                             }}
-                            className="flex items-center gap-2 bg-black/40 backdrop-blur-xl border border-white/10 text-white px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-white/10 transition-colors"
+                            className="flex items-center gap-2 bg-black/40 backdrop-blur-xl border border-white/20 text-white px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider hover:bg-[var(--color-primary)] hover:text-black hover:border-[var(--color-primary)] hover:scale-105 transition-all shadow-lg group"
                         >
-                            <List size={16} /> Episodios
+                            <List size={16} className="group-hover:text-black transition-colors" /> Episodios
                         </button>
                     )}
                 </div>
@@ -420,8 +511,8 @@ export default function VideoPlayer({
                         <button onClick={(e) => { e.stopPropagation(); skip(-10); }} className="text-white/40 hover:text-white transition-all hover:scale-110">
                             <RotateCcw size={40} />
                         </button>
-                        <button onClick={(e) => { e.stopPropagation(); togglePlay(); }} className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-2xl border border-white/20 flex items-center justify-center hover:bg-white/20 hover:scale-110 transition-all">
-                            {isPlaying ? <Pause size={40} fill="white" /> : <Play size={40} fill="white" className="ml-1" />}
+                        <button onClick={(e) => { e.stopPropagation(); togglePlay(); }} className="w-24 h-24 rounded-full bg-white/10 backdrop-blur-2xl border border-white/20 flex items-center justify-center hover:bg-[var(--color-primary)] hover:border-[var(--color-primary)] hover:scale-110 transition-all shadow-[0_8px_30px_rgba(0,0,0,0.5)] group/playbtn">
+                            {isPlaying ? <Pause size={44} fill="currentColor" className="text-white group-hover/playbtn:text-black transition-colors" /> : <Play size={44} fill="currentColor" className="text-white group-hover/playbtn:text-black ml-2 transition-colors" />}
                         </button>
                         <button onClick={(e) => { e.stopPropagation(); skip(10); }} className="text-white/40 hover:text-white transition-all hover:scale-110">
                             <RotateCw size={40} />
@@ -439,15 +530,15 @@ export default function VideoPlayer({
                     </div>
                     <div className="!py-2 max-h-64 overflow-y-auto">
                         <button onClick={() => { if (hlsRef.current) hlsRef.current.currentLevel = -1; setCurrentLevel(-1); setIsQualityMenuOpen(false); }}
-                            className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentLevel === -1 ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+                            className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentLevel === -1 ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
                             <span className="font-semibold">Auto</span>
-                            {currentLevel === -1 && <div className="w-2 h-2 rounded-full bg-purple-400" />}
+                            {currentLevel === -1 && <div className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />}
                         </button>
                         {levels.map((level, i) => (
                             <button key={i} onClick={() => { if (hlsRef.current) hlsRef.current.currentLevel = i; setCurrentLevel(i); setIsQualityMenuOpen(false); }}
-                                className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentLevel === i ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+                                className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentLevel === i ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
                                 <span className="font-semibold">{level.height}p</span>
-                                {currentLevel === i && <div className="w-2 h-2 rounded-full bg-purple-400" />}
+                                {currentLevel === i && <div className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />}
                             </button>
                         ))}
                     </div>
@@ -464,16 +555,16 @@ export default function VideoPlayer({
                     <div className="!py-2 max-h-64 overflow-y-auto">
                         {audioTracks.length === 0 ? (
                             <button onClick={() => setIsAudioMenuOpen(false)}
-                                className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors bg-purple-500/20 text-purple-300`}>
+                                className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors bg-[var(--color-primary)]/20 text-[var(--color-primary)]`}>
                                 <span className="font-semibold">Audio Predeterminado</span>
-                                <div className="w-2 h-2 rounded-full bg-purple-400" />
+                                <div className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />
                             </button>
                         ) : (
                             audioTracks.map((track, i) => (
                                 <button key={i} onClick={() => { if (hlsRef.current) hlsRef.current.audioTrack = i; setCurrentAudio(i); setIsAudioMenuOpen(false); }}
-                                    className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentAudio === i ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+                                    className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentAudio === i ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
                                     <span className="font-semibold">{track.name || track.lang || `Pista ${i + 1}`}</span>
-                                    {currentAudio === i && <div className="w-2 h-2 rounded-full bg-purple-400" />}
+                                    {currentAudio === i && <div className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />}
                                 </button>
                             ))
                         )}
@@ -499,9 +590,9 @@ export default function VideoPlayer({
                                 }
                                 setIsSubtitleMenuOpen(false); 
                             }}
-                            className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentSubtitle === -1 ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+                            className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentSubtitle === -1 ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
                             <span className="font-semibold">Desactivados</span>
-                            {currentSubtitle === -1 && <div className="w-2 h-2 rounded-full bg-purple-400" />}
+                            {currentSubtitle === -1 && <div className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />}
                         </button>
                         {subtitleTracks.map((track, i) => (
                             <button key={i} onClick={() => {
@@ -514,9 +605,9 @@ export default function VideoPlayer({
                                 }
                                 setIsSubtitleMenuOpen(false);
                             }}
-                                className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentSubtitle === i ? 'bg-purple-500/20 text-purple-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+                                className={`w-full flex items-center justify-between !px-5 !py-3 text-sm text-left transition-colors ${currentSubtitle === i ? 'bg-[var(--color-primary)]/20 text-[var(--color-primary)]' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
                                 <span className="font-semibold">{track.name || track.lang || `Subtítulo ${i + 1}`}</span>
-                                {currentSubtitle === i && <div className="w-2 h-2 rounded-full bg-purple-400" />}
+                                {currentSubtitle === i && <div className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />}
                             </button>
                         ))}
                     </div>
@@ -534,9 +625,9 @@ export default function VideoPlayer({
                             <span className="!mx-1 text-white/30">/</span>
                             {formatTime(duration)}
                         </span>
-                        <div className="relative flex-1 h-1.5 bg-white/10 rounded-full cursor-pointer group/progress">
-                            <div className="absolute top-0 left-0 h-full bg-purple-500 shadow-[0_0_14px_rgba(168,85,247,0.7)] rounded-full pointer-events-none" style={{ width: `${progress}%` }} />
-                            <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white shadow-lg opacity-0 group-hover/progress:opacity-100 transition-opacity pointer-events-none" style={{ left: `calc(${progress}% - 8px)` }} />
+                        <div className="relative flex-1 h-2 bg-white/20 rounded-full cursor-pointer group/progress shadow-inner">
+                            <div className="absolute top-0 left-0 h-full bg-[var(--color-primary)] shadow-[0_0_12px_rgba(255,179,0,0.8)] rounded-full pointer-events-none transition-all duration-100" style={{ width: `${progress}%` }} />
+                            <div className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white shadow-lg opacity-0 group-hover/progress:opacity-100 transition-opacity pointer-events-none border-2 border-[var(--color-primary)]" style={{ left: `calc(${progress}% - 10px)` }} />
                             <input type="range" min="0" max="100" value={progress} onChange={handleSeek} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                         </div>
                     </div>
@@ -577,7 +668,7 @@ export default function VideoPlayer({
                                     <input
                                         type="range" min="0" max="1" step="0.05" value={isMuted ? 0 : volume}
                                         onChange={(e) => { setVolume(parseFloat(e.target.value)); if (isMuted) setIsMuted(false); }}
-                                        className="w-full accent-purple-500 !h-1.5 bg-white/10 rounded-full cursor-pointer"
+                                        className="w-full accent-[var(--color-primary)] !h-2 bg-white/20 rounded-full cursor-pointer shadow-inner"
                                     />
                                 </div>
                             </div>
@@ -587,21 +678,21 @@ export default function VideoPlayer({
                         <div className="flex items-center !gap-4 md:!gap-8">
                             <button
                                 onClick={(e) => { e.stopPropagation(); setIsSubtitleMenuOpen(false); setIsAudioMenuOpen(!isAudioMenuOpen); setIsQualityMenuOpen(false); }}
-                                className={`flex flex-col items-center !gap-1 transition-colors ${isAudioMenuOpen ? 'text-purple-400' : 'text-white/60 hover:text-white'}`}
+                                className={`flex flex-col items-center !gap-1 transition-colors ${isAudioMenuOpen ? 'text-[var(--color-primary)]' : 'text-white/60 hover:text-white'}`}
                             >
                                 <Headphones className="w-5 h-5 md:w-7 md:h-7" />
                                 <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest hidden sm:block">Audio</span>
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); setIsAudioMenuOpen(false); setIsSubtitleMenuOpen(!isSubtitleMenuOpen); setIsQualityMenuOpen(false); }}
-                                className={`flex flex-col items-center !gap-1 transition-colors ${isSubtitleMenuOpen ? 'text-purple-400' : 'text-white/60 hover:text-white'}`}
+                                className={`flex flex-col items-center !gap-1 transition-colors ${isSubtitleMenuOpen ? 'text-[var(--color-primary)]' : 'text-white/60 hover:text-white'}`}
                             >
                                 <MessageSquare className="w-5 h-5 md:w-7 md:h-7" />
                                 <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest hidden sm:block">Subs</span>
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); setIsAudioMenuOpen(false); setIsSubtitleMenuOpen(false); setIsQualityMenuOpen(!isQualityMenuOpen); }}
-                                className={`flex flex-col items-center !gap-1 transition-colors ${isQualityMenuOpen ? 'text-purple-400' : 'text-white/60 hover:text-white'}`}
+                                className={`flex flex-col items-center !gap-1 transition-colors ${isQualityMenuOpen ? 'text-[var(--color-primary)]' : 'text-white/60 hover:text-white'}`}
                             >
                                 <Settings className="w-5 h-5 md:w-7 md:h-7" />
                                 <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest hidden sm:block">Calidad</span>
@@ -626,8 +717,8 @@ export default function VideoPlayer({
                     <div className="flex flex-col !gap-6">
                         {episodes.map((s: any) => (
                             <div key={s.id}>
-                                <h3 className="text-[10px] font-black text-purple-400 uppercase tracking-[4px] !mb-3 opacity-60 border-b border-purple-500/20 !pb-2">Temporada {s.number}</h3>
-                                <div className="flex flex-col !gap-2">
+                                <h3 className="text-[10px] font-black text-[var(--color-primary)] uppercase tracking-[4px] !mb-3 opacity-80 border-b border-[var(--color-primary)]/20 !pb-2">Temporada {s.number}</h3>
+                                <div className="flex flex-col !gap-3">
                                     {s.episodes?.map((e: any) => (
                                         <button
                                             key={e.id}
@@ -635,12 +726,24 @@ export default function VideoPlayer({
                                                 setShowEpisodesSidebar(false);
                                                 onEpisodeSelect?.(e.id);
                                             }}
-                                            className={`w-full !p-3 rounded-xl border transition-all text-left flex items-center !gap-3 ${(currentEpisodeId ? currentEpisodeId === e.id : false) ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/5 hover:bg-white/10'}`}
+                                            className={`w-full !p-3 rounded-2xl border transition-all text-left flex items-center !gap-4 hover:scale-[1.02] ${
+                                                (currentEpisodeId ? currentEpisodeId === e.id : false)
+                                                    ? 'bg-[var(--color-primary)] border-[var(--color-primary)] shadow-[4px_4px_0_#000]'
+                                                    : 'bg-white/5 border-white/10 hover:bg-white/15'
+                                            }`}
                                         >
-                                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${(currentEpisodeId ? currentEpisodeId === e.id : false) ? 'bg-white text-black' : 'bg-white/5 text-white/40'}`}>{e.number}</div>
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-black shrink-0 ${
+                                                (currentEpisodeId ? currentEpisodeId === e.id : false)
+                                                    ? 'bg-black text-[var(--color-primary)]'
+                                                    : 'bg-white/10 text-white/60'
+                                            }`}>{e.number}</div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-bold text-white truncate">{e.translations?.[0]?.title || `Episodio ${e.number}`}</p>
-                                                {!!e.duration && <span className="text-[10px] text-white/30 uppercase">{e.duration} min</span>}
+                                                <p className={`text-sm font-bold truncate ${
+                                                    (currentEpisodeId ? currentEpisodeId === e.id : false) ? 'text-black' : 'text-white'
+                                                }`}>{e.translations?.[0]?.title || `Episodio ${e.number}`}</p>
+                                                {!!e.duration && <span className={`text-[10px] uppercase font-black tracking-wider ${
+                                                    (currentEpisodeId ? currentEpisodeId === e.id : false) ? 'text-black/60' : 'text-white/40'
+                                                }`}>{e.duration} min</span>}
                                             </div>
                                         </button>
                                     ))}

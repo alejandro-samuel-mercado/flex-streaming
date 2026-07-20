@@ -1,14 +1,15 @@
 'use client';
 import { userFetch } from '@/lib/api-client';
 
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState, useMemo } from 'react';
-import { Loader2, AlertCircle, ChevronRight, Play, X } from 'lucide-react';
 import VideoPlayer from '@/components/video/VideoPlayer';
-import { API_ROUTES, API_ORIGIN, resolveImageUrl } from '@/lib/api-routes';
+import { API_ORIGIN, API_ROUTES } from '@/lib/api-routes';
+import { AlertCircle, Loader2 } from 'lucide-react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 
 interface ContentData {
     id: string;
+    title?: string;
     type: string;
     status?: string;
     translations: { title: string; description: string }[];
@@ -36,6 +37,7 @@ export default function WatchPage() {
     const [error, setError] = useState<string | null>(null);
     const [initialTime, setInitialTime] = useState<number>(0);
     const [streamSrc, setStreamSrc] = useState<string | null>(null);
+    const [showAds, setShowAds] = useState<boolean>(false);
     const [showEpisodes, setShowEpisodes] = useState(false);
 
     // Flat list of all episodes across all seasons for prev/next navigation
@@ -86,7 +88,7 @@ export default function WatchPage() {
                     if (firstEp) {
                         firstEp.seasonNumber = data.seasons[0].number;
                         setCurrentEpisode(firstEp);
-                        router.replace(`/watch/${id}?episodeId=${firstEp.id}`, { scroll: false });
+                        router.replace(`/film/${id}/watch?episodeId=${firstEp.id}`, { scroll: false });
                     }
                 }
             } catch (err: any) {
@@ -103,12 +105,8 @@ export default function WatchPage() {
     useEffect(() => {
         if (!content) return;
 
-        const targetVideoFiles = currentEpisode ? currentEpisode.videoFiles : content.videoFiles;
-        if (!targetVideoFiles || targetVideoFiles.length === 0) {
-            if (content.type === 'MOVIE') setStreamSrc(null);
-            return;
-        }
-
+        // Episodes might not have direct videoFiles if a fallback content videoFile exists.
+        // Let the API decide if the video is available.
         const requestAccess = async () => {
             try {
                 const token = localStorage.getItem('accessToken');
@@ -119,32 +117,33 @@ export default function WatchPage() {
                     return;
                 }
 
-                const res = await userFetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
-                    method: 'POST',
+                // Always use the content ID; episodeId is a query param
+                let watchUrl = `${API_ROUTES.CONTENT.BASE}/${content.id}/watch`;
+                if (currentEpisode) {
+                    watchUrl += `?episodeId=${currentEpisode.id}`;
+                }
+
+                const res = await userFetch(watchUrl, {
+                    method: 'GET',
                     headers: {
-                        'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`,
                         ...(profileId ? { 'X-Profile-Id': profileId } : {}),
-                    },
-                    body: JSON.stringify({
-                        contentId: content.id,
-                        episodeId: currentEpisode?.id
-                    }),
+                    }
                 });
 
-                if (!res.ok) throw new Error('No se pudo obtener acceso al video.');
+                if (!res.ok) {
+                    const errJson = await res.json().catch(() => ({}));
+                    throw new Error(errJson.error || 'No se pudo obtener acceso al video.');
+                }
                 const resJson = await res.json();
                 if (!resJson.success) throw new Error(resJson.error || 'Acceso denegado.');
 
-                const { token: signedToken, videoFileId, streamBaseUrl, masterPlaylist } = resJson.data;
+                const { masterPlaylist, showAds } = resJson.data;
+
+                if (!masterPlaylist) throw new Error('Video no disponible o no procesado.');
                 
-                // Use masterPlaylist from the POST request (which is fresh) instead of content (which might be cached)
-                const filename = masterPlaylist?.split('/').pop() || 'master.m3u8';
-                
-                // Use the storage node URL if provided, otherwise fall back to the main API
-                const streamHost = streamBaseUrl || backendUrl;
-                const hlsUrl = `${streamHost}/api/stream/hls/${videoFileId}/${filename}?token=${signedToken}&_t=${Date.now()}`;
-                setStreamSrc(hlsUrl);
+                setStreamSrc(masterPlaylist);
+                setShowAds(!!showAds);
             } catch (err: any) {
                 setError(err.message);
             }
@@ -152,6 +151,11 @@ export default function WatchPage() {
 
         requestAccess();
     }, [content, currentEpisode]);
+
+    // 3b. Reward tokens for watching (fires once when stream becomes available)
+    useEffect(() => {
+        // Token rewards not supported in flex-streaming
+    }, [streamSrc]);
 
     // 3. Restore watch progress
     useEffect(() => {
@@ -176,9 +180,9 @@ export default function WatchPage() {
 
                 if (res.ok) {
                     const resJson = await res.json();
-                    if (resJson.success && resJson.data?.progress) {
-                        if (!localProgress || resJson.data.progress > parseInt(localProgress) + 5) {
-                            setInitialTime(resJson.data.progress);
+                    if (resJson.success && resJson.data?.progressSeconds) {
+                        if (!localProgress || resJson.data.progressSeconds > parseInt(localProgress) + 5) {
+                            setInitialTime(resJson.data.progressSeconds);
                         }
                     }
                 }
@@ -212,8 +216,8 @@ export default function WatchPage() {
                 body: JSON.stringify({
                     contentId: content.id,
                     episodeId: currentEpisode?.id,
-                    progress: Math.floor(currentTime),
-                    duration: Math.floor(duration),
+                    progressSeconds: Math.floor(currentTime),
+                    durationSeconds: Math.floor(duration),
                 }),
             });
         } catch (e) {
@@ -224,13 +228,13 @@ export default function WatchPage() {
     const handleNextEpisode = () => {
         if (currentEpisodeIndex < 0 || !hasNextEpisode) return;
         const next = allEpisodes[currentEpisodeIndex + 1];
-        router.push(`/watch/${id}?episodeId=${next.id}`);
+        router.push(`/film/${id}/watch?episodeId=${next.id}`);
     };
 
     const handlePrevEpisode = () => {
-        if (currentEpisodeIndex <= 0) return;
+        if (currentEpisodeIndex <= 0 || !hasPrevEpisode) return;
         const prev = allEpisodes[currentEpisodeIndex - 1];
-        router.push(`/watch/${id}?episodeId=${prev.id}`);
+        router.push(`/film/${id}/watch?episodeId=${prev.id}`);
     };
 
     if (loading) {
@@ -272,12 +276,12 @@ export default function WatchPage() {
     })) || [];
 
     return (
-        <div className="h-screen w-full bg-black relative overflow-hidden group">
+        <div className="fixed inset-0 z-[9999] bg-black overflow-hidden group">
             <VideoPlayer
                 src={streamSrc}
                 title={currentEpisode
-                    ? `${content.translations[0]?.title} — T${currentEpisode.seasonNumber}E${currentEpisode.number}: ${currentEpisode.translations?.[0]?.title || ''}`
-                    : content.translations[0]?.title
+                    ? `${content.translations?.[0]?.title || content.title} — T${currentEpisode.seasonNumber}E${currentEpisode.number}: ${currentEpisode.translations?.[0]?.title || currentEpisode.title || ''}`
+                    : (content.translations?.[0]?.title || content.title)
                 }
                 initialTime={initialTime}
                 externalSubtitles={subtitles}
@@ -290,9 +294,10 @@ export default function WatchPage() {
                 episodes={content.seasons || []}
                 currentEpisodeId={currentEpisode?.id}
                 onEpisodeSelect={(episodeId) => {
-                    router.push(`/watch/${id}?episodeId=${episodeId}`);
+                    router.push(`/film/${id}/watch?episodeId=${episodeId}`);
                 }}
                 onBack={() => router.push(`/film/${id}`)}
+                showAds={showAds}
             />
         </div>
     );

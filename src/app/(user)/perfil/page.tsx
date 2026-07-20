@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { User, Calendar, CreditCard, Clock, Monitor, Settings, LogOut, ChevronRight, Play, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { resolveImageUrl, API_ROUTES } from '@/lib/api-routes';
+import PublicLayout from '@/components/layout/PublicLayout';
 
 export default function ProfilePage() {
     const { user, logout, loading } = useAuth();
@@ -82,7 +83,8 @@ export default function ProfilePage() {
             : 0;
 
     return (
-        <div className="!min-h-screen !bg-[#02040A] !text-white !pt-24 !pb-12 !px-4 sm:!px-8">
+        <PublicLayout>
+        <div className="!text-white !pt-12 !pb-12 !px-4 sm:!px-8 w-full">
             <div className="!max-w-6xl !mx-auto">
 
                 {/* Header / User Hero */}
@@ -247,5 +249,6 @@ export default function ProfilePage() {
 
             </div>
         </div>
+        </PublicLayout>
     );
 }
