@@ -168,6 +168,18 @@ export const API_ROUTES = {
         DELETE: (filename: string) => `${API_BASE_URL}/admin/backup/${filename}`,
         SETTINGS: `${API_BASE_URL}/admin/backup/settings`,
     },
+    APP_VERSION: {
+        // Public
+        VERSION: (platform: string) => `${API_BASE_URL}/app/version?platform=${platform}`,
+        DOWNLOAD: (platform: string, filename: string) => `${API_BASE_URL}/app/download?platform=${platform}&filename=${encodeURIComponent(filename)}`,
+        // Admin
+        LIST: (platform: string) => `${API_BASE_URL}/app/admin/list?platform=${platform}`,
+        UPLOAD: `${API_BASE_URL}/app/admin/upload`,
+        ADD_BY_URL: `${API_BASE_URL}/app/admin/add-by-url`,
+        SET_ACTIVE: `${API_BASE_URL}/app/admin/set-active`,
+        DELETE: `${API_BASE_URL}/app/admin/version`,
+        UPDATE_CHANGELOG: `${API_BASE_URL}/app/admin/changelog`,
+    },
 } as const;
 
 // Robust helper to resolve media URLs (thumbnails, etc.)

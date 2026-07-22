@@ -8,7 +8,7 @@ import {
     UploadCloud, MonitorPlay, ChevronLeft, Bell,
     Search, Tag, Server, Menu, X, Activity,
     Calendar, Package, UserCheck, Coins,
-    MessageSquare, Loader2, Database
+    MessageSquare, Loader2, Database, Smartphone
 } from 'lucide-react';
 import { adminFetch } from '@/lib/admin-api';
 import { API_ROUTES } from '@/lib/api-routes';
@@ -29,6 +29,7 @@ const NAV = [
     { href: '/admin/subscription-plans', label: 'Planes', icon: Calendar },
     { href: '/admin/credit-packages', label: 'Paquetes Créditos', icon: Package },
     { href: '/admin/comments', label: 'Comentarios', icon: MessageSquare },
+    { href: '/admin/apps', label: 'Aplicación Móvil & TV', icon: Smartphone },
     { href: '/admin/settings', label: 'Configuración', icon: Settings },
 
 ];
