@@ -1,8 +1,9 @@
 'use client';
+import './page.css';
 
 import { useState, useEffect, useRef } from 'react';
 import {
-    Smartphone, Tv, Upload, Link2, Trash2, Star, StarOff,
+    Smartphone, Tv, Upload, Link2, Trash2, Star,
     Download, FileText, PlusCircle, AlertCircle, CheckCircle2,
     Loader2, X, ChevronDown, ChevronUp, Edit3, Save, RefreshCw,
     Package
@@ -97,115 +98,87 @@ function UploadModal({ platform, onClose, onSuccess }: { platform: Platform; onC
             <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: 560 }}>
                 <div className="modal-header">
                     <h3 className="modal-title">
-                        <PlusCircle size={18} />
+                        <PlusCircle size={20} className="text-primary" />
                         Nueva versión — {platform === 'android' ? 'Android' : 'TV'}
                     </h3>
-                    <button onClick={onClose} className="modal-close"><X size={18} /></button>
+                    <button onClick={onClose} className="modal-close"><X size={20} /></button>
                 </div>
                 <div className="modal-body">
-                    {/* Mode switch */}
-                    <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-                        <button
-                            className={`tab-btn ${mode === 'file' ? 'active' : ''}`}
-                            onClick={() => setMode('file')}
-                        >
-                            <Upload size={15} /> Subir archivo
+                    <div className="tab-container">
+                        <button className={`tab-btn ${mode === 'file' ? 'active' : ''}`} onClick={() => setMode('file')}>
+                            <Upload size={16} /> Subir archivo
                         </button>
-                        <button
-                            className={`tab-btn ${mode === 'url' ? 'active' : ''}`}
-                            onClick={() => setMode('url')}
-                        >
-                            <Link2 size={15} /> Por enlace
+                        <button className={`tab-btn ${mode === 'url' ? 'active' : ''}`} onClick={() => setMode('url')}>
+                            <Link2 size={16} /> Por enlace
                         </button>
                     </div>
 
                     {mode === 'file' ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                            {/* APK File */}
-                            <div>
+                        <div className="form-group-stack">
+                            <div className="form-group">
                                 <label className="form-label">Archivo APK *</label>
-                                <div
-                                    className="file-drop-zone"
-                                    onClick={() => apkInputRef.current?.click()}
-                                >
+                                <div className="file-drop-zone" onClick={() => apkInputRef.current?.click()}>
                                     <input ref={apkInputRef} type="file" accept=".apk" hidden onChange={e => setApkFile(e.target.files?.[0] || null)} />
                                     {apkFile ? (
-                                        <span style={{ color: '#a78bfa', fontWeight: 600 }}>{apkFile.name} ({formatBytes(apkFile.size)})</span>
+                                        <div className="file-selected">
+                                            <span className="file-name">{apkFile.name}</span>
+                                            <span className="file-size">{formatBytes(apkFile.size)}</span>
+                                        </div>
                                     ) : (
-                                        <span style={{ color: '#6b7280' }}>
-                                            <Upload size={20} style={{ display: 'block', margin: '0 auto 6px' }} />
-                                            Arrastrá o hacé clic para seleccionar el APK
-                                        </span>
+                                        <div className="file-placeholder">
+                                            <div className="icon-wrapper"><Upload size={24} /></div>
+                                            <span>Arrastrá o hacé clic para seleccionar el APK</span>
+                                        </div>
                                     )}
                                 </div>
                             </div>
-                            {/* Changelog file */}
-                            <div>
-                                <label className="form-label">Changelog (.txt o .md) <span style={{ color: '#6b7280' }}>— opcional</span></label>
-                                <div
-                                    className="file-drop-zone"
-                                    style={{ padding: '12px 16px', minHeight: 60 }}
-                                    onClick={() => changelogInputRef.current?.click()}
-                                >
+                            <div className="form-group">
+                                <label className="form-label">Changelog (.txt o .md) <span className="text-muted">— opcional</span></label>
+                                <div className="file-drop-zone small" onClick={() => changelogInputRef.current?.click()}>
                                     <input ref={changelogInputRef} type="file" accept=".txt,.md" hidden onChange={e => setChangelogFile(e.target.files?.[0] || null)} />
                                     {changelogFile ? (
-                                        <span style={{ color: '#34d399' }}>{changelogFile.name}</span>
+                                        <span className="text-success">{changelogFile.name}</span>
                                     ) : (
-                                        <span style={{ color: '#6b7280', fontSize: 13 }}>
-                                            <FileText size={16} style={{ display: 'inline', marginRight: 6 }} />
-                                            El sistema también acepta un archivo con el mismo nombre que el APK pero extensión .txt
-                                        </span>
+                                        <div className="file-placeholder small">
+                                            <FileText size={18} />
+                                            <span>El sistema acepta un .txt con el mismo nombre que el APK</span>
+                                        </div>
                                     )}
                                 </div>
                             </div>
                         </div>
                     ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                            <div>
+                        <div className="form-group-stack">
+                            <div className="form-group">
                                 <label className="form-label">URL del APK *</label>
-                                <input
-                                    className="form-input"
-                                    placeholder="https://ejemplo.com/NUBA-ANDROID-V2.apk"
-                                    value={urlData.apkUrl}
-                                    onChange={e => setUrlData(p => ({ ...p, apkUrl: e.target.value }))}
-                                />
+                                <input className="form-input" placeholder="https://ejemplo.com/NUBA-V2.apk" value={urlData.apkUrl} onChange={e => setUrlData(p => ({ ...p, apkUrl: e.target.value }))} />
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                                <div>
+                            <div className="form-grid">
+                                <div className="form-group">
                                     <label className="form-label">Versión (ej: 2.0) *</label>
                                     <input className="form-input" placeholder="2.0" value={urlData.versionName} onChange={e => setUrlData(p => ({ ...p, versionName: e.target.value }))} />
                                 </div>
-                                <div>
+                                <div className="form-group">
                                     <label className="form-label">Código de versión *</label>
                                     <input className="form-input" type="number" placeholder="200" value={urlData.versionCode} onChange={e => setUrlData(p => ({ ...p, versionCode: e.target.value }))} />
                                 </div>
                             </div>
-                            <div>
+                            <div className="form-group">
                                 <label className="form-label">Changelog / Novedades</label>
-                                <textarea
-                                    className="form-textarea"
-                                    rows={5}
-                                    placeholder="• Mejora en el reproductor de video&#10;• Nuevo diseño del home&#10;• Corrección de errores"
-                                    value={urlData.changelog}
-                                    onChange={e => setUrlData(p => ({ ...p, changelog: e.target.value }))}
-                                />
+                                <textarea className="form-textarea" rows={5} placeholder="• Mejora en el reproductor&#10;• Corrección de errores" value={urlData.changelog} onChange={e => setUrlData(p => ({ ...p, changelog: e.target.value }))} />
                             </div>
                         </div>
                     )}
 
                     {error && (
-                        <div className="alert alert-error" style={{ marginTop: 12 }}>
-                            <AlertCircle size={15} /> {error}
+                        <div className="alert alert-error">
+                            <AlertCircle size={16} /> {error}
                         </div>
                     )}
                 </div>
                 <div className="modal-footer">
                     <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
-                    <button
-                        className="btn btn-primary"
-                        onClick={mode === 'file' ? handleFileUpload : handleUrlAdd}
-                        disabled={loading}
-                    >
+                    <button className="btn btn-primary" onClick={mode === 'file' ? handleFileUpload : handleUrlAdd} disabled={loading}>
                         {loading ? <Loader2 size={16} className="spin" /> : <Upload size={16} />}
                         {loading ? 'Subiendo…' : 'Agregar versión'}
                     </button>
@@ -237,18 +210,12 @@ function ChangelogEditor({ version, platform, onSave }: { version: ApkVersion; p
     };
 
     return (
-        <div style={{ paddingTop: 12 }}>
-            <textarea
-                className="form-textarea"
-                rows={5}
-                value={text}
-                onChange={e => setText(e.target.value)}
-                placeholder="• Nueva función 1&#10;• Mejora de rendimiento&#10;• Corrección de bugs"
-            />
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+        <div className="changelog-editor">
+            <textarea className="form-textarea" rows={5} value={text} onChange={e => setText(e.target.value)} placeholder="Escribe las novedades aquí..." />
+            <div className="changelog-actions">
                 <button className="btn btn-sm btn-primary" onClick={handleSave} disabled={saving}>
-                    {saving ? <Loader2 size={13} className="spin" /> : saved ? <CheckCircle2 size={13} /> : <Save size={13} />}
-                    {saved ? 'Guardado' : 'Guardar changelog'}
+                    {saving ? <Loader2 size={14} className="spin" /> : saved ? <CheckCircle2 size={14} /> : <Save size={14} />}
+                    {saved ? 'Guardado exitosamente' : 'Guardar changelog'}
                 </button>
             </div>
         </div>
@@ -277,7 +244,7 @@ function VersionCard({ version, platform, onRefresh }: { version: ApkVersion; pl
     };
 
     const handleDelete = async () => {
-        if (!confirm(`¿Eliminar ${version.filename}? Esta acción no se puede deshacer.`)) return;
+        if (!confirm(`¿Estás seguro de eliminar la versión ${version.filename}?`)) return;
         setDeleting(true);
         try {
             await adminFetch(API_ROUTES.APP_VERSION.DELETE, {
@@ -294,77 +261,60 @@ function VersionCard({ version, platform, onRefresh }: { version: ApkVersion; pl
     return (
         <div className={`version-card ${version.isActive ? 'active' : ''}`}>
             <div className="version-card-header" onClick={() => setExpanded(!expanded)}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div className="version-info">
                     {version.isActive && (
-                        <span className="badge badge-success">
-                            <Star size={11} /> Activa
-                        </span>
+                        <div className="badge badge-success pulse-glow">
+                            <Star size={12} fill="currentColor" /> Activa
+                        </div>
                     )}
-                    <div>
-                        <div style={{ fontWeight: 700, fontSize: 16, color: '#f3f4f6' }}>
-                            v{version.versionName}
-                            <span style={{ color: '#6b7280', fontSize: 12, marginLeft: 8 }}>
-                                código {version.versionCode}
-                            </span>
-                        </div>
-                        <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>
-                            {version.filename} · {formatBytes(version.fileSize)} · {formatDate(version.uploadedAt)}
-                        </div>
+                    <div className="version-title">
+                        <span className="version-number">v{version.versionName}</span>
+                        <span className="version-code">code {version.versionCode}</span>
+                    </div>
+                    <div className="version-meta">
+                        <span>{version.filename}</span>
+                        <span className="dot-separator">•</span>
+                        <span>{formatBytes(version.fileSize)}</span>
+                        <span className="dot-separator">•</span>
+                        <span>{formatDate(version.uploadedAt)}</span>
                     </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className="version-actions">
                     {!version.isActive && (
-                        <button
-                            className="btn btn-sm btn-ghost"
-                            onClick={e => { e.stopPropagation(); handleSetActive(); }}
-                            disabled={activating}
-                            title="Marcar como versión activa"
-                        >
-                            {activating ? <Loader2 size={14} className="spin" /> : <Star size={14} />}
+                        <button className="btn btn-sm btn-outline btn-activate" onClick={e => { e.stopPropagation(); handleSetActive(); }} disabled={activating} title="Marcar como activa">
+                            {activating ? <Loader2 size={16} className="spin" /> : <Star size={16} />}
                             Activar
                         </button>
                     )}
-                    <a
-                        href={version.downloadUrl}
-                        className="btn btn-sm btn-ghost"
-                        onClick={e => e.stopPropagation()}
-                        download
-                        title="Descargar APK"
-                    >
-                        <Download size={14} /> Descargar
+                    <a href={version.downloadUrl} className="btn-icon btn-download" onClick={e => e.stopPropagation()} download title="Descargar APK">
+                        <Download size={18} />
                     </a>
-                    <button
-                        className="btn btn-sm btn-danger-ghost"
-                        onClick={e => { e.stopPropagation(); handleDelete(); }}
-                        disabled={deleting}
-                        title="Eliminar versión"
-                    >
-                        {deleting ? <Loader2 size={14} className="spin" /> : <Trash2 size={14} />}
+                    <button className="btn-icon btn-delete" onClick={e => { e.stopPropagation(); handleDelete(); }} disabled={deleting} title="Eliminar">
+                        {deleting ? <Loader2 size={18} className="spin" /> : <Trash2 size={18} />}
                     </button>
-                    {expanded ? <ChevronUp size={16} color="#6b7280" /> : <ChevronDown size={16} color="#6b7280" />}
+                    <div className="expand-indicator">
+                        {expanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                    </div>
                 </div>
             </div>
 
             {expanded && (
                 <div className="version-card-body">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: '#9ca3af' }}>
-                            <FileText size={13} style={{ display: 'inline', marginRight: 5 }} />
-                            Changelog / Novedades
-                        </span>
-                        <button
-                            className="btn btn-xs btn-ghost"
-                            onClick={() => setEditingChangelog(!editingChangelog)}
-                        >
-                            <Edit3 size={12} /> {editingChangelog ? 'Cancelar edición' : 'Editar'}
+                    <div className="changelog-header">
+                        <div className="changelog-title">
+                            <FileText size={16} className="text-primary" />
+                            <span>Registro de Cambios (Changelog)</span>
+                        </div>
+                        <button className="btn btn-xs btn-outline" onClick={() => setEditingChangelog(!editingChangelog)}>
+                            <Edit3 size={14} /> {editingChangelog ? 'Cancelar edición' : 'Editar'}
                         </button>
                     </div>
                     {editingChangelog ? (
                         <ChangelogEditor version={version} platform={platform} onSave={onRefresh} />
                     ) : (
-                        <pre style={{ fontSize: 13, color: '#d1d5db', whiteSpace: 'pre-wrap', background: 'rgba(0,0,0,0.2)', borderRadius: 8, padding: '10px 14px', margin: 0, fontFamily: 'inherit', minHeight: 60 }}>
-                            {version.changelog || <span style={{ color: '#6b7280', fontStyle: 'italic' }}>Sin changelog. Hacé clic en Editar para agregar.</span>}
-                        </pre>
+                        <div className="changelog-content">
+                            {version.changelog || <span className="empty-state">No hay notas de la versión. Haz clic en Editar para agregar.</span>}
+                        </div>
                     )}
                 </div>
             )}
@@ -390,79 +340,60 @@ function PlatformPanel({ platform }: { platform: Platform }) {
     };
 
     useEffect(() => { fetchVersions(); }, [platform]);
-
     const activeVersion = versions.find(v => v.isActive);
 
     return (
-        <div style={{ flex: 1 }}>
-            {/* Panel header */}
+        <div className="platform-panel glass-panel">
             <div className="platform-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    {platform === 'android' ? <Smartphone size={20} color="#a78bfa" /> : <Tv size={20} color="#34d399" />}
+                <div className="platform-title-wrapper">
+                    <div className={`platform-icon ${platform === 'android' ? 'android' : 'tv'}`}>
+                        {platform === 'android' ? <Smartphone size={24} /> : <Tv size={24} />}
+                    </div>
                     <div>
-                        <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#f3f4f6' }}>
-                            {platform === 'android' ? 'Android' : 'Android TV'}
-                        </h3>
-                        <p style={{ margin: 0, fontSize: 12, color: '#9ca3af' }}>
-                            {platform === 'android' ? '/home/media/apks/android' : '/home/media/apks/tv'}
-                        </p>
+                        <h3 className="platform-title">{platform === 'android' ? 'Android Mobile' : 'Android TV'}</h3>
+                        <p className="platform-path">{platform === 'android' ? '/media/apks/android' : '/media/apks/tv'}</p>
                     </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <button className="btn btn-xs btn-ghost" onClick={fetchVersions} title="Recargar">
-                        <RefreshCw size={13} />
+                <div className="platform-actions">
+                    <button className="btn-icon" onClick={fetchVersions} title="Actualizar lista">
+                        <RefreshCw size={18} className={loading ? 'spin text-primary' : ''} />
                     </button>
-                    <button className="btn btn-sm btn-primary" onClick={() => setShowUpload(true)}>
-                        <PlusCircle size={15} /> Nueva versión
+                    <button className="btn btn-primary shadow-glow" onClick={() => setShowUpload(true)}>
+                        <PlusCircle size={18} /> Nueva Versión
                     </button>
                 </div>
             </div>
 
-            {/* Active version summary */}
             {activeVersion && (
-                <div className="active-version-banner">
-                    <CheckCircle2 size={15} color="#34d399" />
-                    <span style={{ color: '#9ca3af', fontSize: 13 }}>Versión activa:</span>
-                    <span style={{ fontWeight: 700, color: '#f3f4f6' }}>v{activeVersion.versionName}</span>
-                    <span style={{ color: '#6b7280', fontSize: 12 }}>({activeVersion.filename})</span>
+                <div className="active-banner">
+                    <div className="active-banner-bg" />
+                    <CheckCircle2 size={20} className="text-success" />
+                    <span className="active-banner-label">Versión actual de producción:</span>
+                    <span className="active-banner-value">v{activeVersion.versionName}</span>
                 </div>
             )}
 
-            {/* Versions list */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16 }}>
+            <div className="versions-container">
                 {loading ? (
-                    <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>
-                        <Loader2 size={24} className="spin" style={{ margin: '0 auto 8px', display: 'block' }} />
-                        Cargando versiones…
+                    <div className="loading-state">
+                        <Loader2 size={32} className="spin text-primary" />
+                        <span>Sincronizando versiones...</span>
                     </div>
                 ) : versions.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: 40, color: '#6b7280', border: '2px dashed #374151', borderRadius: 12 }}>
-                        <Package size={32} style={{ margin: '0 auto 10px', display: 'block', opacity: 0.4 }} />
-                        No hay versiones registradas.
-                        <br />
-                        <button className="btn btn-sm btn-ghost" style={{ marginTop: 12 }} onClick={() => setShowUpload(true)}>
-                            Agregar la primera
-                        </button>
+                    <div className="empty-state-box">
+                        <Package size={48} className="empty-icon" />
+                        <h4>No hay versiones disponibles</h4>
+                        <p>Aún no has subido ninguna versión para esta plataforma.</p>
+                        <button className="btn btn-outline mt-4" onClick={() => setShowUpload(true)}>Subir el primer APK</button>
                     </div>
                 ) : (
                     versions.map(v => (
-                        <VersionCard
-                            key={v.filename}
-                            version={v}
-                            platform={platform}
-                            onRefresh={fetchVersions}
-                        />
+                        <VersionCard key={v.filename} version={v} platform={platform} onRefresh={fetchVersions} />
                     ))
                 )}
             </div>
 
-            {showUpload && (
-                <UploadModal
-                    platform={platform}
-                    onClose={() => setShowUpload(false)}
-                    onSuccess={fetchVersions}
-                />
-            )}
+            {showUpload && <UploadModal platform={platform} onClose={() => setShowUpload(false)} onSuccess={fetchVersions} />}
         </div>
     );
 }
@@ -470,196 +401,40 @@ function PlatformPanel({ platform }: { platform: Platform }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AppsPage() {
     return (
-        <div className="page-container">
-            <div className="page-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div className="page-icon">
-                        <Smartphone size={22} />
+        <div className="page-wrapper">
+            <div className="ambient-background">
+                <div className="ambient-blob blob-1" />
+                <div className="ambient-blob blob-2" />
+            </div>
+            
+            <div className="page-container">
+                <div className="page-header-glass">
+                    <div className="page-title-section">
+                        <div className="page-icon-gradient">
+                            <Smartphone size={28} />
+                        </div>
+                        <div>
+                            <h1 className="page-title">Gestión de Aplicaciones</h1>
+                            <p className="page-subtitle">
+                                Administra y distribuye las actualizaciones de tus aplicaciones móviles y de TV.
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <h1 className="page-title">Aplicación Móvil &amp; TV</h1>
-                        <p className="page-subtitle">
-                            Gestioná las versiones de APK para Android y Android TV. Los usuarios recibirán una notificación de actualización automática.
-                        </p>
-                    </div>
+                </div>
+
+                <div className="info-alert glass-alert">
+                    <AlertCircle size={20} className="text-primary" />
+                    <p>
+                        El sistema detecta automáticamente la versión desde el nombre del archivo. Utiliza el formato <strong>NUBA-ANDROID-V2.apk</strong>. Puedes adjuntar un changelog en formato <strong>.txt</strong> o editarlo posteriormente.
+                    </p>
+                </div>
+
+                <div className="platforms-grid">
+                    <PlatformPanel platform="android" />
+                    <PlatformPanel platform="tv" />
                 </div>
             </div>
 
-            <div className="info-banner">
-                <AlertCircle size={14} />
-                <span>
-                    El sistema detecta la versión desde el nombre del archivo. Usá el formato{' '}
-                    <code>NUBA-ANDROID-V2.apk</code> o <code>NUBA-TV-V3.apk</code>.
-                    El changelog se carga desde un archivo <code>.txt</code> con el mismo nombre.
-                </span>
-            </div>
-
-            <div className="platforms-grid">
-                <PlatformPanel platform="android" />
-                <div className="platforms-divider" />
-                <PlatformPanel platform="tv" />
-            </div>
-
-            <style jsx>{`
-                .page-container {
-                    padding: 24px;
-                    max-width: 1400px;
-                    margin: 0 auto;
-                }
-                .page-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin-bottom: 20px;
-                }
-                .page-icon {
-                    width: 48px;
-                    height: 48px;
-                    border-radius: 12px;
-                    background: linear-gradient(135deg, #7c3aed, #4f46e5);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: white;
-                    flex-shrink: 0;
-                }
-                .page-title {
-                    margin: 0;
-                    font-size: 24px;
-                    font-weight: 800;
-                    color: #f3f4f6;
-                }
-                .page-subtitle {
-                    margin: 4px 0 0;
-                    color: #9ca3af;
-                    font-size: 14px;
-                }
-                .info-banner {
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 8px;
-                    background: rgba(79, 70, 229, 0.1);
-                    border: 1px solid rgba(79, 70, 229, 0.3);
-                    border-radius: 10px;
-                    padding: 12px 16px;
-                    font-size: 13px;
-                    color: #a5b4fc;
-                    margin-bottom: 24px;
-                }
-                .info-banner code {
-                    background: rgba(79, 70, 229, 0.2);
-                    border-radius: 4px;
-                    padding: 1px 5px;
-                    font-size: 12px;
-                }
-                .platforms-grid {
-                    display: grid;
-                    grid-template-columns: 1fr auto 1fr;
-                    gap: 0;
-                    align-items: start;
-                }
-                .platforms-divider {
-                    width: 1px;
-                    background: #1f2937;
-                    align-self: stretch;
-                    margin: 0 24px;
-                }
-                .platform-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    margin-bottom: 12px;
-                    padding-bottom: 16px;
-                    border-bottom: 1px solid #1f2937;
-                }
-                .active-version-banner {
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    background: rgba(52, 211, 153, 0.07);
-                    border: 1px solid rgba(52, 211, 153, 0.2);
-                    border-radius: 8px;
-                    padding: 8px 12px;
-                    font-size: 13px;
-                }
-                .version-card {
-                    background: #111827;
-                    border: 1px solid #1f2937;
-                    border-radius: 12px;
-                    overflow: hidden;
-                    transition: border-color 0.2s;
-                }
-                .version-card.active {
-                    border-color: rgba(52, 211, 153, 0.4);
-                    background: rgba(52, 211, 153, 0.04);
-                }
-                .version-card:hover {
-                    border-color: #374151;
-                }
-                .version-card-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    padding: 14px 16px;
-                    cursor: pointer;
-                    user-select: none;
-                }
-                .version-card-body {
-                    padding: 0 16px 16px;
-                    border-top: 1px solid #1f2937;
-                    margin-top: 0;
-                    padding-top: 14px;
-                }
-                .badge {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 4px;
-                    padding: 3px 8px;
-                    border-radius: 20px;
-                    font-size: 11px;
-                    font-weight: 600;
-                }
-                .badge-success {
-                    background: rgba(52, 211, 153, 0.15);
-                    color: #34d399;
-                    border: 1px solid rgba(52, 211, 153, 0.3);
-                }
-                .btn { display: inline-flex; align-items: center; gap: 5px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.15s; border: none; font-size: 14px; }
-                .btn-sm { padding: 6px 12px; font-size: 13px; }
-                .btn-xs { padding: 4px 8px; font-size: 12px; border-radius: 6px; }
-                .btn-primary { background: #7c3aed; color: white; }
-                .btn-primary:hover { background: #6d28d9; }
-                .btn-ghost { background: transparent; color: #9ca3af; border: 1px solid #374151; }
-                .btn-ghost:hover { background: #1f2937; color: #f3f4f6; }
-                .btn-danger-ghost { background: transparent; color: #9ca3af; border: 1px solid #374151; }
-                .btn-danger-ghost:hover { background: rgba(239, 68, 68, 0.1); color: #f87171; border-color: rgba(239, 68, 68, 0.4); }
-                .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-                .tab-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid #374151; background: transparent; color: #9ca3af; transition: all 0.15s; }
-                .tab-btn.active { background: rgba(124, 58, 237, 0.2); border-color: rgba(124, 58, 237, 0.5); color: #a78bfa; }
-                .form-label { display: block; font-size: 12px; font-weight: 600; color: #9ca3af; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-                .form-input { width: 100%; padding: 9px 12px; background: #1f2937; border: 1px solid #374151; border-radius: 8px; color: #f3f4f6; font-size: 14px; box-sizing: border-box; transition: border-color 0.15s; }
-                .form-input:focus { outline: none; border-color: #7c3aed; }
-                .form-textarea { width: 100%; padding: 9px 12px; background: #1f2937; border: 1px solid #374151; border-radius: 8px; color: #f3f4f6; font-size: 13px; box-sizing: border-box; resize: vertical; font-family: inherit; transition: border-color 0.15s; }
-                .form-textarea:focus { outline: none; border-color: #7c3aed; }
-                .file-drop-zone { border: 2px dashed #374151; border-radius: 10px; padding: 24px 16px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
-                .file-drop-zone:hover { border-color: #7c3aed; background: rgba(124, 58, 237, 0.05); }
-                .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
-                .modal-card { background: #111827; border: 1px solid #1f2937; border-radius: 16px; width: 100%; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.5); }
-                .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid #1f2937; }
-                .modal-title { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px; font-weight: 700; color: #f3f4f6; }
-                .modal-close { background: transparent; border: none; color: #6b7280; cursor: pointer; padding: 4px; border-radius: 6px; display: flex; }
-                .modal-close:hover { background: #1f2937; color: #f3f4f6; }
-                .modal-body { padding: 20px; }
-                .modal-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; border-top: 1px solid #1f2937; }
-                .alert { display: flex; align-items: center; gap: 8px; border-radius: 8px; padding: 10px 14px; font-size: 13px; }
-                .alert-error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; }
-                @keyframes spin { to { transform: rotate(360deg); } }
-                .spin { animation: spin 1s linear infinite; }
-                @media (max-width: 900px) {
-                    .platforms-grid { grid-template-columns: 1fr; }
-                    .platforms-divider { width: 100%; height: 1px; margin: 24px 0; }
-                }
-            `}</style>
         </div>
     );
 }
