@@ -369,7 +369,6 @@ export default function VideoPlayer({
                 onPlaying={() => setIsBuffering(false)}
                 onCanPlay={() => {
                     setIsBuffering(false);
-                    videoRef.current?.play().catch(() => { }); // Try to force play if autoplay blocked
                 }}
                 onLoadedData={() => setIsBuffering(false)}
             />
