@@ -254,7 +254,7 @@ export default function VideoPlayer({
         if (videoRef.current) {
             if (isPlaying) videoRef.current.pause();
             else {
-                videoRef.current.play();
+                videoRef.current.play().catch(() => {});
                 // Initial progress save
                 if (!hasSavedInitialProgressRef.current && onProgressUpdate) {
                     hasSavedInitialProgressRef.current = true;
