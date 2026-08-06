@@ -784,37 +784,39 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                                         )}
                                                                     </div>
                                                                 </div>
-                                                                {video?.status === 'COMPLETED' && (
-                                                                    <button 
-                                                                        onClick={async () => {
-                                                                            try {
-                                                                                const res = await adminFetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
-                                                                                    method: 'POST',
-                                                                                    body: JSON.stringify({ contentId: id, episodeId: episode.id })
-                                                                                });
-                                                                                const resJson = await res.json();
-                                                                                if (resJson.success) {
-                                                                                    const filename = video.masterPlaylist?.split('/').pop() || 'master.m3u8';
-                                                                                    const streamHost = resJson.data.streamBaseUrl || API_ORIGIN;
-                                                                                    const streamUrl = `${streamHost}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}&_t=${Date.now()}`;
-                                                                                    
-                                                                                    setActiveVideo({
-                                                                                        url: streamUrl,
-                                                                                        title: `${data?.translations?.find(t => t.lang === 'es')?.title || data?.originalTitle || 'Serie'} - T${season?.number}E${episode?.number}`
+                                                                 <div style={{ display: 'flex', gap: '8px' }}>
+                                                                    {video?.status === 'COMPLETED' && (
+                                                                        <button 
+                                                                            onClick={async () => {
+                                                                                try {
+                                                                                    const res = await adminFetch(API_ROUTES.STREAM.REQUEST_ACCESS, {
+                                                                                        method: 'POST',
+                                                                                        body: JSON.stringify({ contentId: id, episodeId: episode.id })
                                                                                     });
-                                                                                } else {
-                                                                                    alert('Error al acceder al episodio: ' + (resJson.error || 'Token denegado'));
+                                                                                    const resJson = await res.json();
+                                                                                    if (resJson.success) {
+                                                                                        const filename = video.masterPlaylist?.split('/').pop() || 'master.m3u8';
+                                                                                        const streamHost = resJson.data.streamBaseUrl || API_ORIGIN;
+                                                                                        const streamUrl = `${streamHost}/api/stream/hls/${video.id}/${filename}?token=${resJson.data.token}&_t=${Date.now()}`;
+                                                                                        
+                                                                                        setActiveVideo({
+                                                                                            url: streamUrl,
+                                                                                            title: `${data?.translations?.find(t => t.lang === 'es')?.title || data?.originalTitle || 'Serie'} - T${season?.number}E${episode?.number}`
+                                                                                        });
+                                                                                    } else {
+                                                                                        alert('Error al acceder al episodio: ' + (resJson.error || 'Token denegado'));
+                                                                                    }
+                                                                                } catch (e: any) { 
+                                                                                    console.error(e); 
+                                                                                    alert('Error de conexión: ' + e.message);
                                                                                 }
-                                                                            } catch (e: any) { 
-                                                                                console.error(e); 
-                                                                                alert('Error de conexión: ' + e.message);
-                                                                            }
-                                                                        }}
-                                                                        className="adm-btn adm-btn--ghost adm-btn--sm" 
-                                                                        style={{ fontSize: '0.7rem', padding: '4px 10px' }}
-                                                                    >
-                                                                        Ver Episodio
-                                                                    </button>
+                                                                            }}
+                                                                            className="adm-btn adm-btn--ghost adm-btn--sm" 
+                                                                            style={{ fontSize: '0.7rem', padding: '4px 10px' }}
+                                                                        >
+                                                                            Ver Episodio
+                                                                        </button>
+                                                                    )}
 
                                                                     <button
                                                                         className="adm-btn adm-btn--ghost adm-btn--sm"
@@ -837,7 +839,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                                     >
                                                                         Borrar
                                                                     </button>
-                                                                </div>
+                                                                 </div>
                                                             </div>
                                                         );
                                                     })}
