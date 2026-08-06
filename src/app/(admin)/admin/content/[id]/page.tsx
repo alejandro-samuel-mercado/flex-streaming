@@ -815,7 +815,29 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                                     >
                                                                         Ver Episodio
                                                                     </button>
-                                                                )}
+
+                                                                    <button
+                                                                        className="adm-btn adm-btn--ghost adm-btn--sm"
+                                                                        style={{ padding: '4px 10px', fontSize: '0.7rem', color: '#ff4444', borderColor: 'rgba(255, 68, 68, 0.2)' }}
+                                                                        onClick={async () => {
+                                                                            if (confirm(`¿Estás seguro de que deseas borrar el Episodio ${episode.number}? Esto borrará el registro y los archivos de video HLS físicos.`)) {
+                                                                                try {
+                                                                                    const res = await fetch(`/api/admin/content/episode/${episode.id}`, {
+                                                                                        method: 'DELETE',
+                                                                                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                                                                                    });
+                                                                                    if (!res.ok) throw new Error('Error al borrar');
+                                                                                    alert('Episodio borrado correctamente.');
+                                                                                    window.location.reload();
+                                                                                } catch (e: any) {
+                                                                                    alert(e.message);
+                                                                                }
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        Borrar
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         );
                                                     })}
