@@ -866,7 +866,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                                         onClick={async () => {
                                                                             if (confirm(`¿Estás seguro de que deseas borrar el Episodio ${episode.number}? Esto borrará el registro y los archivos de video HLS físicos.`)) {
                                                                                 try {
-                                                                                    const res = await fetch(`/api/admin/content/episode/${episode.id}`, {
+                                                                                    const res = await fetch(`/api/content/episode/${episode.id}`, {
                                                                                         method: 'DELETE',
                                                                                         headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
                                                                                     });
