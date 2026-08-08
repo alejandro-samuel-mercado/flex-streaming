@@ -868,7 +868,7 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                                                                                 try {
                                                                                     const res = await fetch(`/api/admin/content/episode/${episode.id}`, {
                                                                                         method: 'DELETE',
-                                                                                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                                                                                        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
                                                                                     });
                                                                                     if (!res.ok) throw new Error('Error al borrar');
                                                                                     alert('Episodio borrado correctamente.');
