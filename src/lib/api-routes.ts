@@ -180,6 +180,10 @@ export const API_ROUTES = {
         DELETE: `${API_BASE_URL}/app/admin/version`,
         UPDATE_CHANGELOG: `${API_BASE_URL}/app/admin/changelog`,
     },
+    REQUESTS: {
+        ADMIN_LIST: `${API_BASE_URL}/requests/admin`,
+        ADMIN_STATUS: (id: string) => `${API_BASE_URL}/requests/admin/${id}/status`,
+    },
 } as const;
 
 // Robust helper to resolve media URLs (thumbnails, etc.)
