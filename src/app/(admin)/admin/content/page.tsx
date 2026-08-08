@@ -61,6 +61,7 @@ export default function AdminContentPage() {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
+    const [isInitialized, setIsInitialized] = useState(false);
     const limit = 30;
 
     // Selection State
@@ -72,11 +73,37 @@ export default function AdminContentPage() {
         if (saved) {
             try { setSelectedIds(JSON.parse(saved)); } catch (e) {}
         }
+
+        // Restore filters
+        setSearch(sessionStorage.getItem('ac_search') || '');
+        setDebouncedSearch(sessionStorage.getItem('ac_search') || '');
+        setFilterType(sessionStorage.getItem('ac_type') || '');
+        setFilterPlatform(sessionStorage.getItem('ac_platform') || '');
+        setFilterGenre(sessionStorage.getItem('ac_genre') || '');
+        setFilterStatus(sessionStorage.getItem('ac_status') || '');
+        setSort(sessionStorage.getItem('ac_sort') || 'recent');
+        setShowIncomplete(sessionStorage.getItem('ac_incomplete') === 'true');
+        setFilterMissingFiles(sessionStorage.getItem('ac_missing') === 'true');
+        setPage(parseInt(sessionStorage.getItem('ac_page') || '1', 10));
+        setIsInitialized(true);
     }, []);
 
     useEffect(() => {
         sessionStorage.setItem('admin_content_selected', JSON.stringify(selectedIds));
     }, [selectedIds]);
+
+    useEffect(() => {
+        if (!isInitialized) return;
+        sessionStorage.setItem('ac_search', search);
+        sessionStorage.setItem('ac_type', filterType);
+        sessionStorage.setItem('ac_platform', filterPlatform);
+        sessionStorage.setItem('ac_genre', filterGenre);
+        sessionStorage.setItem('ac_status', filterStatus);
+        sessionStorage.setItem('ac_sort', sort);
+        sessionStorage.setItem('ac_incomplete', showIncomplete.toString());
+        sessionStorage.setItem('ac_missing', filterMissingFiles.toString());
+        sessionStorage.setItem('ac_page', page.toString());
+    }, [search, filterType, filterPlatform, filterGenre, filterStatus, sort, showIncomplete, filterMissingFiles, page, isInitialized]);
 
     // Data
     const [contents, setContents] = useState<ContentItem[]>([]);
@@ -141,22 +168,24 @@ export default function AdminContentPage() {
     }, [page, sort, filterType, filterPlatform, filterStatus, debouncedSearch, showIncomplete, filterMissingFiles]);
 
     useEffect(() => {
+        if (!isInitialized) return;
         const timer = setTimeout(() => {
             setDebouncedSearch(search);
             if (search !== debouncedSearch) setPage(1);
         }, 500);
         return () => clearTimeout(timer);
-    }, [search, debouncedSearch]);
+    }, [search, debouncedSearch, isInitialized]);
 
     useEffect(() => {
         fetchMetadata();
     }, [fetchMetadata]);
 
     useEffect(() => {
+        if (!isInitialized) return;
         const controller = new AbortController();
         fetchContents(controller);
         return () => controller.abort();
-    }, [fetchContents]);
+    }, [fetchContents, isInitialized]);
 
     const handleDelete = async (id: string, title: string) => {
         if (!window.confirm(`¿Estás seguro de que deseas eliminar "${title}"?\nEsta acción no se puede deshacer.`)) return;
