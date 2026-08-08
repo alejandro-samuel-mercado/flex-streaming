@@ -24,6 +24,7 @@ interface ContentItem {
     videoFiles?: { status: string; qualities?: { resolution: string }[] }[];
     thumbnails?: { type: string; url: string }[];
     isPinned?: boolean;
+    hasMissingFiles?: boolean;
 }
 
 const STATUS_CLASS: Record<string, string> = {
@@ -54,6 +55,7 @@ export default function AdminContentPage() {
     const [filterStatus, setFilterStatus] = useState('');
     const [sort, setSort] = useState('recent');
     const [showIncomplete, setShowIncomplete] = useState(false);
+    const [filterMissingFiles, setFilterMissingFiles] = useState(false);
 
     // Pagination
     const [page, setPage] = useState(1);
@@ -117,6 +119,7 @@ export default function AdminContentPage() {
             if (filterGenre) params.append('genreId', filterGenre);
             if (filterStatus) params.append('status', filterStatus);
             if (showIncomplete) params.append('incomplete', 'true');
+            if (filterMissingFiles) params.append('hasMissingFiles', 'true');
 
             const res = await adminFetch(`${API_ROUTES.CONTENT.LIST}?${params}`, {
                 headers: {
@@ -135,7 +138,7 @@ export default function AdminContentPage() {
         } finally {
             setLoading(false);
         }
-    }, [page, sort, filterType, filterPlatform, filterStatus, debouncedSearch, showIncomplete]);
+    }, [page, sort, filterType, filterPlatform, filterStatus, debouncedSearch, showIncomplete, filterMissingFiles]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -376,6 +379,14 @@ export default function AdminContentPage() {
                 >
                     <AlertTriangle size={14} /> Incompletos
                 </button>
+
+                <button
+                    className={`adm-btn adm-btn--ghost${filterMissingFiles ? ' adm-btn--active' : ''}`}
+                    onClick={() => { setFilterMissingFiles(!filterMissingFiles); setPage(1); }}
+                    style={{ maxWidth: 130, ...(filterMissingFiles ? { background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' } : {}) }}
+                >
+                    <AlertTriangle size={14} /> Videos Vacíos
+                </button>
             </div>
 
             {selectedIds.length > 0 && (
@@ -452,7 +463,10 @@ export default function AdminContentPage() {
                             const poster = item.thumbnails?.find(t => t.type === 'POSTER')?.url;
 
                             return (
-                                <tr key={item.id} style={{ background: selectedIds.includes(item.id) ? 'rgba(59, 130, 246, 0.05)' : '' }}>
+                                <tr key={item.id} style={{ 
+                                    background: item.hasMissingFiles ? 'rgba(239, 68, 68, 0.15)' : selectedIds.includes(item.id) ? 'rgba(59, 130, 246, 0.05)' : '',
+                                    borderLeft: item.hasMissingFiles ? '4px solid #ef4444' : 'none'
+                                }}>
                                     <td style={{ textAlign: 'center' }}>
                                         <input type="checkbox" checked={selectedIds.includes(item.id)} onChange={() => toggleSelection(item.id)} style={{ cursor: 'pointer' }} />
                                     </td>

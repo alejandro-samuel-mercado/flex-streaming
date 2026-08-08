@@ -283,6 +283,39 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
         }
     };
 
+    const handleRescan = async () => {
+        if (!data) return;
+        showModal({
+            title: '¿Re-escanear Videos?',
+            message: 'Esto eliminará los archivos de video procesados (HLS) y los registros de la base de datos para este contenido. Los archivos originales (mp4/mkv) se mantendrán. ¿Estás seguro?',
+            type: 'confirm',
+            confirmText: 'Sí, Eliminar Videos',
+            cancelText: 'Cancelar',
+            onConfirm: async () => {
+                setSaving(true);
+                try {
+                    const token = localStorage.getItem('adminToken');
+                    const res = await adminFetch(`${API_ROUTES.CONTENT.BASE}/${id}/rescan`, {
+                        method: 'POST',
+                        headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+                    });
+                    const json = await res.json();
+                    if (res.ok && json.success) {
+                        alert(`Se eliminaron ${json.deletedVideoFiles} archivo(s) de video. El contenido está listo para re-escanearse.`);
+                        fetchData();
+                    } else {
+                        alert(json.error || 'Error al re-escanear');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Error de red al re-escanear');
+                } finally {
+                    setSaving(false);
+                }
+            }
+        });
+    };
+
     const resolveImageUrl = (url?: string) => {
         if (!url) return null;
         if (url.startsWith('http')) return url;
@@ -474,6 +507,15 @@ export default function EditContentPage({ params }: { params: Promise<{ id: stri
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: 12 }}>
+                    <button
+                        className="adm-btn"
+                        style={{ background: '#ef4444', color: 'white' }}
+                        onClick={handleRescan}
+                        disabled={saving}
+                        title="Borrar videos para que el scanner los vuelva a procesar"
+                    >
+                        <AlertTriangle size={16} /> Re-escanear
+                    </button>
                     <button
                         className="adm-btn"
                         style={{ background: data?.isPinned ? '#ef4444' : '#3b82f6', color: 'white' }}
