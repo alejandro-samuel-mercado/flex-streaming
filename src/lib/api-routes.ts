@@ -183,6 +183,8 @@ export const API_ROUTES = {
     REQUESTS: {
         ADMIN_LIST: `${API_BASE_URL}/requests/admin`,
         ADMIN_STATUS: (id: string) => `${API_BASE_URL}/requests/admin/${id}/status`,
+        ADMIN_DELETE: (id: string) => `${API_BASE_URL}/requests/admin/${id}`,
+        ADMIN_SETTINGS: `${API_BASE_URL}/requests/admin/settings`,
     },
 } as const;
 
