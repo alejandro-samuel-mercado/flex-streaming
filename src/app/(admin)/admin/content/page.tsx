@@ -2,7 +2,7 @@
 import { adminFetch } from '@/lib/admin-api';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Plus, Edit2, Trash2, Loader2, Film, FolderSearch, AlertTriangle, ChevronLeft, ChevronRight, SortAsc, SortDesc, Calendar, Eye, Star, Hash } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, Loader2, Film, FolderSearch, AlertTriangle, ChevronLeft, ChevronRight, SortAsc, SortDesc, Calendar, Eye, Star, Hash, Download } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { API_ROUTES, resolveImageUrl } from '@/lib/api-routes';
@@ -211,6 +211,31 @@ export default function AdminContentPage() {
         }
     };
 
+    const handleExport = async (type: 'MOVIE' | 'SERIES') => {
+        try {
+            const token = localStorage.getItem('adminToken');
+            const url = `${API_ROUTES.CONTENT.EXPORT}?type=${type}`;
+            const res = await fetch(url, {
+                headers: {
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                }
+            });
+            if (!res.ok) throw new Error('Error al exportar');
+            const blob = await res.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = `export_${type.toLowerCase()}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(downloadUrl);
+            document.body.removeChild(a);
+        } catch (err) {
+            console.error(err);
+            alert('Error al exportar contenido');
+        }
+    };
+
     const handlePinToggle = async (id: string, currentPin: boolean) => {
         try {
             const token = localStorage.getItem('adminToken');
@@ -307,7 +332,13 @@ export default function AdminContentPage() {
                     <h1 className="adm-page-title">Inventario de Contenido</h1>
                     <p className="adm-page-subtitle">Gestiona {totalItems} títulos en tu catálogo</p>
                 </div>
-                <div style={{ display: 'flex', gap: 10 }}>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                    <button className="adm-btn adm-btn--ghost" onClick={() => handleExport('MOVIE')} style={{ gap: 6, color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.3)' }}>
+                        <Download size={16} /> Excel Películas
+                    </button>
+                    <button className="adm-btn adm-btn--ghost" onClick={() => handleExport('SERIES')} style={{ gap: 6, color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.3)' }}>
+                        <Download size={16} /> Excel Series
+                    </button>
                     <Link href="/admin/content/files" className="adm-btn adm-btn--ghost" style={{ gap: 6 }}>
                         <FolderSearch size={16} /> Importar archivos
                     </Link>

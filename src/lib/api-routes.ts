@@ -41,6 +41,7 @@ export const API_ROUTES = {
         RECENT: `${API_BASE_URL}/content/recent`,
         RELATED: (id: string) => `${API_BASE_URL}/content/${id}/related`,
         BULK_ACTION: `${API_BASE_URL}/content/bulk-action`,
+        EXPORT: `${API_BASE_URL}/content/export/excel`,
     },
     ACTORS: {
         LIST: `${API_BASE_URL}/actors`,
