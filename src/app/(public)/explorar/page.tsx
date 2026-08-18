@@ -28,6 +28,7 @@ function ExploreContent() {
     const genreId = searchParams.get('genreId') || null;
     const platformId = searchParams.get('platformId') || null;
     const tagId = searchParams.get('tagId') || null;
+    const year = searchParams.get('year') || null;
     const quick = searchParams.get('quick') || null;
     const sort = searchParams.get('sort') || 'recent';
 
@@ -53,6 +54,9 @@ function ExploreContent() {
 
         if (newFilters.tagId) params.set('tagId', newFilters.tagId);
         else params.delete('tagId');
+
+        if (newFilters.year) params.set('year', newFilters.year);
+        else params.delete('year');
 
         if (newFilters.quick) params.set('quick', newFilters.quick);
         else params.delete('quick');
@@ -99,6 +103,7 @@ function ExploreContent() {
                     ...(genreId && { genreId }),
                     ...(platformId && { platformId }),
                     ...(tagId && { tagId }),
+                    ...(year && { year }),
                     ...(quick === 'recommended' && { featured: 'true' }),
                     ...(quick === 'premieres' && { minYear: new Date().getFullYear().toString() }),
                     ...(quick === 'latest' && { sort: 'recent' }),
@@ -127,7 +132,7 @@ function ExploreContent() {
 
         const timeoutId = setTimeout(fetchContent, 200);
         return () => clearTimeout(timeoutId);
-    }, [page, search, type, genreId, platformId, tagId, quick, sort]);
+    }, [page, search, type, genreId, platformId, tagId, quick, sort, year]);
 
     const totalPages = Math.ceil(total / 30);
 
@@ -140,7 +145,7 @@ function ExploreContent() {
                     genres={genres}
                     platforms={platforms}
                     tags={tags}
-                    activeFilters={{ page, search, type, genreId, platformId, tagId, quick, sort }}
+                    activeFilters={{ page, search, type, genreId, platformId, tagId, quick, sort, year }}
                     onFilterChange={updateFilters}
                 />
 
@@ -158,7 +163,7 @@ function ExploreContent() {
                                     <button
                                         key={s}
                                         className={`px-4! py-2! rounded-lg text-xs font-black uppercase transition ${sort === s ? 'bg-[var(--color-primary)] text-black' : 'text-white/40 hover:text-white'}`}
-                                        onClick={() => updateFilters({ page, search, type, genreId, platformId, tagId, quick, sort: s })}
+                                        onClick={() => updateFilters({ page, search, type, genreId, platformId, tagId, quick, sort: s, year })}
                                     >
                                         {s === 'recent' ? 'Recientes' : s === 'popular' ? 'Populares' : 'A-Z'}
                                     </button>
@@ -188,7 +193,7 @@ function ExploreContent() {
                             <button
                                 className="pagination-btn"
                                 disabled={page === 1}
-                                onClick={() => updateFilters({ page: page - 1, search, type, genreId, platformId, tagId, quick, sort })}
+                                onClick={() => updateFilters({ page: page - 1, search, type, genreId, platformId, tagId, quick, sort, year })}
                             >
                                 <ChevronLeft size={20} />
                             </button>
@@ -198,7 +203,7 @@ function ExploreContent() {
                             <button
                                 className="pagination-btn"
                                 disabled={page === totalPages}
-                                onClick={() => updateFilters({ page: page + 1, search, type, genreId, platformId, tagId, quick, sort })}
+                                onClick={() => updateFilters({ page: page + 1, search, type, genreId, platformId, tagId, quick, sort, year })}
                             >
                                 <ChevronRight size={20} />
                             </button>
