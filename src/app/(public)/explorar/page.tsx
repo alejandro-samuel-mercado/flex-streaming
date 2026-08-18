@@ -158,17 +158,19 @@ function ExploreContent() {
                         </div>
 
                         <div className="flex items-center gap-4">
-                            <select
-                                className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs font-black uppercase text-white outline-none focus:border-[var(--color-primary)] transition-colors appearance-none cursor-pointer min-w-[140px]"
-                                style={{ backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'white\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
-                                value={year || ''}
-                                onChange={(e) => updateFilters({ page: 1, search, type, genreId, platformId, tagId, quick, sort, year: e.target.value === '' ? null : e.target.value })}
-                            >
-                                <option value="" className="bg-[#030612] text-white">AÑO (TODOS)</option>
-                                {Array.from({ length: new Date().getFullYear() - 1920 + 1 }, (_, i) => new Date().getFullYear() - i).map(y => (
-                                    <option key={y} value={y} className="bg-[#030612] text-white">{y}</option>
-                                ))}
-                            </select>
+                            <div className="flex items-center bg-white/5 border border-white/10 rounded-xl p-1 gap-1">
+                                <select
+                                    className="bg-transparent px-4! py-2! rounded-lg text-xs font-black uppercase text-white outline-none cursor-pointer appearance-none min-w-[140px] hover:text-[var(--color-primary)] transition-colors"
+                                    style={{ backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
+                                    value={year || ''}
+                                    onChange={(e) => updateFilters({ page: 1, search, type, genreId, platformId, tagId, quick, sort, year: e.target.value === '' ? null : e.target.value })}
+                                >
+                                    <option value="" className="bg-[#030612] text-white">AÑO (TODOS)</option>
+                                    {Array.from({ length: new Date().getFullYear() - 1920 + 1 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                                        <option key={y} value={y} className="bg-[#030612] text-white">{y}</option>
+                                    ))}
+                                </select>
+                            </div>
 
                             <div className="flex items-center bg-white/5 border border-white/10 rounded-xl p-1 gap-1">
                                 {['az'].map((s) => (
