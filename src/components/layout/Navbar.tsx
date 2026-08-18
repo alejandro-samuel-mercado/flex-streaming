@@ -154,9 +154,6 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [] 
                         <Link href="/explorar" className="nav-cinema-item font-black tracking-widest text-[var(--color-primary)] hover:scale-105 transition-all">
                             EXPLORAR
                         </Link>
-                        <Link href="/explorar?quick=premieres" className="nav-cinema-item font-black tracking-widest hover:text-[var(--color-primary)] hover:scale-105 transition-all">
-                            ESTRENOS
-                        </Link>
 
                         {/* Explore page specific items or hiding them */}
                         {!isExplorePage && (
@@ -258,6 +255,10 @@ export default function Navbar({ contentTypes = [], platforms = [], genres = [] 
                                 </div>
                             </>
                         )}
+
+                        <Link href="/explorar?quick=premieres" className="nav-cinema-item hover:text-[var(--color-primary)] transition-all">
+                            Estrenos
+                        </Link>
                     </div>
                 </div>
 
