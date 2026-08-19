@@ -25,6 +25,9 @@ export default function SuperVendorVendorsPage() {
     // Package Tab State
     const [pkgTab, setPkgTab] = useState<'NORMAL' | 'PROMO'>('NORMAL');
 
+    // Menu State
+    const [openMenu, setOpenMenu] = useState<string | null>(null);
+
     // Edit Vendor State
     const [showEdit, setShowEdit] = useState<any | null>(null);
     const [editForm, setEditForm] = useState({ name: '', username: '', phone: '', password: '' });
@@ -52,6 +55,13 @@ export default function SuperVendorVendorsPage() {
     }, []);
 
     useEffect(() => { fetchVendors(); fetchPackages(); fetchCredits(); }, [fetchVendors, fetchPackages, fetchCredits]);
+
+    useEffect(() => {
+        if (!openMenu) return;
+        const handleOutsideClick = () => setOpenMenu(null);
+        document.addEventListener('click', handleOutsideClick);
+        return () => document.removeEventListener('click', handleOutsideClick);
+    }, [openMenu]);
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -389,13 +399,13 @@ export default function SuperVendorVendorsPage() {
                                     </button>
                                     
                                     <div style={{ position: 'relative' }}>
-                                        <button className="vendor-uc-btn vendor-uc-btn-icon" onClick={(e) => { e.stopPropagation(); setShowCredits(showCredits === v.id ? null : v.id); /* hack using showCredits to toggle menu */ }}><MoreVertical size={18} /></button>
-                                        {showCredits === v.id && !selectedPackageId && ( /* if pkg is selected, it's modal, else it's menu */
+                                        <button className="vendor-uc-btn vendor-uc-btn-icon" onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === v.id ? null : v.id); }}><MoreVertical size={18} /></button>
+                                        {openMenu === v.id && (
                                             <div className="adm-dropdown" style={{ position: 'absolute', right: 0, bottom: '110%', zIndex: 100, minWidth: 200, background: '#0a0f25', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 8, boxShadow: '0 10px 40px rgba(0,0,0,0.5)' }}>
-                                                <button className="adm-dropdown-item" onClick={(e) => { e.stopPropagation(); setShowEdit(v); setEditForm({ name: v.name || '', username: v.username || '', phone: v.phone || '', password: '' }); setShowCredits(null); }}>Editar Datos</button>
-                                                <button className="adm-dropdown-item" onClick={(e) => { e.stopPropagation(); setShowResetPwd({ id: v.id, name: v.name }); setNewPwd(''); setShowCredits(null); }}>Cambiar Contraseña</button>
+                                                <button className="adm-dropdown-item" onClick={(e) => { e.stopPropagation(); setShowEdit(v); setEditForm({ name: v.name || '', username: v.username || '', phone: v.phone || '', password: '' }); setOpenMenu(null); }}>Editar Datos</button>
+                                                <button className="adm-dropdown-item" onClick={(e) => { e.stopPropagation(); setShowResetPwd({ id: v.id, name: v.name }); setNewPwd(''); setOpenMenu(null); }}>Cambiar Contraseña</button>
                                                 <div style={{ height: 1, background: 'rgba(255,255,255,0.05)', margin: '6px 0' }} />
-                                                <button className="adm-dropdown-item text-red-400" onClick={(e) => { e.stopPropagation(); handleDelete(v.id, v.name); setShowCredits(null); }}>Eliminar Vendedor</button>
+                                                <button className="adm-dropdown-item text-red-400" onClick={(e) => { e.stopPropagation(); handleDelete(v.id, v.name); setOpenMenu(null); }}>Eliminar Vendedor</button>
                                             </div>
                                         )}
                                     </div>
